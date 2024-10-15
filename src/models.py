@@ -30,12 +30,13 @@ class Question(BaseModel):
             f"Question ID: {self.question_id}\n"
             f"Construct: {self.construct_name} (ID: {self.construct_id})\n"
             f"Subject: {self.subject_name} (ID: {self.subject_id})\n"
-            f"Correct Answer: {self.correct_answer}\n"
             f"Question Text: {self.question_text}\n"
-            f"A: {self.answer_a_text}\n"
-            f"B: {self.answer_b_text}\n"
-            f"C: {self.answer_c_text}\n"
-            f"D: {self.answer_d_text}"
+            f"Answer Options:\n"
+            f"  A) {self.answer_a_text}\n"
+            f"  B) {self.answer_b_text}\n"
+            f"  C) {self.answer_c_text}\n"
+            f"  D) {self.answer_d_text}\n"
+            f"Correct Answer: {self.correct_answer}"
         )
         return content
 
