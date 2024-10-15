@@ -59,6 +59,7 @@ def define_misconception_collection(client: weaviate.Client, collection_name: st
 
 import ollama
 
+
 def embed_misconceptions(client: weaviate.Client, collection_name: str = "Misconception") -> List[Dict]:
     """
     Load all misconceptions, generate embeddings using Ollama's nomic-embed-text, and insert into Weaviate.
@@ -72,7 +73,7 @@ def embed_misconceptions(client: weaviate.Client, collection_name: str = "Miscon
     for mc in tqdm(misconceptions, desc="Embedding Misconceptions"):
         # Generate embedding using Ollama
         embedding = ollama.embed(model='nomic-embed-text', input=mc.MisconceptionName)
-        
+
         obj = {
             "MisconceptionId": mc.MisconceptionId,
             "MisconceptionName": mc.MisconceptionName,
@@ -98,6 +99,7 @@ def embed_misconceptions(client: weaviate.Client, collection_name: str = "Miscon
 
 import ollama
 
+
 def test_retrieval(client: weaviate.Client, query: str, collection_name: str = "Misconception", k: int = 5):
     """
     Perform a test retrieval of misconceptions based on the input query.
@@ -106,7 +108,7 @@ def test_retrieval(client: weaviate.Client, query: str, collection_name: str = "
     try:
         # Generate embedding for the query
         query_embedding = ollama.embed(model='nomic-embed-text', input=query)
-        
+
         response = client.query.get(collection_name, ["MisconceptionId", "MisconceptionName"]) \
             .with_near_vector({"vector": query_embedding, "distance": 0.7}) \
             .with_limit(k) \
@@ -128,7 +130,7 @@ def test_retrieval(client: weaviate.Client, query: str, collection_name: str = "
 def main():
     parser = argparse.ArgumentParser(
         description="Embed all misconceptions using Ollama's nomic-embed-text and perform a test retrieval."
-        )
+    )
     parser.add_argument("--query", type=str, default="biology", help="The query string to perform test retrieval.")
     parser.add_argument("--collection", type=str, default="Misconception", help="The name of the Weaviate collection.")
     parser.add_argument("--limit", type=int, default=5, help="Number of top misconceptions to retrieve.")
