@@ -87,14 +87,17 @@ def embed_misconceptions(client: WeaviateClient, collection_name: str = "Misconc
     objects_to_insert = []
     for mc in tqdm(misconceptions, desc="Embedding Misconceptions"):
         # Generate embedding using Ollama
-        embedding = ollama.embed(model='nomic-embed-text', input=mc.MisconceptionName)
+        embedding_response = ollama.embed(model='nomic-embed-text', input=mc.MisconceptionName)
+        
+        # Extract the actual embedding vector from the response
+        embedding_vector = embedding_response['embedding']
 
         obj = wvc.data.DataObject(
             properties={
                 "MisconceptionId": mc.MisconceptionId,
                 "MisconceptionName": mc.MisconceptionName,
             },
-            vector=embedding
+            vector=embedding_vector
         )
         objects_to_insert.append(obj)
 
@@ -117,11 +120,14 @@ def test_retrieval(client: WeaviateClient, query: str, collection_name: str = "M
     logger.info(f"Performing a test retrieval for query: '{query}'")
     try:
         # Generate embedding for the query
-        query_embedding = ollama.embed(model='nomic-embed-text', input=query)
+        query_embedding_response = ollama.embed(model='nomic-embed-text', input=query)
+        
+        # Extract the actual embedding vector from the response
+        query_embedding_vector = query_embedding_response['embedding']
 
         collection = client.collections.get(collection_name)
         results = collection.query.near_vector(
-            vector=query_embedding,
+            vector=query_embedding_vector,
             limit=k,
             return_properties=["MisconceptionId", "MisconceptionName"]
         )
