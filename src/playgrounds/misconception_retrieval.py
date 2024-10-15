@@ -5,6 +5,9 @@ import weaviate.classes as wvc
 from loguru import logger
 from typing import List, Dict
 from tqdm import tqdm
+from weaviate.client import WeaviateClient
+
+import ollama
 
 from src.models import Misconception
 from src.data_loader import load_misconception_mapping
@@ -25,7 +28,7 @@ def connect_weaviate():
     return client
 
 
-def define_misconception_collection(client: weaviate.Client, collection_name: str = "Misconception"):
+def define_misconception_collection(client: WeaviateClient, collection_name: str = "Misconception"):
     """
     Define a new collection in embedded Weaviate for storing misconceptions.
     """
@@ -59,10 +62,7 @@ def define_misconception_collection(client: weaviate.Client, collection_name: st
         raise
 
 
-import ollama
-
-
-def embed_misconceptions(client: weaviate.Client, collection_name: str = "Misconception") -> List[Dict]:
+def embed_misconceptions(client: WeaviateClient, collection_name: str = "Misconception") -> List[Dict]:
     """
     Load all misconceptions, generate embeddings using Ollama's nomic-embed-text, and insert into Weaviate.
     """
@@ -95,10 +95,7 @@ def embed_misconceptions(client: weaviate.Client, collection_name: str = "Miscon
     return objects_to_insert
 
 
-import ollama
-
-
-def test_retrieval(client: weaviate.Client, query: str, collection_name: str = "Misconception", k: int = 5):
+def test_retrieval(client: WeaviateClient, query: str, collection_name: str = "Misconception", k: int = 5):
     """
     Perform a test retrieval of misconceptions based on the input query.
     """
