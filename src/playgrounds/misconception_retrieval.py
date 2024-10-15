@@ -8,6 +8,7 @@ from tqdm import tqdm
 from weaviate.client import WeaviateClient
 
 import ollama
+from weaviate.collections.classes.data import DataObject
 
 from src.models import Misconception
 from src.data_loader import load_misconception_mapping
@@ -62,7 +63,8 @@ def define_misconception_collection(client: WeaviateClient, collection_name: str
         raise
 
 
-def embed_misconceptions(client: WeaviateClient, collection_name: str = "Misconception", limit: int = None) -> List[Dict]:
+def embed_misconceptions(client: WeaviateClient, collection_name: str = "Misconception", limit: int = None) -> List[
+    DataObject]:
     """
     Load misconceptions, generate embeddings using Ollama's nomic-embed-text, and insert into Weaviate.
     
@@ -81,16 +83,19 @@ def embed_misconceptions(client: WeaviateClient, collection_name: str = "Misconc
             logger.warning(f"Limiting ingestion to {limit} misconceptions out of {total_misconceptions}.")
             misconceptions = misconceptions[:limit]
         else:
-            logger.info(f"Limit {limit} is greater than or equal to total misconceptions. Ingesting all {total_misconceptions}.")
+            logger.info(
+                f"Limit {limit} is greater than or equal to total misconceptions. Ingesting all {total_misconceptions}."
+            )
 
     # Prepare data for insertion
     objects_to_insert = []
     for mc in tqdm(misconceptions, desc="Embedding Misconceptions"):
         # Generate embedding using Ollama
-        embedding_response = ollama.embed(model='nomic-embed-text', input=mc.MisconceptionName)
-        
+        text_to_embed = f"search_document: {mc.MisconceptionName}"
+        embedding_response = ollama.embed(model='nomic-embed-text', input=[text_to_embed])
+
         # Extract the actual embedding vector from the response
-        embedding_vector = embedding_response['embedding']
+        embedding_vector = embedding_response['embeddings'][0]
 
         obj = wvc.data.DataObject(
             properties={
@@ -121,9 +126,9 @@ def test_retrieval(client: WeaviateClient, query: str, collection_name: str = "M
     try:
         # Generate embedding for the query
         query_embedding_response = ollama.embed(model='nomic-embed-text', input=query)
-        
+
         # Extract the actual embedding vector from the response
-        query_embedding_vector = query_embedding_response['embedding']
+        query_embedding_vector = query_embedding_response['embeddings']
 
         collection = client.collections.get(collection_name)
         results = collection.query.near_vector(
@@ -151,9 +156,17 @@ def main():
     parser.add_argument("--query", type=str, default="biology", help="The query string to perform test retrieval.")
     parser.add_argument("--collection", type=str, default="Misconception", help="The name of the Weaviate collection.")
     parser.add_argument("--limit", type=int, default=5, help="Number of top misconceptions to retrieve.")
-    parser.add_argument("--ingest_limit", type=int, default=None, help="Maximum number of misconceptions to ingest. If not specified, ingest all.")
+    parser.add_argument(
+        # "--ingest_limit", type=int, default=None,
+        "--ingest_limit", type=int, default=100,
+        help="Maximum number of misconceptions to ingest. If not specified, ingest all."
+    )
     args = parser.parse_args()
 
+    pipeline(args)
+
+
+def pipeline(args):
     try:
         client = connect_weaviate()
         define_misconception_collection(client, args.collection)
@@ -165,3 +178,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # pipeline()
