@@ -29,6 +29,40 @@ class Question(BaseModel):
     answer_c_text: str
     answer_d_text: str
 
+    def __repr__(self) -> str:
+        content = (
+            f"[bold cyan]Question ID:[/bold cyan] {self.question_id}\n"
+            f"[bold cyan]Construct:[/bold cyan] {self.construct_name} (ID: {self.construct_id})\n"
+            f"[bold cyan]Subject:[/bold cyan] {self.subject_name} (ID: {self.subject_id})\n"
+            f"[bold cyan]Correct Answer:[/bold cyan] {self.correct_answer}\n"
+            f"[bold cyan]Question Text:[/bold cyan] {self.question_text}\n"
+            f"[bold cyan]A:[/bold cyan] {self.answer_a_text}\n"
+            f"[bold cyan]B:[/bold cyan] {self.answer_b_text}\n"
+            f"[bold cyan]C:[/bold cyan] {self.answer_c_text}\n"
+            f"[bold cyan]D:[/bold cyan] {self.answer_d_text}"
+        )
+        panel = Panel.fit(
+            Text(content, style="bold white"),
+            title="[bold green]Question Representation[/bold green]",
+            border_style="green"
+        )
+        return console.render_str(panel)
+
+    def __str__(self) -> str:
+        content = (
+            f"[bold blue]ID:[/bold blue] {self.question_id} | "
+            f"[bold blue]Construct:[/bold blue] {self.construct_name} | "
+            f"[bold blue]Subject:[/bold blue] {self.subject_name} | "
+            f"[bold blue]Correct Answer:[/bold blue] {self.correct_answer}\n"
+            f"[bold blue]Question:[/bold blue] {self.question_text}"
+        )
+        panel = Panel(
+            Text(content, style="bold white"),
+            title="[bold blue]Question Overview[/bold blue]",
+            border_style="blue"
+        )
+        return console.render_str(panel)
+
     @field_validator('question_text', 'answer_a_text', 'answer_b_text', 'answer_c_text', 'answer_d_text')
     @classmethod
     def not_empty(cls, v: str) -> str:
