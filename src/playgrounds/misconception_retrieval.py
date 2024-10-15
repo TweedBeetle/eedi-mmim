@@ -33,8 +33,14 @@ def connect_weaviate():
 def define_misconception_collection(client: WeaviateClient, collection_name: str = "Misconception"):
     """
     Define a new collection in embedded Weaviate for storing misconceptions.
+    If the collection already exists, delete it and recreate.
     """
     try:
+        # Check if the collection exists
+        if client.collections.exists(collection_name):
+            logger.warning(f"Collection '{collection_name}' already exists. Deleting and recreating.")
+            client.collections.delete(collection_name)
+
         misconceptions = client.collections.create(
             name=collection_name,
             description="A collection of mathematical misconceptions.",
@@ -60,12 +66,6 @@ def define_misconception_collection(client: WeaviateClient, collection_name: str
             ],
         )
         logger.info(f"Collection '{collection_name}' created successfully.")
-    except weaviate.exceptions.UnexpectedStatusCodeException as e:
-        if e.status_code == 422:
-            logger.info(f"Collection '{collection_name}' already exists. Skipping creation.")
-        else:
-            logger.exception(f"Failed to create collection '{collection_name}': {e}")
-            raise
     except Exception as e:
         logger.exception(f"Failed to create collection '{collection_name}': {e}")
         raise
