@@ -1,0 +1,2312 @@
+========== Page https://dspy-docs.vercel.app/docs/intro ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+About DSPy
+==========
+
+**DSPy is a framework for algorithmically optimizing LM prompts and weights**, especially when LMs are used one or more times within a pipeline. To use LMs to build a complex system _without_ DSPy, you generally have to: (1) break the problem down into steps, (2) prompt your LM well until each step works well in isolation, (3) tweak the steps to work well together, (4) generate synthetic examples to tune each step, and (5) use these examples to finetune smaller LMs to cut costs. Currently, this is hard and messy: every time you change your pipeline, your LM, or your data, all prompts (or finetuning steps) may need to change.
+
+To make this more systematic and much more powerful, **DSPy** does two things. First, it separates the flow of your program (`modules`) from the parameters (LM prompts and weights) of each step. Second, **DSPy** introduces new `optimizers`, which are LM-driven algorithms that can tune the prompts and/or the weights of your LM calls, given a `metric` you want to maximize.
+
+**DSPy** can routinely teach powerful models like `GPT-3.5` or `GPT-4` and local models like `T5-base` or `Llama2-13b` to be much more reliable at tasks, i.e. having higher quality and/or avoiding specific failure patterns. **DSPy** optimizers will "compile" the _same_ program into _different_ instructions, few-shot prompts, and/or weight updates (finetunes) for each LM. This is a new paradigm in which LMs and their prompts fade into the background as optimizable pieces of a larger system that can learn from data. **tldr;** less prompting, higher scores, and a more systematic approach to solving hard tasks with LMs.
+
+Analogy to Neural Networks[​](#analogy-to-neural-networks "Direct link to Analogy to Neural Networks")
+
+-------------------------------------------------------------------------------------------------------
+
+When we build neural networks, we don't write manual _for-loops_ over lists of _hand-tuned_ floats. Instead, you might use a framework like [PyTorch](https://pytorch.org/)
+ to compose layers (e.g., `Convolution` or `Dropout`) and then use optimizers (e.g., SGD or Adam) to learn the parameters of the network.
+
+Ditto! **DSPy** gives you the right general-purpose modules (e.g. `ChainOfThought`, `ReAct`, etc.), which replace string-based prompting tricks. To replace prompt hacking and one-off synthetic data generators, **DSPy** also gives you general optimizers (`BootstrapFewShotWithRandomSearch` or `MIPRO`), which are algorithms that update parameters in your program. Whenever you modify your code, your data, your assertions, or your metric, you can _compile_ your program again and **DSPy** will create new effective prompts that fit your changes.
+
+*   [Analogy to Neural Networks](#analogy-to-neural-networks)
+
+
+========== Page https://dspy-docs.vercel.app/docs/quick-start/minimal-example ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Minimal Working Example
+=======================
+
+In this post, we walk you through a minimal working example using the DSPy library.
+
+We make use of the [GSM8K dataset](https://huggingface.co/datasets/gsm8k)
+ and the OpenAI GPT-3.5-turbo model to simulate prompting tasks within DSPy.
+
+Setup[​](#setup "Direct link to Setup")
+
+----------------------------------------
+
+Before we jump into the example, let's ensure our environment is properly configured. We'll start by importing the necessary modules and configuring our language model:
+
+    import dspyfrom dspy.datasets.gsm8k import GSM8K, gsm8k_metric# Set up the LM.turbo = dspy.OpenAI(model='gpt-3.5-turbo-instruct', max_tokens=250)dspy.settings.configure(lm=turbo)# Load math questions from the GSM8K dataset.gsm8k = GSM8K()gsm8k_trainset, gsm8k_devset = gsm8k.train[:10], gsm8k.dev[:10]
+
+Let's take a look at what `gsm8k_trainset` and `gsm8k_devset` are:
+
+    print(gsm8k_trainset)
+
+The `gsm8k_trainset` and `gsm8k_devset` datasets contain lists of `dspy.Examples`, with each example having `question` and `answer` fields.
+
+Define the Module[​](#define-the-module "Direct link to Define the Module")
+
+----------------------------------------------------------------------------
+
+With our environment set up, let's define a custom program that utilizes the [`ChainOfThought`](/docs/deep-dive/modules/ChainOfThought)
+ module to perform step-by-step reasoning to generate answers:
+
+    class CoT(dspy.Module):    def __init__(self):        super().__init__()        self.prog = dspy.ChainOfThought("question -> answer")        def forward(self, question):        return self.prog(question=question)
+
+Compile and Evaluate the Model[​](#compile-and-evaluate-the-model "Direct link to Compile and Evaluate the Model")
+
+-------------------------------------------------------------------------------------------------------------------
+
+With our simple program in place, let's move on to compiling it with the [`BootstrapFewShot`](/docs/deep-dive/optimizers/bootstrap-fewshot)
+ teleprompter:
+
+    from dspy.teleprompt import BootstrapFewShot# Set up the optimizer: we want to "bootstrap" (i.e., self-generate) 4-shot examples of our CoT program.config = dict(max_bootstrapped_demos=4, max_labeled_demos=4)# Optimize! Use the `gsm8k_metric` here. In general, the metric is going to tell the optimizer how well it's doing.teleprompter = BootstrapFewShot(metric=gsm8k_metric, **config)optimized_cot = teleprompter.compile(CoT(), trainset=gsm8k_trainset)
+
+Note that `BootstrapFewShot` is not an optimizing teleprompter, i.e. it simply creates and validates examples for steps of the pipeline (in this case, chain-of-thought reasoning) but does not optimize the metric. Other teleprompters like `BootstrapFewShotWithRandomSearch` and `MIPRO` will apply direct optimization.
+
+Evaluate[​](#evaluate "Direct link to Evaluate")
+
+-------------------------------------------------
+
+Now that we have a compiled (optimized) DSPy program, let's move to evaluating its performance on the dev dataset.
+
+    from dspy.evaluate import Evaluate# Set up the evaluator, which can be used multiple times.evaluate = Evaluate(devset=gsm8k_devset, metric=gsm8k_metric, num_threads=4, display_progress=True, display_table=0)# Evaluate our `optimized_cot` program.evaluate(optimized_cot)
+
+Inspect the Model's History[​](#inspect-the-models-history "Direct link to Inspect the Model's History")
+
+---------------------------------------------------------------------------------------------------------
+
+For a deeper understanding of the model's interactions, we can review the most recent generations through inspecting the model's history:
+
+    turbo.inspect_history(n=1)
+
+And there you have it! You've successfully created a working example using the DSPy library.
+
+This example showcases how to set up your environment, define a custom module, compile a model, and rigorously evaluate its performance using the provided dataset and teleprompter configurations.
+
+Feel free to adapt and expand upon this example to suit your specific use case while exploring the extensive capabilities of DSPy.
+
+If you want to try what you just built, run `optimized_cot(question='Your Question Here')`.
+
+note
+
+For a more comprehensive walkthrough with detailed examples, please refer to the introduction colab: [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/stanfordnlp/dspy/blob/main/intro.ipynb)
+.
+
+* * *
+
+Written By: Herumb Shandilya
+
+[](https://twitter.com/krypticmouse)
+[](https://www.linkedin.com/in/herumb-shandilya/)
+[](https://herumbshandilya.com/)
+
+*   [Setup](#setup)
+
+*   [Define the Module](#define-the-module)
+
+*   [Compile and Evaluate the Model](#compile-and-evaluate-the-model)
+
+*   [Evaluate](#evaluate)
+
+*   [Inspect the Model's History](#inspect-the-models-history)
+
+
+========== Page https://dspy-docs.vercel.app/docs/building-blocks/solving_your_task ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Using DSPy in 8 Steps
+=====================
+
+Using DSPy well for solving a new task is just doing good machine learning with LMs.
+
+What this means is that it's an iterative process. You make some initial choices, which will be sub-optimal, and then you refine them incrementally.
+
+As we discuss below, you will define your task and the metrics you want to maximize, and prepare a few example inputs — typically without labels (or only with labels for the final outputs, if your metric requires them). Then, you build your pipeline by selecting built-in layers [(`modules`)](/docs/building-blocks/modules)
+ to use, giving each layer a [`signature` (input/output spec)](/docs/building-blocks/signatures)
+, and then calling your modules freely in your Python code. Lastly, you use a DSPy [`optimizer`](/docs/building-blocks/optimizers)
+ to compile your code into high-quality instructions, automatic few-shot examples, or updated LM weights for your LM.
+
+1) Define your task.[​](#1-define-your-task "Direct link to 1) Define your task.")
+
+-----------------------------------------------------------------------------------
+
+You cannot use DSPy well if you haven't defined the problem you're trying to solve.
+
+**Expected Input/Output Behavior:** Are you trying to build a chatbot over your data? A code assistant? A system for extracting information from papers? Or perhaps a translation system? Or a system for highlighting snippets from search results? Or a system to summarize information on a topic, with citations?
+
+It's often useful to come up with just 3-4 examples of the inputs and outputs of your program (e.g., questions and their answers, or topics and their summaries).
+
+If you need help thinking about your task, we recently created a [Discord server](https://discord.gg/XCGy2WDCQB)
+ for the community.
+
+**Quality and Cost Specs:** You probably don't have infinite budget. Your final system can't be too expensive to run, and it should probably respond to users quickly enough.
+
+Take this as an opportunity to guess what kind of language model you'd like to use. Maybe GPT-3.5? Or a small open model, like Mistral-7B or Llama2-13B-chat? Or Mixtral? Or maybe you really need GPT-4-turbo? Or perhaps your resources are very constrained, and you want your final LM to be T5-base.
+
+2) Define your pipeline.[​](#2-define-your-pipeline "Direct link to 2) Define your pipeline.")
+
+-----------------------------------------------------------------------------------------------
+
+What should your DSPy program do? Can it just be a simple chain-of-thought step? Or do you need the LM to use retrieval? Or maybe other tools, like a calculator or a calendar API?
+
+Is there a typical workflow for solving your problem in multiple well-defined steps? Or do you want a fully open-ended LM (or open-ended tool use with agents) for your task?
+
+Think about this space but always start simple. Almost every task should probably start with just a single [dspy.ChainofThought](/docs/deep-dive/modules/ChainOfThought)
+ module, and then add complexity incrementally as you go.
+
+Then write your (initial) DSPy program. Again: start simple, and let the next few steps guide any complexity you will add.
+
+3) Explore a few examples.[​](#3-explore-a-few-examples "Direct link to 3) Explore a few examples.")
+
+-----------------------------------------------------------------------------------------------------
+
+By this point, you probably have a few examples of the task you're trying to solve.
+
+Run them through your pipeline. Consider using a large and powerful LM at this point, or a couple of different LMs, just to understand what's possible. (DSPy will make swapping these LMs pretty easy - [LM Guide](/docs/building-blocks/language_models)
+.)
+
+At this point, you're still using your pipeline zero-shot, so it will be far from perfect. DSPy will help you optimize the instructions, few-shot examples, and even weights of your LM calls below, but understanding where things go wrong in zero-shot usage will go a long way.
+
+Record the interesting (both easy and hard) examples you try: even if you don't have labels, simply tracking the inputs you tried will be useful for DSPy optimizers below.
+
+4) Define your data.[​](#4-define-your-data "Direct link to 4) Define your data.")
+
+-----------------------------------------------------------------------------------
+
+Now it's time to more formally declare your training and validation data for DSPy evaluation and optimization - [Data Guide](/docs/building-blocks/data)
+.
+
+You can use DSPy optimizers usefully with as few as 10 examples, but having 50-100 examples (or even better, 300-500 examples) goes a long way.
+
+How can you get examples like these? If your task is extremely unusual, please invest in preparing ~10 examples by hand. Often times, depending on your metric below, you just need inputs and not labels, so it's not that hard.
+
+However, chances are that your task is not actually that unique. You can almost always find somewhat adjacent datasets on, say, HuggingFace datasets or other forms of data that you can leverage here.
+
+If there's data whose licenses are permissive enough, we suggest you use them. Otherwise, you can also start using/deploying/demoing your system and collect some initial data that way.
+
+5) Define your metric.[​](#5-define-your-metric "Direct link to 5) Define your metric.")
+
+-----------------------------------------------------------------------------------------
+
+What makes outputs from your system good or bad? Invest in defining metrics and improving them over time incrementally. It's really hard to consistently improve what you aren't able to define.
+
+A metric is just a function that will take examples from your data and take the output of your system, and return a score that quantifies how good the output is - [Metric Guide](/docs/building-blocks/metrics)
+.
+
+For simple tasks, this could be just "accuracy" or "exact match" or "F1 score". This may be the case for simple classification or short-form QA tasks.
+
+However, for most applications, your system will output long-form outputs. There, your metric should probably be a smaller DSPy program that checks multiple properties of the output (quite possibly using AI feedback from LMs).
+
+Getting this right on the first try is unlikely, but you should start with something simple and iterate. (If your metric is itself a DSPy program, notice that one of the most powerful ways to iterate is to compile (optimize) your metric itself. That's usually easy because the output of the metric is usually a simple value (e.g., a score out of 5) so the metric's metric is easy to define and optimize by collecting a few examples.)
+
+6) Collect preliminary "zero-shot" evaluations.[​](#6-collect-preliminary-zero-shot-evaluations "Direct link to 6) Collect preliminary "zero-shot" evaluations.")
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Now that you have some data and a metric, run evaluation on your pipeline before any optimizer runs.
+
+Look at the outputs and the metric scores. This will probably allow you to spot any major issues, and it will define a baseline for your next step.
+
+7) Compile with a DSPy optimizer.[​](#7-compile-with-a-dspy-optimizer "Direct link to 7) Compile with a DSPy optimizer.")
+
+--------------------------------------------------------------------------------------------------------------------------
+
+Given some data and a metric, we can now optimize the program you built - [Optimizer Guide](/docs/building-blocks/optimizers)
+.
+
+DSPy includes many optimizers that do different things. Remember: DSPy optimizers will create examples of each step, craft instructions, and/or update LM weights. In general, you don't need to have labels for your pipeline steps, but your data examples need to have input values and whatever labels your metric requires (e.g., no labels if your metric is reference-free, but final output labels otherwise in most cases).
+
+Here's the general guidance on getting started:
+
+*   If you have very little data, e.g. 10 examples of your task, use [`BootstrapFewShot`](/docs/deep-dive/optimizers/bootstrap-fewshot)
+
+*   If you have slightly more data, e.g. 50 examples of your task, use [`BootstrapFewShotWithRandomSearch`](/docs/deep-dive/optimizers/bfrs)
+    .
+
+*   If you have more data than that, e.g. 300 examples or more, use [`MIPRO`](/docs/deep-dive/optimizers/miprov2)
+    .
+
+*   If you have been able to use one of these with a large LM (e.g., 7B parameters or above) and need a very efficient program, compile that down to a small LM with `BootstrapFinetune`.
+
+
+8) Iterate.[​](#8-iterate "Direct link to 8) Iterate.")
+
+--------------------------------------------------------
+
+At this point, you are either very happy with everything (we've seen quite a few people get it right on first try with DSPy) or, more likely, you've made a lot of progress but you don't like something about the final program or the metric.
+
+At this point, go back to step 1 and revisit the major questions. Did you define your task well? Do you need to collect (or find online) more data for your problem? Do you want to update your metric? And do you want to use a more sophisticated optimizer? Do you need to consider advanced features like [DSPy Assertions](/docs/building-blocks/assertions)
+? Or, perhaps most importantly, do you want to add some more complexity or steps in your DSPy program itself? Do you want to use multiple optimizers in a sequence?
+
+Iterative development is key. DSPy gives you the pieces to do that incrementally: iterating on your data, your program structure, your assertions, your metric, and your optimization steps.
+
+Optimizing complex LM programs is an entirely new paradigm that only exists in DSPy at the time of writing, so naturally the norms around what to do are still emerging. If you need help, we recently created a [Discord server](https://discord.gg/VzS6RHHK6F)
+ for the community.
+
+*   [1) Define your task.](#1-define-your-task)
+
+*   [2) Define your pipeline.](#2-define-your-pipeline)
+
+*   [3) Explore a few examples.](#3-explore-a-few-examples)
+
+*   [4) Define your data.](#4-define-your-data)
+
+*   [5) Define your metric.](#5-define-your-metric)
+
+*   [6) Collect preliminary "zero-shot" evaluations.](#6-collect-preliminary-zero-shot-evaluations)
+
+*   [7) Compile with a DSPy optimizer.](#7-compile-with-a-dspy-optimizer)
+
+*   [8) Iterate.](#8-iterate)
+
+
+========== Page https://dspy-docs.vercel.app/docs/building-blocks/language_models ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Language Models
+===============
+
+The most powerful features in DSPy revolve around algorithmically optimizing the prompts (or weights) of LMs, especially when you're building programs that use the LMs within a pipeline.
+
+Let's first make sure you can set up your language model. DSPy support clients for many remote and local LMs.
+
+Using `dspy.LM`[​](#using-dspylm "Direct link to using-dspylm")
+
+----------------------------------------------------------------
+
+warning
+
+Earlier versions of DSPy involved tons of clients for different LM providers, e.g. `dspy.OpenAI`, `dspy.GoogleVertexAI`, and `dspy.HFClientTGI`, etc. These are now deprecated and will be removed in DSPy 2.6.
+
+Instead, use `dspy.LM` to access any LM endpoint for local and remote models. This relies on [LiteLLM](https://github.com/BerriAI/litellm)
+ to translate the different client APIs into an OpenAI-compatible interface.
+
+Any [provider supported in LiteLLM](https://docs.litellm.ai/docs/providers)
+ should work with `dspy.LM`.
+
+### Setting up the LM client[​](#setting-up-the-lm-client "Direct link to Setting up the LM client")
+
+In DSPy 2.5, we use the `dspy.LM` class to set up language models. This replaces the previous client-specific classes. Then, use `dspy.configure` to declare this as the default LM.
+
+For example, to use OpenAI language models, you can do it as follows.
+
+    lm = dspy.LM('openai/gpt-4o-mini')dspy.configure(lm=lm)
+
+### Directly calling the LM[​](#directly-calling-the-lm "Direct link to Directly calling the LM")
+
+You can simply call the LM with a string to give it a raw prompt, i.e. a string.
+
+    lm("hello! this is a raw prompt to GPT-4o-mini")
+
+**Output:**
+
+    ["Hello! It looks like you're trying to interact with a model. How can I assist you today?"]
+
+For chat LMs, you can pass a list of messages.
+
+    lm(messages=[{"role": "system", "content": "You are a helpful assistant."},             {"role": "user", "content": "What is 2+2?"}])
+
+**Output:**
+
+    ['2 + 2 equals 4.']
+
+This is almost never the recommended way to interact with LMs in DSPy, but it is allowed.
+
+### Using the LM with DSPy signatures[​](#using-the-lm-with-dspy-signatures "Direct link to Using the LM with DSPy signatures")
+
+You can also use the LM via DSPy [`signature` (input/output spec)](https://dspy-docs.vercel.app/docs/building-blocks/signatures)
+ and [`modules`](https://dspy-docs.vercel.app/docs/building-blocks/modules)
+, which we discuss in more depth in the remaining guides.
+
+    # Define a module (ChainOfThought) and assign it a signature (return an answer, given a question).qa = dspy.ChainOfThought('question -> answer')# Run with the default LM configured with `dspy.configure` above.response = qa(question="How many floors are in the castle David Gregory inherited?")print(response.answer)
+
+**Output:**
+
+    The castle David Gregory inherited has 7 floors.
+
+### Using multiple LMs at once.[​](#using-multiple-lms-at-once "Direct link to Using multiple LMs at once.")
+
+The default LM above is GPT-3.5, `gpt3_turbo`. What if I want to run a piece of code with, say, GPT-4 or LLama-2?
+
+Instead of changing the default LM, you can just change it inside a block of code.
+
+tip
+
+Using `dspy.configure` and `dspy.context` is thread-safe!
+
+    # Run with the default LM configured above, i.e. GPT-3.5response = qa(question="How many floors are in the castle David Gregory inherited?")print('GPT-3.5:', response.answer)gpt4_turbo = dspy.OpenAI(model='gpt-4-1106-preview', max_tokens=300)# Run with GPT-4 insteadwith dspy.context(lm=gpt4_turbo):    response = qa(question="How many floors are in the castle David Gregory inherited?")    print('GPT-4-turbo:', response.answer)
+
+**Output:**
+
+    GPT-3.5: The castle David Gregory inherited has 7 floors.GPT-4-turbo: The number of floors in the castle David Gregory inherited cannot be determined with the information provided.
+
+### Configuring LM attributes[​](#configuring-lm-attributes "Direct link to Configuring LM attributes")
+
+For any LM, you can configure any of the following attributes at initialization or per call.
+
+    gpt_4o_mini = dspy.LM('openai/gpt-4o-mini', temperature=0.9, max_tokens=3000, stop=None, cache=False)
+
+By default LMs in DSPy are cached. If you repeat the same call, you will get the same outputs. But you can turn of caching by setting `cache=False` while declaring `dspy.LM` object.
+
+### Using locally hosted LMs[​](#using-locally-hosted-lms "Direct link to Using locally hosted LMs")
+
+Any OpenAI-compatible endpoint is easy to set up with an `openai/` prefix as well. This works great for open LMs from HuggingFace hosted locally with SGLang, VLLM, or HF Text-Generation-Inference.
+
+    sglang_port = 7501sglang_url = f"http://localhost:{sglang_port}/v1"sglang_llama = dspy.LM("openai/meta-llama/Meta-Llama-3-8B-Instruct", api_base=sglang_url)# You could also use text mode, in which the prompts are *not* formatted as messages.sglang_llama_text = dspy.LM("openai/meta-llama/Meta-Llama-3-8B-Instruct", api_base=sglang_url, model_type='text')
+
+### Inspecting output and usage metadata[​](#inspecting-output-and-usage-metadata "Direct link to Inspecting output and usage metadata")
+
+Every LM object maintains the history of its interactions, including inputs, outputs, token usage (and $$$ cost), and metadata.
+
+    len(lm.history)  # e.g., 3 calls to the LMlm.history[-1].keys()  # access the last call to the LM, with all metadata
+
+**Output:**
+
+    dict_keys(['prompt', 'messages', 'kwargs', 'response', 'outputs', 'usage', 'cost'])
+
+Creating Custom LM Class[​](#creating-custom-lm-class "Direct link to Creating Custom LM Class")
+
+-------------------------------------------------------------------------------------------------
+
+Creating custom LM class is quite straightforward in DSPy. You can inherit from the `dspy.LM` class or create a new class with a similar interface. You'll need to implement/override the three methods:
+
+*   `__init__`: Initialize the LM with the given `model` and other keyword arguments.
+*   `__call__`: Call the LM with the given input prompt and return a list of string outputs.
+*   `inspect_history`: The history of interactions with the LM. This is optional but is needed by some optimizers in DSPy.
+
+tip
+
+If there is not much overlap in features between your LM and LiteLLM it's better to not inherit and implement all methods from ground up.
+
+Let's create an LM for Gemini using `google-generativeai` package from scratch:
+
+    import osimport dspyimport google.generativeai as genaiclass GeminiLM(dspy.LM):    def __init__(self, model, api_key=None, endpoint=None, **kwargs):        genai.configure(api_key=os.environ["GEMINI_API_KEY"] or api_key)        self.endpoint = endpoint        self.history = []        super().__init__(model, **kwargs)        self.model = genai.GenerativeModel(model)    def __call__(self, prompt=None, messages=None, **kwargs):        # Custom chat model working for text completion model        prompt = '\n\n'.join([x['content'] for x in messages] + ['BEGIN RESPONSE:'])        completions = self.model.generate_content(prompt)        self.history.append({"prompt": prompt, "completions": completions})                # Must return a list of strings        return [completions.candidates[0].content.parts[0].text]    def inspect_history(self):        for interaction in self.history:            print(f"Prompt: {interaction['prompt']} -> Completions: {interaction['completions']}")lm = GeminiLM("gemini-1.5-flash", temperature=0)dspy.configure(lm=lm)qa = dspy.ChainOfThought("question->answer")qa(question="What is the capital of France?")
+
+**Output:**
+
+    Prediction(    reasoning='France is a country in Western Europe. Its capital city is Paris.',    answer='Paris')
+
+The above example is the simplest form of LM. You can add more options to tweak generation config and even control the generated output based on your requirement.
+
+Structured LM output with Adapters[​](#structured-lm-output-with-adapters "Direct link to Structured LM output with Adapters")
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+Prompt optimizers in DSPy generate and tune the _instructions_ or the _examples_ in the prompts corresponding to your Signatures. DSPy 2.5 introduces **Adapters** as a layer between Signatures and LMs, responsible for formatting these pieces (Signature I/O fields, instructions, and examples) as well as generating and parsing the outputs.
+
+In DSPy 2.5, the default Adapters are now more natively aware of chat LMs and are responsible for enforcing types, building on earlier experimental features from `TypedPredictor` and `configure(experimental=True)`. In our experience, this change tends to deliver more consistent pre-optimization quality from various LMs, especially for sophisticated Signatures.
+
+    lm = dspy.LM('openai/gpt-4o-mini')dspy.configure(lm=lm, experimental=True)fact_checking = dspy.ChainOfThought('claims -> verdicts')fact_checking(claims=["Python was released in 1991.", "Python is a compiled language."])
+
+**Output:**
+
+    Prediction(    reasoning='The first claim states that "Python was released in 1991," which is true. Python was indeed first released by Guido van Rossum in February 1991. The second claim states that "Python is a compiled language." This is false; Python is primarily an interpreted language, although it can be compiled to bytecode, it is not considered a compiled language in the traditional sense like C or Java.',    verdicts=[True, False])
+
+### Defining Custom Adapters[​](#defining-custom-adapters "Direct link to Defining Custom Adapters")
+
+warning
+
+Adapters are low level feature that change the way input and output is handled by DSPy, it's not recommended to build and use custom Adapters unless you are sure of what you are doing.
+
+Adapters are a powerful feature in DSPy, allowing you to define custom behavior for your Signatures.
+
+For example, you could define an Adapter that automatically converts the input to uppercase before passing it to the LM. This is a simple example, but it shows how you can create custom Adapters that modify the inputs or outputs of your LMs.
+
+You'll need to inherit the base `Adapter` class and implement two method to create a usable custom Adapter:
+
+*   `format`: This method is responsible for formatting the input for the LM. This method takes `signature`, `demos` and `inputs` as input parameters. Demos are in-context examples set manually or through example. The output of this function can be a string prompt supported by completions function, list of message dictionary or any format that the LM you are using supports.
+
+*   `parse`: This method is responsible for parsing the output of the LM. This method takes `signature`, `completions` and `_parse_values` as input parameters.
+
+
+    from dspy.adapters.base import Adapterfrom typing import List, Dictclass UpperCaseAdapter(Adapter):    def __init__(self):        super().__init__()    def format(self, signature, demos, inputs):        system_prompt = signature.instructions        all_fields = signature.model_fields        all_field_data = [(all_fields[f].json_schema_extra["prefix"], all_fields[f].json_schema_extra["desc"]) for f in all_fields]        all_field_data_str = "\n".join([f"{p}: {d}" for p, d in all_field_data])        format_instruction_prompt = "="*20 + f"""\n\nOutput Format:\n\n{all_field_data_str}\n\n""" + "="*20        all_input_fields = signature.input_fields        input_fields_data = [(all_input_fields[f].json_schema_extra["prefix"], inputs[f]) for f in all_input_fields]        input_fields_str = "\n".join([f"{p}: {v}" for p, v in input_fields_data])        # Convert to uppercase        return (system_prompt + format_instruction_prompt + input_fields_str).upper()    def parse(self, signature, completions, _parse_values=None):        output_fields = signature.output_fields                output_dict = {}        for field in output_fields:            field_info = output_fields[field]            prefix = field_info.json_schema_extra["prefix"]            field_completion = completions.split(prefix.upper())[-1].split("\n")[0].strip(": ")            output_dict[field] = field_completion        return output_dict
+
+Let's understand the `UpperCaseAdapter` class. The `format` method takes `signature`, `demos`, and `inputs` as input parameters. It then constructs a prompt by combining the system prompt, format instruction prompt, and input fields. It then converts the prompt to uppercase.
+
+The `parse` method takes `signature`, `completions`, and `_parse_values` as input parameters. It then extracts the output fields from the completions and returns them as a dictionary.
+
+Once you have defined your custom Adapter, you can use it in your Signatures by passing it as an argument to the `dspy.configure` method.
+
+    dspy.configure(adapter=UpperCaseAdapter())
+
+Now, when you run an inference over a Signature, the input will be converted to uppercase before being passed to the LM. The output will be parsed as a dictionary.
+
+    lm = dspy.LM('openai/gpt-4o-mini')dspy.configure(lm=lm, adapter=UpperCaseAdapter())qa = dspy.ChainOfThought('question -> answer')response = qa(question="How many floors are in the castle David Gregory inherited?")response
+
+**Output:**
+
+    Prediction(    reasoning='determine the number of floors in the castle that David Gregory inherited. This information typically comes from a specific source or context, such as a book, movie, or historical reference. Without that context, I cannot provide an exact number.',    answer='I do not have the specific information regarding the number of floors in the castle David Gregory inherited.')
+
+Now let's see how the prompt after Adapter looks like!
+
+    lm.inspect_history()
+
+**Output:**
+
+    User message:GIVEN THE FIELDS `QUESTION`, PRODUCE THE FIELDS `ANSWER`.====================OUTPUT FORMAT:QUESTION:: ${QUESTION}REASONING: LET'S THINK STEP BY STEP IN ORDER TO: ${REASONING}ANSWER:: ${ANSWER}====================QUESTION:: HOW MANY FLOORS ARE IN THE CASTLE DAVID GREGORY INHERITED?Response:QUESTION:: HOW MANY FLOORS ARE IN THE CASTLE DAVID GREGORY INHERITED?  REASONING: LET'S THINK STEP BY STEP IN ORDER TO: determine the number of floors in the castle that David Gregory inherited. This information typically comes from a specific source or context, such as a book, movie, or historical reference. Without that context, I cannot provide an exact number.  ANSWER:: I do not have the specific information regarding the number of floors in the castle David Gregory inherited.
+
+The above example is a simple Adapter that converts the input to uppercase before passing it to the LM. You can define more complex Adapters based on your requirements.
+
+### Overriding `__call__` method[​](#overriding-__call__-method "Direct link to overriding-__call__-method")
+
+To gain control over usage of format and parse and even more fine-grained control over the flow of input from signature to outputs you can override `__call__` method and implement your custom flow. Although for most cases only implementing `parse` and `format` function will be fine.
+
+*   [Using `dspy.LM`](#using-dspylm)
+    *   [Setting up the LM client](#setting-up-the-lm-client)
+
+    *   [Directly calling the LM](#directly-calling-the-lm)
+
+    *   [Using the LM with DSPy signatures](#using-the-lm-with-dspy-signatures)
+
+    *   [Using multiple LMs at once.](#using-multiple-lms-at-once)
+
+    *   [Configuring LM attributes](#configuring-lm-attributes)
+
+    *   [Using locally hosted LMs](#using-locally-hosted-lms)
+
+    *   [Inspecting output and usage metadata](#inspecting-output-and-usage-metadata)
+
+*   [Creating Custom LM Class](#creating-custom-lm-class)
+
+*   [Structured LM output with Adapters](#structured-lm-output-with-adapters)
+    *   [Defining Custom Adapters](#defining-custom-adapters)
+
+    *   [Overriding `__call__` method](#overriding-__call__-method)
+
+
+========== Page https://dspy-docs.vercel.app/docs/building-blocks/signatures ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Signatures
+==========
+
+When we assign tasks to LMs in DSPy, we specify the behavior we need as a Signature.
+
+**A signature is a declarative specification of input/output behavior of a DSPy module.** Signatures allow you to tell the LM _what_ it needs to do, rather than specify _how_ we should ask the LM to do it.
+
+You're probably familiar with function signatures, which specify the input and output arguments and their types. DSPy signatures are similar, but the differences are that:
+
+*   While typical function signatures just _describe_ things, DSPy Signatures _define and control the behavior_ of modules.
+
+*   The field names matter in DSPy Signatures. You express semantic roles in plain English: a `question` is different from an `answer`, a `sql_query` is different from `python_code`.
+
+
+Why should I use a DSPy Signature?[​](#why-should-i-use-a-dspy-signature "Direct link to Why should I use a DSPy Signature?")
+
+------------------------------------------------------------------------------------------------------------------------------
+
+**tl;dr** For modular and clean code, in which LM calls can be optimized into high-quality prompts (or automatic finetunes).
+
+**Long Answer:** Most people coerce LMs to do tasks by hacking long, brittle prompts. Or by collecting/generating data for fine-tuning.
+
+Writing signatures is far more modular, adaptive, and reproducible than hacking at prompts or finetunes. The DSPy compiler will figure out how to build a highly-optimized prompt for your LM (or finetune your small LM) for your signature, on your data, and within your pipeline. In many cases, we found that compiling leads to better prompts than humans write. Not because DSPy optimizers are more creative than humans, but simply because they can try more things and tune the metrics directly.
+
+**Inline** DSPy Signatures[​](#inline-dspy-signatures "Direct link to inline-dspy-signatures")
+
+-----------------------------------------------------------------------------------------------
+
+Signatures can be defined as a short string, with argument names that define semantic roles for inputs/outputs.
+
+1.  Question Answering: `"question -> answer"`
+
+2.  Sentiment Classification: `"sentence -> sentiment"`
+
+3.  Summarization: `"document -> summary"`
+
+
+Your signatures can also have multiple input/output fields.
+
+4.  Retrieval-Augmented Question Answering: `"context, question -> answer"`
+
+5.  Multiple-Choice Question Answering with Reasoning: `"question, choices -> reasoning, selection"`
+
+
+**Tip:** For fields, any valid variable names work! Field names should be semantically meaningful, but start simple and don't prematurely optimize keywords! Leave that kind of hacking to the DSPy compiler. For example, for summarization, it's probably fine to say `"document -> summary"`, `"text -> gist"`, or `"long_context -> tldr"`.
+
+### Example A: Sentiment Classification[​](#example-a-sentiment-classification "Direct link to Example A: Sentiment Classification")
+
+    sentence = "it's a charming and often affecting journey."  # example from the SST-2 dataset.classify = dspy.Predict('sentence -> sentiment')classify(sentence=sentence).sentiment
+
+**Output:**
+
+    'Positive'
+
+### Example B: Summarization[​](#example-b-summarization "Direct link to Example B: Summarization")
+
+    # Example from the XSum dataset.document = """The 21-year-old made seven appearances for the Hammers and netted his only goal for them in a Europa League qualification round match against Andorran side FC Lustrains last season. Lee had two loan spells in League One last term, with Blackpool and then Colchester United. He scored twice for the U's but was unable to save them from relegation. The length of Lee's contract with the promoted Tykes has not been revealed. Find all the latest football transfers on our dedicated page."""summarize = dspy.ChainOfThought('document -> summary')response = summarize(document=document)print(response.summary)
+
+**Output:**
+
+    The 21-year-old Lee made seven appearances and scored one goal for West Ham last season. He had loan spells in League One with Blackpool and Colchester United, scoring twice for the latter. He has now signed a contract with Barnsley, but the length of the contract has not been revealed.
+
+Many DSPy modules (except `dspy.Predict`) return auxiliary information by expanding your signature under the hood.
+
+For example, `dspy.ChainOfThought` also adds a `rationale` field that includes the LM's reasoning before it generates the output `summary`.
+
+    print("Rationale:", response.rationale)
+
+**Output:**
+
+    Rationale: produce the summary. We need to highlight the key points about Lee's performance for West Ham, his loan spells in League One, and his new contract with Barnsley. We also need to mention that his contract length has not been disclosed.
+
+**Class-based** DSPy Signatures[​](#class-based-dspy-signatures "Direct link to class-based-dspy-signatures")
+
+--------------------------------------------------------------------------------------------------------------
+
+For some advanced tasks, you need more verbose signatures. This is typically to:
+
+1.  Clarify something about the nature of the task (expressed below as a `docstring`).
+
+2.  Supply hints on the nature of an input field, expressed as a `desc` keyword argument for `dspy.InputField`.
+
+3.  Supply constraints on an output field, expressed as a `desc` keyword argument for `dspy.OutputField`.
+
+
+### Example C: Classification[​](#example-c-classification "Direct link to Example C: Classification")
+
+Notice how the docstring contains (minimal) instructions, which in this case are necessary to have a fully-defined task.
+
+Some optimizers in DSPy, like `COPRO`, can take this simple docstring and then generate more effective variants if needed.
+
+    class Emotion(dspy.Signature):    """Classify emotion among sadness, joy, love, anger, fear, surprise."""        sentence = dspy.InputField()    sentiment = dspy.OutputField()sentence = "i started feeling a little vulnerable when the giant spotlight started blinding me"  # from dair-ai/emotionclassify = dspy.Predict(Emotion)classify(sentence=sentence)
+
+**Output:**
+
+    Prediction(    sentiment='Fear')
+
+**Tip:** There's nothing wrong with specifying your requests to the LM more clearly. Class-based Signatures help you with that. However, don't prematurely tune the keywords of the your signature by hand. The DSPy optimizers will likely do a better job (and will transfer better across LMs).
+
+### Example D: A metric that evaluates faithfulness to citations[​](#example-d-a-metric-that-evaluates-faithfulness-to-citations "Direct link to Example D: A metric that evaluates faithfulness to citations")
+
+    class CheckCitationFaithfulness(dspy.Signature):    """Verify that the text is based on the provided context."""    context = dspy.InputField(desc="facts here are assumed to be true")    text = dspy.InputField()    faithfulness = dspy.OutputField(desc="True/False indicating if text is faithful to context")context = "The 21-year-old made seven appearances for the Hammers and netted his only goal for them in a Europa League qualification round match against Andorran side FC Lustrains last season. Lee had two loan spells in League One last term, with Blackpool and then Colchester United. He scored twice for the U's but was unable to save them from relegation. The length of Lee's contract with the promoted Tykes has not been revealed. Find all the latest football transfers on our dedicated page."text = "Lee scored 3 goals for Colchester United."faithfulness = dspy.ChainOfThought(CheckCitationFaithfulness)faithfulness(context=context, text=text)
+
+**Output:**
+
+    Prediction(    rationale="produce the faithfulness. We know that Lee had two loan spells in League One last term, with Blackpool and then Colchester United. He scored twice for the U's but was unable to save them from relegation. However, there is no mention of him scoring three goals for Colchester United.",    faithfulness='False')
+
+Using signatures to build modules & compiling them[​](#using-signatures-to-build-modules--compiling-them "Direct link to Using signatures to build modules & compiling them")
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+While signatures are convenient for prototyping with structured inputs/outputs, that's not the main reason to use them!
+
+You should compose multiple signatures into bigger [DSPy modules](https://dspy-docs.vercel.app/docs/building-blocks/modules)
+ and [compile these modules into optimized prompts](https://dspy-docs.vercel.app/docs/building-blocks/optimizers#what-does-a-dspy-optimizer-tune-how-does-it-tune-them)
+ and finetunes.
+
+*   [Why should I use a DSPy Signature?](#why-should-i-use-a-dspy-signature)
+
+*   [**Inline** DSPy Signatures](#inline-dspy-signatures)
+    *   [Example A: Sentiment Classification](#example-a-sentiment-classification)
+
+    *   [Example B: Summarization](#example-b-summarization)
+
+*   [**Class-based** DSPy Signatures](#class-based-dspy-signatures)
+    *   [Example C: Classification](#example-c-classification)
+
+    *   [Example D: A metric that evaluates faithfulness to citations](#example-d-a-metric-that-evaluates-faithfulness-to-citations)
+
+*   [Using signatures to build modules & compiling them](#using-signatures-to-build-modules--compiling-them)
+
+
+========== Page https://dspy-docs.vercel.app/docs/building-blocks/modules ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Modules
+=======
+
+A **DSPy module** is a building block for programs that use LMs.
+
+*   Each built-in module abstracts a **prompting technique** (like chain of thought or ReAct). Crucially, they are generalized to handle any [DSPy Signature](https://dspy-docs.vercel.app/docs/building-blocks/signatures)
+    .
+
+*   A DSPy module has **learnable parameters** (i.e., the little pieces comprising the prompt and the LM weights) and can be invoked (called) to process inputs and return outputs.
+
+*   Multiple modules can be composed into bigger modules (programs). DSPy modules are inspired directly by NN modules in PyTorch, but applied to LM programs.
+
+
+How do I use a built-in module, like `dspy.Predict` or `dspy.ChainOfThought`?[​](#how-do-i-use-a-built-in-module-like-dspypredict-or-dspychainofthought "Direct link to how-do-i-use-a-built-in-module-like-dspypredict-or-dspychainofthought")
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Let's start with the most fundamental module, `dspy.Predict`. Internally, all other DSPy modules are just built using `dspy.Predict`.
+
+We'll assume you are already at least a little familiar with [DSPy signatures](https://dspy-docs.vercel.app/docs/building-blocks/signatures)
+, which are declarative specs for defining the behavior of any module we use in DSPy.
+
+To use a module, we first **declare** it by giving it a signature. Then we **call** the module with the input arguments, and extract the output fields!
+
+    sentence = "it's a charming and often affecting journey."  # example from the SST-2 dataset.# 1) Declare with a signature.classify = dspy.Predict('sentence -> sentiment')# 2) Call with input argument(s). response = classify(sentence=sentence)# 3) Access the output.print(response.sentiment)
+
+**Output:**
+
+    Positive
+
+When we declare a module, we can pass configuration keys to it.
+
+Below, we'll pass `n=5` to request five completions. We can also pass `temperature` or `max_len`, etc.
+
+Let's use `dspy.ChainOfThought`. In many cases, simply swapping `dspy.ChainOfThought` in place of `dspy.Predict` improves quality.
+
+    question = "What's something great about the ColBERT retrieval model?"# 1) Declare with a signature, and pass some config.classify = dspy.ChainOfThought('question -> answer', n=5)# 2) Call with input argument.response = classify(question=question)# 3) Access the outputs.response.completions.answer
+
+**Output:**
+
+    ['One great thing about the ColBERT retrieval model is its superior efficiency and effectiveness compared to other models.', 'Its ability to efficiently retrieve relevant information from large document collections.', 'One great thing about the ColBERT retrieval model is its superior performance compared to other models and its efficient use of pre-trained language models.', 'One great thing about the ColBERT retrieval model is its superior efficiency and accuracy compared to other models.', 'One great thing about the ColBERT retrieval model is its ability to incorporate user feedback and support complex queries.']
+
+Let's discuss the output object here.
+
+The `dspy.ChainOfThought` module will generally inject a `rationale` before the output field(s) of your signature.
+
+Let's inspect the (first) rationale and answer!
+
+    print(f"Rationale: {response.rationale}")print(f"Answer: {response.answer}")
+
+**Output:**
+
+    Rationale: produce the answer. We can consider the fact that ColBERT has shown to outperform other state-of-the-art retrieval models in terms of efficiency and effectiveness. It uses contextualized embeddings and performs document retrieval in a way that is both accurate and scalable.Answer: One great thing about the ColBERT retrieval model is its superior efficiency and effectiveness compared to other models.
+
+This is accessible whether we request one or many completions.
+
+We can also access the different completions as a list of `Prediction`s or as several lists, one for each field.
+
+    response.completions[3].rationale == response.completions.rationale[3]
+
+**Output:**
+
+    True
+
+What other DSPy modules are there? How can I use them?[​](#what-other-dspy-modules-are-there-how-can-i-use-them "Direct link to What other DSPy modules are there? How can I use them?")
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+The others are very similar. They mainly change the internal behavior with which your signature is implemented!
+
+1.  **`dspy.Predict`**: Basic predictor. Does not modify the signature. Handles the key forms of learning (i.e., storing the instructions and demonstrations and updates to the LM).
+
+2.  **`dspy.ChainOfThought`**: Teaches the LM to think step-by-step before committing to the signature's response.
+
+3.  **`dspy.ProgramOfThought`**: Teaches the LM to output code, whose execution results will dictate the response.
+
+4.  **`dspy.ReAct`**: An agent that can use tools to implement the given signature.
+
+5.  **`dspy.MultiChainComparison`**: Can compare multiple outputs from `ChainOfThought` to produce a final prediction.
+
+
+We also have some function-style modules:
+
+6.  **`dspy.majority`**: Can do basic voting to return the most popular response from a set of predictions.
+
+Check out further examples in [each module's respective guide](/docs/category/modules)
+.
+
+How do I compose multiple modules into a bigger program?[​](#how-do-i-compose-multiple-modules-into-a-bigger-program "Direct link to How do I compose multiple modules into a bigger program?")
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DSPy is just Python code that uses modules in any control flow you like. (There's some magic internally at `compile` time to trace your LM calls.)
+
+What this means is that, you can just call the modules freely. No weird abstractions for chaining calls.
+
+This is basically PyTorch's design approach for define-by-run / dynamic computation graphs. Refer to the intro tutorials for examples.
+
+*   [How do I use a built-in module, like `dspy.Predict` or `dspy.ChainOfThought`?](#how-do-i-use-a-built-in-module-like-dspypredict-or-dspychainofthought)
+
+*   [What other DSPy modules are there? How can I use them?](#what-other-dspy-modules-are-there-how-can-i-use-them)
+
+*   [How do I compose multiple modules into a bigger program?](#how-do-i-compose-multiple-modules-into-a-bigger-program)
+
+
+========== Page https://dspy-docs.vercel.app/docs/building-blocks/data ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Data
+====
+
+DSPy is a machine learning framework, so working in it involves training sets, development sets, and test sets.
+
+For each example in your data, we distinguish typically between three types of values: the inputs, the intermediate labels, and the final label. You can use DSPy effectively without any intermediate or final labels, but you will need at least a few example inputs.
+
+How much data do I need and how do I collect data for my task?[​](#how-much-data-do-i-need-and-how-do-i-collect-data-for-my-task "Direct link to How much data do I need and how do I collect data for my task?")
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Concretely, you can use DSPy optimizers usefully with as few as 10 example inputs, but having 50-100 examples (or even better, 300-500 examples) goes a long way.
+
+How can you get examples like these? If your task is extremely unusual, please invest in preparing ~10 examples by hand. Often times, depending on your metric below, you just need inputs and not labels, so it's not that hard.
+
+However, chances are that your task is not actually that unique. You can almost always find somewhat adjacent datasets on, say, HuggingFace datasets or other forms of data that you can leverage here.
+
+If there's data whose licenses are permissive enough, we suggest you use them. Otherwise, you can also start using/deploying/demoing your system and collect some initial data that way.
+
+DSPy `Example` objects[​](#dspy-example-objects "Direct link to dspy-example-objects")
+
+---------------------------------------------------------------------------------------
+
+The core data type for data in DSPy is `Example`. You will use **Examples** to represent items in your training set and test set.
+
+DSPy **Examples** are similar to Python `dict`s but have a few useful utilities. Your DSPy modules will return values of the type `Prediction`, which is a special sub-class of `Example`.
+
+When you use DSPy, you will do a lot of evaluation and optimization runs. Your individual datapoints will be of type `Example`:
+
+    qa_pair = dspy.Example(question="This is a question?", answer="This is an answer.")print(qa_pair)print(qa_pair.question)print(qa_pair.answer)
+
+**Output:**
+
+    Example({'question': 'This is a question?', 'answer': 'This is an answer.'}) (input_keys=None)This is a question?This is an answer.
+
+Examples can have any field keys and any value types, though usually values are strings.
+
+    object = Example(field1=value1, field2=value2, field3=value3, ...)
+
+You can now express your training set for example as:
+
+    trainset = [dspy.Example(report="LONG REPORT 1", summary="short summary 1"), ...]
+
+### Specifying Input Keys[​](#specifying-input-keys "Direct link to Specifying Input Keys")
+
+In traditional ML, there are separated "inputs" and "labels".
+
+In DSPy, the `Example` objects have a `with_inputs()` method, which can mark specific fields as inputs. (The rest are just metadata or labels.)
+
+    # Single Input.print(qa_pair.with_inputs("question"))# Multiple Inputs; be careful about marking your labels as inputs unless you mean it.print(qa_pair.with_inputs("question", "answer"))
+
+Values can be accessed using the `.`(dot) operator. You can access the value of key `name` in defined object `Example(name="John Doe", job="sleep")` through `object.name`.
+
+To access or exclude certain keys, use `inputs()` and `labels()` methods to return new Example objects containing only input or non-input keys, respectively.
+
+    article_summary = dspy.Example(article= "This is an article.", summary= "This is a summary.").with_inputs("article")input_key_only = article_summary.inputs()non_input_key_only = article_summary.labels()print("Example object with Input fields only:", input_key_only)print("Example object with Non-Input fields only:", non_input_key_only)
+
+**Output**
+
+    Example object with Input fields only: Example({'article': 'This is an article.'}) (input_keys=None)Example object with Non-Input fields only: Example({'summary': 'This is a summary.'}) (input_keys=None)
+
+Loading Dataset from sources[​](#loading-dataset-from-sources "Direct link to Loading Dataset from sources")
+
+-------------------------------------------------------------------------------------------------------------
+
+One of the most convinient way to import dataset in DSPy is by using `DataLoader`. The first step is to declare an object, this object can then be used to call utilities to load datasets in different formats:
+
+    from dspy.datasets import DataLoaderdl = DataLoader()
+
+For most dataset formats, it's quite straightforward you pass the file path to the corresponding method of the format and you'll get the list of `Example` for the dataset in return:
+
+    import pandas as pdcsv_dataset = dl.from_csv(    "sample_dataset.csv",    fields=("instruction", "context", "response"),    input_keys=("instruction", "context"))json_dataset = dl.from_json(    "sample_dataset.json",    fields=("instruction", "context", "response"),    input_keys=("instruction", "context"))parquet_dataset = dl.from_parquet(    "sample_dataset.parquet",    fields=("instruction", "context", "response"),    input_keys=("instruction", "context"))pandas_dataset = dl.from_pandas(    pd.read_csv("sample_dataset.csv"),    # DataFrame    fields=("instruction", "context", "response"),    input_keys=("instruction", "context"))
+
+These are some supported formats that `DataLoader` supports to load from file directly, in backend most of these methods are leveraging `load_dataset` method from `datasets` library to load these formats. But when working with text data you often use HuggingFace datasets, in order to import HF datasets in list of `Example` format we can use `from_huggingface` method:
+
+    blog_alpaca = dl.from_huggingface(    "intertwine-expel/expel-blog"    input_keys=("title",))
+
+You can access the dataset of the splits by calling key of the corresponding split:
+
+    from  train_split = blog_alpaca['train']# Since this is the only split in the dataset we can split this into # train and test split ourselves by slicing or sampling 75 rows from the train# split for testing.testset = train_split[:75]trainset = train_split[75:]
+
+The way you load a huggingface dataset using `load_dataset` is exactly how you load data it via `from_huggingface` as well. This includes passing specific splits, subsplits, read instructions, etc. For code snippets you can refer to the [cheatsheet snippets](/docs/cheatsheet#dspy-dataloaders)
+ for loading from HF.
+
+*   [How much data do I need and how do I collect data for my task?](#how-much-data-do-i-need-and-how-do-i-collect-data-for-my-task)
+
+*   [DSPy `Example` objects](#dspy-example-objects)
+    *   [Specifying Input Keys](#specifying-input-keys)
+
+*   [Loading Dataset from sources](#loading-dataset-from-sources)
+
+
+========== Page https://dspy-docs.vercel.app/docs/building-blocks/metrics ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Metrics
+=======
+
+DSPy is a machine learning framework, so you must think about your **automatic metrics** for evaluation (to track your progress) and optimization (so DSPy can make your programs more effective).
+
+What is a metric and how do I define a metric for my task?[​](#what-is-a-metric-and-how-do-i-define-a-metric-for-my-task "Direct link to What is a metric and how do I define a metric for my task?")
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+A metric is just a function that will take examples from your data and take the output of your system, and return a score that quantifies how good the output is. What makes outputs from your system good or bad?
+
+For simple tasks, this could be just "accuracy" or "exact match" or "F1 score". This may be the case for simple classification or short-form QA tasks.
+
+However, for most applications, your system will output long-form outputs. There, your metric should probably be a smaller DSPy program that checks multiple properties of the output (quite possibly using AI feedback from LMs).
+
+Getting this right on the first try is unlikely, but you should start with something simple and iterate.
+
+Simple metrics[​](#simple-metrics "Direct link to Simple metrics")
+
+-------------------------------------------------------------------
+
+A DSPy metric is just a function in Python that takes `example` (e.g., from your training or dev set) and the output `pred` from your DSPy program, and outputs a `float` (or `int` or `bool`) score.
+
+Your metric should also accept an optional third argument called `trace`. You can ignore this for a moment, but it will enable some powerful tricks if you want to use your metric for optimization.
+
+Here's a simple example of a metric that's comparing `example.answer` and `pred.answer`. This particular metric will return a `bool`.
+
+    def validate_answer(example, pred, trace=None):    return example.answer.lower() == pred.answer.lower()
+
+Some people find these utilities (built-in) convenient:
+
+*   `dspy.evaluate.metrics.answer_exact_match`
+*   `dspy.evaluate.metrics.answer_passage_match`
+
+Your metrics could be more complex, e.g. check for multiple properties. The metric below will return a `float` if `trace is None` (i.e., if it's used for evaluation or optimization), and will return a `bool` otherwise (i.e., if it's used to bootstrap demonstrations).
+
+    def validate_context_and_answer(example, pred, trace=None):    # check the gold label and the predicted answer are the same    answer_match = example.answer.lower() == pred.answer.lower()    # check the predicted answer comes from one of the retrieved contexts    context_match = any((pred.answer.lower() in c) for c in pred.context)    if trace is None: # if we're doing evaluation or optimization        return (answer_match + context_match) / 2.0    else: # if we're doing bootstrapping, i.e. self-generating good demonstrations of each step        return answer_match and context_match
+
+Defining a good metric is an iterative process, so doing some initial evaluations and looking at your data and your outputs are key.
+
+Evaluation[​](#evaluation "Direct link to Evaluation")
+
+-------------------------------------------------------
+
+Once you have a metric, you can run evaluations in a simple Python loop.
+
+    scores = []for x in devset:    pred = program(**x.inputs())    score = metric(x, pred)    scores.append(score)
+
+If you need some utilities, you can also use the built-in `Evaluate` utility. It can help with things like parallel evaluation (multiple threads) or showing you a sample of inputs/outputs and the metric scores.
+
+    from dspy.evaluate import Evaluate# Set up the evaluator, which can be re-used in your code.evaluator = Evaluate(devset=YOUR_DEVSET, num_threads=1, display_progress=True, display_table=5)# Launch evaluation.evaluator(YOUR_PROGRAM, metric=YOUR_METRIC)
+
+Intermediate: Using AI feedback for your metric[​](#intermediate-using-ai-feedback-for-your-metric "Direct link to Intermediate: Using AI feedback for your metric")
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+For most applications, your system will output long-form outputs, so your metric should check multiple dimensions of the output using AI feedback from LMs.
+
+This simple signature could come in handy.
+
+    # Define the signature for automatic assessments.class Assess(dspy.Signature):    """Assess the quality of a tweet along the specified dimension."""    assessed_text = dspy.InputField()    assessment_question = dspy.InputField()    assessment_answer = dspy.OutputField(desc="Yes or No")
+
+For example, below is a simple metric that uses GPT-4-turbo to check if a generated tweet (1) answers a given question correctly and (2) whether it's also engaging. We also check that (3) `len(tweet) <= 280` characters.
+
+    gpt4T = dspy.OpenAI(model='gpt-4-1106-preview', max_tokens=1000, model_type='chat')def metric(gold, pred, trace=None):    question, answer, tweet = gold.question, gold.answer, pred.output    engaging = "Does the assessed text make for a self-contained, engaging tweet?"    correct = f"The text should answer `{question}` with `{answer}`. Does the assessed text contain this answer?"        with dspy.context(lm=gpt4T):        correct =  dspy.Predict(Assess)(assessed_text=tweet, assessment_question=correct)        engaging = dspy.Predict(Assess)(assessed_text=tweet, assessment_question=engaging)    correct, engaging = [m.assessment_answer.lower() == 'yes' for m in [correct, engaging]]    score = (correct + engaging) if correct and (len(tweet) <= 280) else 0    if trace is not None: return score >= 2    return score / 2.0
+
+When compiling, `trace is not None`, and we want to be strict about judging things, so we will only return `True` if `score >= 2`. Otherwise, we return a score out of 1.0 (i.e., `score / 2.0`).
+
+Advanced: Using a DSPy program as your metric[​](#advanced-using-a-dspy-program-as-your-metric "Direct link to Advanced: Using a DSPy program as your metric")
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+If your metric is itself a DSPy program, one of the most powerful ways to iterate is to compile (optimize) your metric itself. That's usually easy because the output of the metric is usually a simple value (e.g., a score out of 5) so the metric's metric is easy to define and optimize by collecting a few examples.
+
+### Advanced: Accessing the `trace`[​](#advanced-accessing-the-trace "Direct link to advanced-accessing-the-trace")
+
+When your metric is used during evaluation runs, DSPy will not try to track the steps of your program.
+
+But during compiling (optimization), DSPy will trace your LM calls. The trace will contain inputs/outputs to each DSPy predictor and you can leverage that to validate intermediate steps for optimization.
+
+    def validate_hops(example, pred, trace=None):    hops = [example.question] + [outputs.query for *_, outputs in trace if 'query' in outputs]    if max([len(h) for h in hops]) > 100: return False    if any(dspy.evaluate.answer_exact_match_str(hops[idx], hops[:idx], frac=0.8) for idx in range(2, len(hops))): return False    return True
+
+*   [What is a metric and how do I define a metric for my task?](#what-is-a-metric-and-how-do-i-define-a-metric-for-my-task)
+
+*   [Simple metrics](#simple-metrics)
+
+*   [Evaluation](#evaluation)
+
+*   [Intermediate: Using AI feedback for your metric](#intermediate-using-ai-feedback-for-your-metric)
+
+*   [Advanced: Using a DSPy program as your metric](#advanced-using-a-dspy-program-as-your-metric)
+    *   [Advanced: Accessing the `trace`](#advanced-accessing-the-trace)
+
+
+========== Page https://dspy-docs.vercel.app/docs/building-blocks/optimizers ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Optimizers (formerly Teleprompters)
+===================================
+
+A **DSPy optimizer** is an algorithm that can tune the parameters of a DSPy program (i.e., the prompts and/or the LM weights) to maximize the metrics you specify, like accuracy.
+
+There are many built-in optimizers in DSPy, which apply vastly different strategies. A typical DSPy optimizer takes three things:
+
+*   Your **DSPy program**. This may be a single module (e.g., `dspy.Predict`) or a complex multi-module program.
+
+*   Your **metric**. This is a function that evaluates the output of your program, and assigns it a score (higher is better).
+
+*   A few **training inputs**. This may be very small (i.e., only 5 or 10 examples) and incomplete (only inputs to your program, without any labels).
+
+
+If you happen to have a lot of data, DSPy can leverage that. But you can start small and get strong results.
+
+**Note:** Formerly called **DSPy Teleprompters**. We are making an official name update, which will be reflected throughout the library and documentation.
+
+**What** does a DSPy Optimizer tune? **How** does it tune them?[​](#what-does-a-dspy-optimizer-tune-how-does-it-tune-them "Direct link to what-does-a-dspy-optimizer-tune-how-does-it-tune-them")
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Traditional deep neural networks (DNNs) can be optimized with gradient descent, given a loss function and some training data.
+
+DSPy programs consist of multiple calls to LMs, stacked together as \[DSPy modules\]. Each DSPy module has internal parameters of three kinds: (1) the LM weights, (2) the instructions, and (3) demonstrations of the input/output behavior.
+
+Given a metric, DSPy can optimize all of these three with multi-stage optimization algorithms. These can combine gradient descent (for LM weights) and discrete LM-driven optimization, i.e. for crafting/updating instructions and for creating/validating demonstrations. DSPy Demonstrations are like few-shot examples, but they're far more powerful. They can be created from scratch, given your program, and their creation and selection can be optimized in many effective ways.
+
+In many cases, we found that compiling leads to better prompts than human writing. Not because DSPy optimizers are more creative than humans, but simply because they can try more things, much more systematically, and tune the metrics directly.
+
+What DSPy Optimizers are currently available?[​](#what-dspy-optimizers-are-currently-available "Direct link to What DSPy Optimizers are currently available?")
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+[Subclasses of Teleprompter](/assets/files/teleprompter-classes-131c5df042a602dbe779a36d34f442ae.png)
+
+All of these can be accessed via `from dspy.teleprompt import *`.
+
+### Automatic Few-Shot Learning[​](#automatic-few-shot-learning "Direct link to Automatic Few-Shot Learning")
+
+These optimizers extend the signature by automatically generating and including **optimized** examples within the prompt sent to the model, implementing few-shot learning.
+
+1.  **`LabeledFewShot`**: Simply constructs few-shot examples (demos) from provided labeled input and output data points. Requires `k` (number of examples for the prompt) and `trainset` to randomly select `k` examples from.
+
+2.  **`BootstrapFewShot`**: Uses a `teacher` module (which defaults to your program) to generate complete demonstrations for every stage of your program, along with labeled examples in `trainset`. Parameters include `max_labeled_demos` (the number of demonstrations randomly selected from the `trainset`) and `max_bootstrapped_demos` (the number of additional examples generated by the `teacher`). The bootstrapping process employs the metric to validate demonstrations, including only those that pass the metric in the "compiled" prompt. Advanced: Supports using a `teacher` program that is a _different_ DSPy program that has compatible structure, for harder tasks.
+
+3.  [**`BootstrapFewShotWithRandomSearch`**](https://dspy-docs.vercel.app/docs/deep-dive/optimizers/bootstrap-fewshot)
+    : Applies `BootstrapFewShot` several times with random search over generated demonstrations, and selects the best program over the optimization. Parameters mirror those of `BootstrapFewShot`, with the addition of `num_candidate_programs`, which specifies the number of random programs evaluated over the optimization, including candidates of the uncompiled program, `LabeledFewShot` optimized program, `BootstrapFewShot` compiled program with unshuffled examples and `num_candidate_programs` of `BootstrapFewShot` compiled programs with randomized example sets.
+
+4.  **`KNNFewShot`**. Uses k-Nearest Neighbors algorithm to find the nearest training example demonstrations for a given input example. These nearest neighbor demonstrations are then used as the trainset for the BootstrapFewShot optimization process. See [this notebook](https://github.com/stanfordnlp/dspy/blob/main/examples/knn.ipynb)
+     for an example.
+
+
+### Automatic Instruction Optimization[​](#automatic-instruction-optimization "Direct link to Automatic Instruction Optimization")
+
+These optimizers produce optimal instructions for the prompt and, in the case of MIPROv2 can also optimize the set of few-shot demonstrations.
+
+5.  [**`COPRO`**](https://dspy-docs.vercel.app/docs/deep-dive/optimizers/copro)
+    : Generates and refines new instructions for each step, and optimizes them with coordinate ascent (hill-climbing using the metric function and the `trainset`). Parameters include `depth` which is the number of iterations of prompt improvement the optimizer runs over.
+
+6.  [**`MIPROv2`**](https://dspy-docs.vercel.app/docs/deep-dive/optimizers/miprov2)
+    : Generates instructions _and_ few-shot examples in each step. The instruction generation is data-aware and demonstration-aware. Uses Bayesian Optimization to effectively search over the space of generation instructions/demonstrations across your modules.
+
+
+### Automatic Finetuning[​](#automatic-finetuning "Direct link to Automatic Finetuning")
+
+This optimizer is used to fine-tune the underlying LLM(s).
+
+7.  **`BootstrapFinetune`**: Distills a prompt-based DSPy program into weight updates (for smaller LMs). The output is a DSPy program that has the same steps, but where each step is conducted by a finetuned model instead of a prompted LM.
+
+### Program Transformations[​](#program-transformations "Direct link to Program Transformations")
+
+8.  **`Ensemble`**: Ensembles a set of DSPy programs and either uses the full set or randomly samples a subset into a single program.
+
+Which optimizer should I use?[​](#which-optimizer-should-i-use "Direct link to Which optimizer should I use?")
+
+---------------------------------------------------------------------------------------------------------------
+
+Ultimately, finding the ‘right’ optimizer to use & the best configuration for your task will require experimentation. Success in DSPy is still an iterative process - getting the best performance on your task will require you to explore and iterate.
+
+That being said, here's the general guidance on getting started:
+
+*   If you have **very few examples** (around 10), start with `BootstrapFewShot`.
+*   If you have **more data** (50 examples or more), try `BootstrapFewShotWithRandomSearch`.
+*   If you prefer to do **instruction optimization only** (i.e. you want to keep your prompt 0-shot), use `MIPROv2` [configured for 0-shot optimization to optimize](https://dspy-docs.vercel.app/docs/deep-dive/optimizers/miprov2#optimizing-instructions-only-with-miprov2-0-shot)
+    .
+*   If you’re willing to use more inference calls to perform **longer optimization runs** (e.g. 40 trials or more), and have enough data (e.g. 200 examples or more to prevent overfitting) then try `MIPROv2`.
+*   If you have been able to use one of these with a large LM (e.g., 7B parameters or above) and need a very **efficient program**, finetune a small LM for your task with `BootstrapFinetune`.
+
+How do I use an optimizer?[​](#how-do-i-use-an-optimizer "Direct link to How do I use an optimizer?")
+
+------------------------------------------------------------------------------------------------------
+
+They all share this general interface, with some differences in the keyword arguments (hyperparameters). Detailed documentation for key optimizers can be found [here](https://dspy-docs.vercel.app/docs/deep-dive/optimizers/)
+, and a full list can be found [here](https://dspy-docs.vercel.app/docs/cheatsheet)
+.
+
+Let's see this with the most common one, `BootstrapFewShotWithRandomSearch`.
+
+    from dspy.teleprompt import BootstrapFewShotWithRandomSearch# Set up the optimizer: we want to "bootstrap" (i.e., self-generate) 8-shot examples of your program's steps.# The optimizer will repeat this 10 times (plus some initial attempts) before selecting its best attempt on the devset.config = dict(max_bootstrapped_demos=4, max_labeled_demos=4, num_candidate_programs=10, num_threads=4)teleprompter = BootstrapFewShotWithRandomSearch(metric=YOUR_METRIC_HERE, **config)optimized_program = teleprompter.compile(YOUR_PROGRAM_HERE, trainset=YOUR_TRAINSET_HERE)
+
+Saving and loading optimizer output[​](#saving-and-loading-optimizer-output "Direct link to Saving and loading optimizer output")
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+After running a program through an optimizer, it's useful to also save it. At a later point, a program can be loaded from a file and used for inference. For this, the `load` and `save` methods can be used.
+
+### Saving a program[​](#saving-a-program "Direct link to Saving a program")
+
+    optimized_program.save(YOUR_SAVE_PATH)
+
+The resulting file is in plain-text JSON format. It contains all the parameters and steps in the source program. You can always read it and see what the optimizer generated.
+
+You can add `save_verbose` to additionally save the list of fields with the keys, `name`, `field_type`, `description`, and `prefix` with: \`optimized\_program.save(YOUR\_SAVE\_PATH, save\_field\_meta=True).
+
+### Loading a program[​](#loading-a-program "Direct link to Loading a program")
+
+To load a program from a file, you can instantiate an object from that class and then call the load method on it.
+
+    loaded_program = YOUR_PROGRAM_CLASS()loaded_program.load(path=YOUR_SAVE_PATH)
+
+*   [**What** does a DSPy Optimizer tune? **How** does it tune them?](#what-does-a-dspy-optimizer-tune-how-does-it-tune-them)
+
+*   [What DSPy Optimizers are currently available?](#what-dspy-optimizers-are-currently-available)
+    *   [Automatic Few-Shot Learning](#automatic-few-shot-learning)
+
+    *   [Automatic Instruction Optimization](#automatic-instruction-optimization)
+
+    *   [Automatic Finetuning](#automatic-finetuning)
+
+    *   [Program Transformations](#program-transformations)
+
+*   [Which optimizer should I use?](#which-optimizer-should-i-use)
+
+*   [How do I use an optimizer?](#how-do-i-use-an-optimizer)
+
+*   [Saving and loading optimizer output](#saving-and-loading-optimizer-output)
+    *   [Saving a program](#saving-a-program)
+
+    *   [Loading a program](#loading-a-program)
+
+
+========== Page https://dspy-docs.vercel.app/docs/building-blocks/assertions ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+DSPy Assertions
+===============
+
+Introduction[​](#introduction "Direct link to Introduction")
+
+-------------------------------------------------------------
+
+Language models (LMs) have transformed how we interact with machine learning, offering vast capabilities in natural language understanding and generation. However, ensuring these models adhere to domain-specific constraints remains a challenge. Despite the growth of techniques like fine-tuning or “prompt engineering”, these approaches are extremely tedious and rely on heavy, manual hand-waving to guide the LMs in adhering to specific constraints. Even DSPy's modularity of programming prompting pipelines lacks mechanisms to effectively and automatically enforce these constraints.
+
+To address this, we introduce DSPy Assertions, a feature within the DSPy framework designed to automate the enforcement of computational constraints on LMs. DSPy Assertions empower developers to guide LMs towards desired outcomes with minimal manual intervention, enhancing the reliability, predictability, and correctness of LM outputs.
+
+### dspy.Assert and dspy.Suggest API[​](#dspyassert-and-dspysuggest-api "Direct link to dspy.Assert and dspy.Suggest API")
+
+We introduce two primary constructs within DSPy Assertions:
+
+*   **`dspy.Assert`**:
+
+    *   **Parameters**:
+        *   `constraint (bool)`: Outcome of Python-defined boolean validation check.
+        *   `msg (Optional[str])`: User-defined error message providing feedback or correction guidance.
+        *   `backtrack (Optional[module])`: Specifies target module for retry attempts upon constraint failure. The default backtracking module is the last module before the assertion.
+    *   **Behavior**: Initiates retry upon failure, dynamically adjusting the pipeline's execution. If failures persist, it halts execution and raises a `dspy.AssertionError`.
+*   **`dspy.Suggest`**:
+
+    *   **Parameters**: Similar to `dspy.Assert`.
+    *   **Behavior**: Encourages self-refinement through retries without enforcing hard stops. Logs failures after maximum backtracking attempts and continues execution.
+*   **dspy.Assert vs. Python Assertions**: Unlike conventional Python `assert` statements that terminate the program upon failure, `dspy.Assert` conducts a sophisticated retry mechanism, allowing the pipeline to adjust.
+
+
+Specifically, when a constraint is not met:
+
+*   Backtracking Mechanism: An under-the-hood backtracking is initiated, offering the model a chance to self-refine and proceed, which is done through
+*   Dynamic Signature Modification: internally modifying your DSPy program’s Signature by adding the following fields:
+    *   Past Output: your model's past output that did not pass the validation\_fn
+    *   Instruction: your user-defined feedback message on what went wrong and what possibly to fix
+
+If the error continues past the `max_backtracking_attempts`, then `dspy.Assert` will halt the pipeline execution, alerting you with an `dspy.AssertionError`. This ensures your program doesn't continue executing with “bad” LM behavior and immediately highlights sample failure outputs for user assessment.
+
+*   **dspy.Suggest vs. dspy.Assert**: `dspy.Suggest` on the other hand offers a softer approach. It maintains the same retry backtracking as `dspy.Assert` but instead serves as a gentle nudger. If the model outputs cannot pass the model constraints after the `max_backtracking_attempts`, `dspy.Suggest` will log the persistent failure and continue execution of the program on the rest of the data. This ensures the LM pipeline works in a "best-effort" manner without halting execution.
+
+*   **`dspy.Suggest`** are best utilized as "helpers" during the evaluation phase, offering guidance and potential corrections without halting the pipeline.
+
+*   **`dspy.Assert`** are recommended during the development stage as "checkers" to ensure the LM behaves as expected, providing a robust mechanism for identifying and addressing errors early in the development cycle.
+
+
+Use Case: Including Assertions in DSPy Programs[​](#use-case-including-assertions-in-dspy-programs "Direct link to Use Case: Including Assertions in DSPy Programs")
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+We start with using an example of a multi-hop QA SimplifiedBaleen pipeline as defined in the intro walkthrough.
+
+    class SimplifiedBaleen(dspy.Module):    def __init__(self, passages_per_hop=2, max_hops=2):        super().__init__()        self.generate_query = [dspy.ChainOfThought(GenerateSearchQuery) for _ in range(max_hops)]        self.retrieve = dspy.Retrieve(k=passages_per_hop)        self.generate_answer = dspy.ChainOfThought(GenerateAnswer)        self.max_hops = max_hops    def forward(self, question):        context = []        prev_queries = [question]        for hop in range(self.max_hops):            query = self.generate_query[hop](context=context, question=question).query            prev_queries.append(query)            passages = self.retrieve(query).passages            context = deduplicate(context + passages)                pred = self.generate_answer(context=context, question=question)        pred = dspy.Prediction(context=context, answer=pred.answer)        return predbaleen = SimplifiedBaleen()baleen(question = "Which award did Gary Zukav's first book receive?")
+
+To include DSPy Assertions, we simply define our validation functions and declare our assertions following the respective model generation.
+
+For this use case, suppose we want to impose the following constraints:
+
+1.  Length - each query should be less than 100 characters
+2.  Uniqueness - each generated query should differ from previously-generated queries.
+
+We can define these validation checks as boolean functions:
+
+    #simplistic boolean check for query lengthlen(query) <= 100#Python function for validating distinct queriesdef validate_query_distinction_local(previous_queries, query):    """check if query is distinct from previous queries"""    if previous_queries == []:        return True    if dspy.evaluate.answer_exact_match_str(query, previous_queries, frac=0.8):        return False    return True
+
+We can declare these validation checks through `dspy.Suggest` statements (as we want to test the program in a best-effort demonstration). We want to keep these after the query generation `query = self.generate_query[hop](context=context, question=question).query`.
+
+    dspy.Suggest(    len(query) <= 100,    "Query should be short and less than 100 characters",    target_module=self.generate_query)dspy.Suggest(    validate_query_distinction_local(prev_queries, query),    "Query should be distinct from: "    + "; ".join(f"{i+1}) {q}" for i, q in enumerate(prev_queries)),    target_module=self.generate_query)
+
+It is recommended to define a program with assertions separately than your original program if you are doing comparative evaluation for the effect of assertions. If not, feel free to set Assertions away!
+
+Let's take a look at how the SimplifiedBaleen program will look with Assertions included:
+
+    class SimplifiedBaleenAssertions(dspy.Module):    def __init__(self, passages_per_hop=2, max_hops=2):        super().__init__()        self.generate_query = [dspy.ChainOfThought(GenerateSearchQuery) for _ in range(max_hops)]        self.retrieve = dspy.Retrieve(k=passages_per_hop)        self.generate_answer = dspy.ChainOfThought(GenerateAnswer)        self.max_hops = max_hops    def forward(self, question):        context = []        prev_queries = [question]        for hop in range(self.max_hops):            query = self.generate_query[hop](context=context, question=question).query            dspy.Suggest(                len(query) <= 100,                "Query should be short and less than 100 characters",                target_module=self.generate_query            )            dspy.Suggest(                validate_query_distinction_local(prev_queries, query),                "Query should be distinct from: "                + "; ".join(f"{i+1}) {q}" for i, q in enumerate(prev_queries)),                target_module=self.generate_query            )            prev_queries.append(query)            passages = self.retrieve(query).passages            context = deduplicate(context + passages)                if all_queries_distinct(prev_queries):            self.passed_suggestions += 1        pred = self.generate_answer(context=context, question=question)        pred = dspy.Prediction(context=context, answer=pred.answer)        return pred
+
+Now calling programs with DSPy Assertions requires one last step, and that is transforming the program to wrap it with internal assertions backtracking and Retry logic.
+
+    from dspy.primitives.assertions import assert_transform_module, backtrack_handlerbaleen_with_assertions = assert_transform_module(SimplifiedBaleenAssertions(), backtrack_handler)# backtrack_handler is parameterized over a few settings for the backtracking mechanism# To change the number of max retry attempts, you can dobaleen_with_assertions_retry_once = assert_transform_module(SimplifiedBaleenAssertions(),     functools.partial(backtrack_handler, max_backtracks=1))
+
+Alternatively, you can also directly call `activate_assertions` on the program with `dspy.Assert/Suggest` statements using the default backtracking mechanism (`max_backtracks=2`):
+
+    baleen_with_assertions = SimplifiedBaleenAssertions().activate_assertions()
+
+Now let's take a look at the internal LM backtracking by inspecting the history of the LM query generations. Here we see that when a query fails to pass the validation check of being less than 100 characters, its internal `GenerateSearchQuery` signature is dynamically modified during the backtracking+Retry process to include the past query and the corresponding user-defined instruction: `"Query should be short and less than 100 characters"`.
+
+    Write a simple search query that will help answer a complex question.---Follow the following format.Context: may contain relevant factsQuestion: ${question}Reasoning: Let's think step by step in order to ${produce the query}. We ...Query: ${query}---Context:[1] «Kerry Condon | Kerry Condon (born 4 January 1983) is [...]»[2] «Corona Riccardo | Corona Riccardo (c. 1878October 15, 1917) was [...]»Question: Who acted in the shot film The Shore and is also the youngest actress ever to play Ophelia in a Royal Shakespeare Company production of "Hamlet." ?Reasoning: Let's think step by step in order to find the answer to this question. First, we need to identify the actress who played Ophelia in a Royal Shakespeare Company production of "Hamlet." Then, we need to find out if this actress also acted in the short film "The Shore."Query: "actress who played Ophelia in Royal Shakespeare Company production of Hamlet" + "actress in short film The Shore"Write a simple search query that will help answer a complex question.---Follow the following format.Context: may contain relevant factsQuestion: ${question}Past Query: past output with errorsInstructions: Some instructions you must satisfyQuery: ${query}---Context:[1] «Kerry Condon | Kerry Condon (born 4 January 1983) is an Irish television and film actress, best known for her role as Octavia of the Julii in the HBO/BBC series "Rome," as Stacey Ehrmantraut in AMC's "Better Call Saul" and as the voice of F.R.I.D.A.Y. in various films in the Marvel Cinematic Universe. She is also the youngest actress ever to play Ophelia in a Royal Shakespeare Company production of "Hamlet."»[2] «Corona Riccardo | Corona Riccardo (c. 1878October 15, 1917) was an Italian born American actress who had a brief Broadway stage career before leaving to become a wife and mother. Born in Naples she came to acting in 1894 playing a Mexican girl in a play at the Empire Theatre. Wilson Barrett engaged her for a role in his play "The Sign of the Cross" which he took on tour of the United States. Riccardo played the role of Ancaria and later played Berenice in the same play. Robert B. Mantell in 1898 who struck by her beauty also cast her in two Shakespeare plays, "Romeo and Juliet" and "Othello". Author Lewis Strang writing in 1899 said Riccardo was the most promising actress in America at the time. Towards the end of 1898 Mantell chose her for another Shakespeare part, Ophelia im Hamlet. Afterwards she was due to join Augustin Daly's Theatre Company but Daly died in 1899. In 1899 she gained her biggest fame by playing Iras in the first stage production of Ben-Hur.»Question: Who acted in the shot film The Shore and is also the youngest actress ever to play Ophelia in a Royal Shakespeare Company production of "Hamlet." ?Past Query: "actress who played Ophelia in Royal Shakespeare Company production of Hamlet" + "actress in short film The Shore"Instructions: Query should be short and less than 100 charactersQuery: "actress Ophelia RSC Hamlet" + "actress The Shore"
+
+Assertion-Driven Optimizations[​](#assertion-driven-optimizations "Direct link to Assertion-Driven Optimizations")
+
+-------------------------------------------------------------------------------------------------------------------
+
+DSPy Assertions work with optimizations that DSPy offers, particularly with `BootstrapFewShotWithRandomSearch`, including the following settings:
+
+*   Compilation with Assertions This includes assertion-driven example bootstrapping and counterexample bootstrapping during compilation. The teacher model for bootstrapping few-shot demonstrations can make use of DSPy Assertions to offer robust bootstrapped examples for the student model to learn from during inference. In this setting, the student model does not perform assertion aware optimizations (backtracking and retry) during inference.
+*   Compilation + Inference with Assertions -This includes assertion-driven optimizations in both compilation and inference. Now the teacher model offers assertion-driven examples but the student can further optimize with assertions of its own during inference time.
+
+    teleprompter = BootstrapFewShotWithRandomSearch(    metric=validate_context_and_answer_and_hops,    max_bootstrapped_demos=max_bootstrapped_demos,    num_candidate_programs=6,)#Compilation with Assertionscompiled_with_assertions_baleen = teleprompter.compile(student = baleen, teacher = baleen_with_assertions, trainset = trainset, valset = devset)#Compilation + Inference with Assertionscompiled_baleen_with_assertions = teleprompter.compile(student=baleen_with_assertions, teacher = baleen_with_assertions, trainset=trainset, valset=devset)
+
+*   [Introduction](#introduction)
+    *   [dspy.Assert and dspy.Suggest API](#dspyassert-and-dspysuggest-api)
+
+*   [Use Case: Including Assertions in DSPy Programs](#use-case-including-assertions-in-dspy-programs)
+
+*   [Assertion-Driven Optimizations](#assertion-driven-optimizations)
+
+
+========== Page https://dspy-docs.vercel.app/docs/building-blocks/typed_predictors ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Typed Predictors
+================
+
+In DSPy Signatures, we have `InputField` and `OutputField` that define the nature of inputs and outputs of the field. However, the inputs and output to these fields are always `str`\-typed, which requires input and output string processing.
+
+Pydantic `BaseModel` is a great way to enforce type constraints on the fields, but it is not directly compatible with the `dspy.Signature`. Typed Predictors resolves this as a way to enforce the type constraints on the inputs and outputs of the fields in a `dspy.Signature`.
+
+Executing Typed Predictors[​](#executing-typed-predictors "Direct link to Executing Typed Predictors")
+
+-------------------------------------------------------------------------------------------------------
+
+Using Typed Predictors is not too different than any other module with the minor additions of type hints to signature attributes and using a special Predictor module instead of `dspy.Predict`. Let's take a look at a simple example to understand this.
+
+### Defining Input and Output Models[​](#defining-input-and-output-models "Direct link to Defining Input and Output Models")
+
+Let's take a simple task as an example i.e. given the `context` and `query`, the LLM should return an `answer` and `confidence_score`. Let's define our `Input` and `Output` models via pydantic.
+
+    from pydantic import BaseModel, Fieldclass Input(BaseModel):    context: str = Field(description="The context for the question")    query: str = Field(description="The question to be answered")class Output(BaseModel):    answer: str = Field(description="The answer for the question")    confidence: float = Field(ge=0, le=1, description="The confidence score for the answer")
+
+As you can see, we can describe the attributes by defining a simple Signature that takes in the input and returns the output.
+
+### Creating Typed Predictor[​](#creating-typed-predictor "Direct link to Creating Typed Predictor")
+
+A Typed Predictor needs a Typed Signature, which extends a `dspy.Signature` with the addition of specifying "field type".
+
+    class QASignature(dspy.Signature):    """Answer the question based on the context and query provided, and on the scale of 10 tell how confident you are about the answer."""    input: Input = dspy.InputField()    output: Output = dspy.OutputField()
+
+Now that we have the `QASignature`, let's define a Typed Predictor that executes this Signature while conforming to the type constraints.
+
+    predictor = dspy.TypedPredictor(QASignature)
+
+Similar to other modules, we pass the `QASignature` to `dspy.TypedPredictor` which enforces the typed constraints.
+
+And similarly to `dspy.Predict`, we can also use a "string signature", which we type as:
+
+    predictor = dspy.TypedPredictor("input:Input -> output:Output")
+
+### I/O in Typed Predictors[​](#io-in-typed-predictors "Direct link to I/O in Typed Predictors")
+
+Now let's test out the Typed Predictor by providing some sample input to the predictor and verifying the output type. We can create an `Input` instance and pass it to the predictor to get a dictionary of the output.
+
+    doc_query_pair = Input(    context="The quick brown fox jumps over the lazy dog",    query="What does the fox jumps over?",)prediction = predictor(input=doc_query_pair)
+
+Let's see the output and its type.
+
+    answer = prediction.output.answerconfidence_score = prediction.output.confidenceprint(f"Prediction: {prediction}\n\n")print(f"Answer: {answer}, Answer Type: {type(answer)}")print(f"Confidence Score: {confidence_score}, Confidence Score Type: {type(confidence_score)}")
+
+Typed Chain of Thoughts with `dspy.TypedChainOfThought`[​](#typed-chain-of-thoughts-with-dspytypedchainofthought "Direct link to typed-chain-of-thoughts-with-dspytypedchainofthought")
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Extending the analogous comparison of `TypedPredictor` to `dspy.Predict`, we create `TypedChainOfThought`, the typed counterpart of `dspy.ChainOfThought`:
+
+    cot_predictor = dspy.TypedChainOfThought(QASignature)doc_query_pair = Input(    context="The quick brown fox jumps over the lazy dog",    query="What does the fox jumps over?",)prediction = cot_predictor(input=doc_query_pair)
+
+Typed Predictors as Decorators[​](#typed-predictors-as-decorators "Direct link to Typed Predictors as Decorators")
+
+-------------------------------------------------------------------------------------------------------------------
+
+While the `dspy.TypedPredictor` and `dspy.TypedChainOfThought` provide a convenient way to use typed predictors, you can also use them as decorators to enforce type constraints on the inputs and outputs of the function. This relies on the internal definitions of the Signature class and its function arguments, outputs, and docstrings.
+
+    @dspy.predictordef answer(doc_query_pair: Input) -> Output:    """Answer the question based on the context and query provided, and on the scale of 0-1 tell how confident you are about the answer."""    pass@dspy.cotdef answer(doc_query_pair: Input) -> Output:    """Answer the question based on the context and query provided, and on the scale of 0-1 tell how confident you are about the answer."""    passprediction = answer(doc_query_pair=doc_query_pair)
+
+Composing Functional Typed Predictors in `dspy.Module`[​](#composing-functional-typed-predictors-in-dspymodule "Direct link to composing-functional-typed-predictors-in-dspymodule")
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+If you're creating DSPy pipelines via `dspy.Module`, then you can simply use Functional Typed Predictors by creating these class methods and using them as decorators. Here is an example of using functional typed predictors to create a `SimplifiedBaleen` pipeline:
+
+    class SimplifiedBaleen(FunctionalModule):    def __init__(self, passages_per_hop=3, max_hops=1):        super().__init__()        self.retrieve = dspy.Retrieve(k=passages_per_hop)        self.max_hops = max_hops    @cot    def generate_query(self, context: list[str], question) -> str:        """Write a simple search query that will help answer a complex question."""        pass    @cot    def generate_answer(self, context: list[str], question) -> str:        """Answer questions with short factoid answers."""        pass    def forward(self, question):        context = []        for _ in range(self.max_hops):            query = self.generate_query(context=context, question=question)            passages = self.retrieve(query).passages            context = deduplicate(context + passages)        answer = self.generate_answer(context=context, question=question)        return dspy.Prediction(context=context, answer=answer)
+
+Optimizing Typed Predictors[​](#optimizing-typed-predictors "Direct link to Optimizing Typed Predictors")
+
+----------------------------------------------------------------------------------------------------------
+
+Typed predictors can be optimized on the Signature instructions through the `optimize_signature` optimizer. Here is an example of this optimization on the `QASignature`:
+
+    import dspyfrom dspy.evaluate import Evaluatefrom dspy.evaluate.metrics import answer_exact_matchfrom dspy.teleprompt.signature_opt_typed import optimize_signatureturbo = dspy.OpenAI(model='gpt-3.5-turbo', max_tokens=4000)gpt4 = dspy.OpenAI(model='gpt-4', max_tokens=4000)dspy.settings.configure(lm=turbo)evaluator = Evaluate(devset=devset, metric=answer_exact_match, num_threads=10, display_progress=True)result = optimize_signature(    student=dspy.TypedPredictor(QASignature),    evaluator=evaluator,    initial_prompts=6,    n_iterations=100,    max_examples=30,    verbose=True,    prompt_model=gpt4,)
+
+*   [Executing Typed Predictors](#executing-typed-predictors)
+    *   [Defining Input and Output Models](#defining-input-and-output-models)
+
+    *   [Creating Typed Predictor](#creating-typed-predictor)
+
+    *   [I/O in Typed Predictors](#io-in-typed-predictors)
+
+*   [Typed Chain of Thoughts with `dspy.TypedChainOfThought`](#typed-chain-of-thoughts-with-dspytypedchainofthought)
+
+*   [Typed Predictors as Decorators](#typed-predictors-as-decorators)
+
+*   [Composing Functional Typed Predictors in `dspy.Module`](#composing-functional-typed-predictors-in-dspymodule)
+
+*   [Optimizing Typed Predictors](#optimizing-typed-predictors)
+
+
+========== Page https://dspy-docs.vercel.app/docs/tutorials/rag ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+\[01\] RAG: Retrieval-Augmented Generation
+==========================================
+
+Retrieval-augmented generation (RAG) is an approach that allows LLMs to tap into a large corpus of knowledge from sources and query its knowledge store to find relevant passages/content and produce a well-refined response.
+
+RAG ensures LLMs can dynamically utilize real-time knowledge even if not originally trained on the subject and give thoughtful answers. However, with this nuance comes greater complexities in setting up refined RAG pipelines. To reduce these intricacies, we turn to **DSPy**, which offers a seamless approach to setting up prompting pipelines!
+
+Configuring LM and RM[​](#configuring-lm-and-rm "Direct link to Configuring LM and RM")
+
+----------------------------------------------------------------------------------------
+
+We'll start by setting up the language model (LM) and retrieval model (RM), which **DSPy** supports through multiple [LM](https://dspy-docs.vercel.app/docs/category/language-model-clients)
+ and [RM](https://dspy-docs.vercel.app/docs/category/retrieval-model-clients)
+ APIs and [local models hosting](https://dspy-docs.vercel.app/docs/deep-dive/language_model_clients/local_models/HFClientTGI)
+.
+
+In this notebook, we'll work with GPT-3.5 (`gpt-3.5-turbo`) and the `ColBERTv2` retriever (a free server hosting a Wikipedia 2017 "abstracts" search index containing the first paragraph of each article from this [2017 dump](https://hotpotqa.github.io/wiki-readme.html)
+). We configure the LM and RM within DSPy, allowing DSPy to internally call the respective module when needed for generation or retrieval.
+
+    import dspyturbo = dspy.OpenAI(model='gpt-3.5-turbo')colbertv2_wiki17_abstracts = dspy.ColBERTv2(url='http://20.102.90.50:2017/wiki17_abstracts')dspy.settings.configure(lm=turbo, rm=colbertv2_wiki17_abstracts)
+
+Loading the Dataset[​](#loading-the-dataset "Direct link to Loading the Dataset")
+
+----------------------------------------------------------------------------------
+
+For this tutorial, we make use of the `HotPotQA` dataset, a collection of complex question-answer pairs typically answered in a multi-hop fashion. We can load this dataset provided by DSPy through the `HotPotQA` class:
+
+    from dspy.datasets import HotPotQA# Load the dataset.dataset = HotPotQA(train_seed=1, train_size=20, eval_seed=2023, dev_size=50, test_size=0)# Tell DSPy that the 'question' field is the input. Any other fields are labels and/or metadata.trainset = [x.with_inputs('question') for x in dataset.train]devset = [x.with_inputs('question') for x in dataset.dev]len(trainset), len(devset)
+
+**Output:**
+
+    (20, 50)
+
+Building Signatures[​](#building-signatures "Direct link to Building Signatures")
+
+----------------------------------------------------------------------------------
+
+Now that we have the data loaded, let's start defining the [signatures](https://dspy-docs.vercel.app/docs/building-blocks/signatures)
+ for the sub-tasks of our pipeline.
+
+We can identify our simple input `question` and output `answer`, but since we are building out a RAG pipeline, we wish to utilize some contextual information from our ColBERT corpus. So let's define our signature: `context, question --> answer`.
+
+    class GenerateAnswer(dspy.Signature):    """Answer questions with short factoid answers."""    context = dspy.InputField(desc="may contain relevant facts")    question = dspy.InputField()    answer = dspy.OutputField(desc="often between 1 and 5 words")
+
+We include small descriptions for the `context` and `answer` fields to define more robust guidelines on what the model will receive and should generate.
+
+Building the Pipeline[​](#building-the-pipeline "Direct link to Building the Pipeline")
+
+----------------------------------------------------------------------------------------
+
+We will build our RAG pipeline as a [DSPy module](https://dspy-docs.vercel.app/docs/building-blocks/modules)
+ which will require two methods:
+
+*   The `__init__` method will simply declare the sub-modules it needs: `dspy.Retrieve` and `dspy.ChainOfThought`. The latter is defined to implement our `GenerateAnswer` signature.
+*   The `forward` method will describe the control flow of answering the question using the modules we have: Given a question, we'll search for the top-3 relevant passages and then feed them as context for answer generation.
+
+    class RAG(dspy.Module):    def __init__(self, num_passages=3):        super().__init__()        self.retrieve = dspy.Retrieve(k=num_passages)        self.generate_answer = dspy.ChainOfThought(GenerateAnswer)        def forward(self, question):        context = self.retrieve(question).passages        prediction = self.generate_answer(context=context, question=question)        return dspy.Prediction(context=context, answer=prediction.answer)
+
+Optimizing the Pipeline[​](#optimizing-the-pipeline "Direct link to Optimizing the Pipeline")
+
+----------------------------------------------------------------------------------------------
+
+##### Compiling the RAG program[​](#compiling-the-rag-program "Direct link to Compiling the RAG program")
+
+Having defined this program, let's now **compile** it. [Compiling a program](https://dspy-docs.vercel.app/docs/building-blocks/optimizers)
+ will update the parameters stored in each module. In our setting, this is primarily in the form of collecting and selecting good demonstrations for inclusion within the prompt(s).
+
+Compiling depends on three things:
+
+1.  **A training set.** We'll just use our 20 question–answer examples from `trainset` above.
+2.  **A metric for validation.** We'll define a simple `validate_context_and_answer` that checks that the predicted answer is correct and that the retrieved context actually contains the answer.
+3.  **A specific teleprompter.** The **DSPy** compiler includes a number of **teleprompters** that can optimize your programs.
+
+    from dspy.teleprompt import BootstrapFewShot# Validation logic: check that the predicted answer is correct.# Also check that the retrieved context does actually contain that answer.def validate_context_and_answer(example, pred, trace=None):    answer_EM = dspy.evaluate.answer_exact_match(example, pred)    answer_PM = dspy.evaluate.answer_passage_match(example, pred)    return answer_EM and answer_PM# Set up a basic teleprompter, which will compile our RAG program.teleprompter = BootstrapFewShot(metric=validate_context_and_answer)# Compile!compiled_rag = teleprompter.compile(RAG(), trainset=trainset)
+
+info
+
+**Teleprompters:** Teleprompters are powerful optimizers that can take any program and learn to bootstrap and select effective prompts for its modules. Hence the name which means "prompting at a distance".
+
+Different teleprompters offer various tradeoffs in terms of how much they optimize cost versus quality, etc. We will used a simple default `BootstrapFewShot` in the example above.
+
+_If you're into analogies, you could think of this as your training data, your loss function, and your optimizer in a standard DNN supervised learning setup. Whereas SGD is a basic optimizer, there are more sophisticated (and more expensive!) ones like Adam or RMSProp._
+
+Executing the Pipeline[​](#executing-the-pipeline "Direct link to Executing the Pipeline")
+
+-------------------------------------------------------------------------------------------
+
+Now that we've compiled our RAG program, let's try it out.
+
+    # Ask any question you like to this simple RAG program.my_question = "What castle did David Gregory inherit?"# Get the prediction. This contains `pred.context` and `pred.answer`.pred = compiled_rag(my_question)# Print the contexts and the answer.print(f"Question: {my_question}")print(f"Predicted Answer: {pred.answer}")print(f"Retrieved Contexts (truncated): {[c[:200] + '...' for c in pred.context]}")
+
+Excellent. How about we inspect the last prompt for the LM?
+
+    turbo.inspect_history(n=1)
+
+**Output:**
+
+    Answer questions with short factoid answers.---Question: At My Window was released by which American singer-songwriter?Answer: John Townes Van ZandtQuestion: "Everything Has Changed" is a song from an album released under which record label ?Answer: Big Machine Records...(truncated)
+
+Even though we haven't written any of this detailed demonstrations, we see that DSPy was able to bootstrap this 3,000 token prompt for 3-shot retrieval-augmented generation with hard negative passages and uses Chain-of-Thought reasoning within an extremely simply-written program.
+
+This illustrates the power of composition and learning. Of course, this was just generated by a particular teleprompter, which may or may not be perfect in each setting. As you'll see in DSPy, there is a large but systematic space of options you have to optimize and validate with respect to your program's quality and cost.
+
+You can also easily inspect the learned objects themselves.
+
+    for name, parameter in compiled_rag.named_predictors():    print(name)    print(parameter.demos[0])    print()
+
+Evaluating the Pipeline[​](#evaluating-the-pipeline "Direct link to Evaluating the Pipeline")
+
+----------------------------------------------------------------------------------------------
+
+We can now evaluate our `compiled_rag` program on the dev set. Of course, this tiny set is _not_ meant to be a reliable benchmark, but it'll be instructive to use it for illustration.
+
+Let's evaluate the accuracy (exact match) of the predicted answer.
+
+    from dspy.evaluate.evaluate import Evaluate# Set up the `evaluate_on_hotpotqa` function. We'll use this many times below.evaluate_on_hotpotqa = Evaluate(devset=devset, num_threads=1, display_progress=False, display_table=5)# Evaluate the `compiled_rag` program with the `answer_exact_match` metric.metric = dspy.evaluate.answer_exact_matchevaluate_on_hotpotqa(compiled_rag, metric=metric)
+
+**Output:**
+
+    Average Metric: 22 / 50  (44.0): 100%|██████████| 50/50 [00:00<00:00, 116.45it/s]Average Metric: 22 / 50  (44.0%)44.0
+
+Evaluating the Retrieval[​](#evaluating-the-retrieval "Direct link to Evaluating the Retrieval")
+
+-------------------------------------------------------------------------------------------------
+
+It may also be instructive to look at the accuracy of retrieval. While there are multiple ways to do this, we can simply check whether the retrieved passages contain the answer.
+
+We can make use of our dev set which includes the gold titles that should be retrieved.
+
+    def gold_passages_retrieved(example, pred, trace=None):    gold_titles = set(map(dspy.evaluate.normalize_text, example['gold_titles']))    found_titles = set(map(dspy.evaluate.normalize_text, [c.split(' | ')[0] for c in pred.context]))    return gold_titles.issubset(found_titles)compiled_rag_retrieval_score = evaluate_on_hotpotqa(compiled_rag, metric=gold_passages_retrieved)
+
+**Output:**
+
+    Average Metric: 13 / 50  (26.0): 100%|██████████| 50/50 [00:00<00:00, 671.76it/s]Average Metric: 13 / 50  (26.0%)
+
+Although this simple `compiled_rag` program is able to answer a decent fraction of the questions correctly (on this tiny set, over 40%), the quality of retrieval is much lower.
+
+This potentially suggests that the LM is often relying on the knowledge it memorized during training to answer questions. To address this weak retrieval, let's explore a second program that involves more advanced search behavior.
+
+*   [Configuring LM and RM](#configuring-lm-and-rm)
+
+*   [Loading the Dataset](#loading-the-dataset)
+
+*   [Building Signatures](#building-signatures)
+
+*   [Building the Pipeline](#building-the-pipeline)
+
+*   [Optimizing the Pipeline](#optimizing-the-pipeline)
+
+*   [Executing the Pipeline](#executing-the-pipeline)
+
+*   [Evaluating the Pipeline](#evaluating-the-pipeline)
+
+*   [Evaluating the Retrieval](#evaluating-the-retrieval)
+
+
+========== Page https://dspy-docs.vercel.app/docs/tutorials/simplified-baleen ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+\[02\] Multi-Hop Question Answering
+===================================
+
+A single search query is often not enough for complex QA tasks. For instance, an example within `HotPotQA` includes a question about the birth city of the writer of "Right Back At It Again". A search query often identifies the author correctly as "Jeremy McKinnon", but lacks the capability to compose the intended answer in determining when he was born.
+
+The standard approach for this challenge in retrieval-augmented NLP literature is to build multi-hop search systems, like GoldEn (Qi et al., 2019) and Baleen (Khattab et al., 2021). These systems read the retrieved results and then generate additional queries to gather additional information when necessary before arriving to a final answer. Using DSPy, we can easily simulate such systems in a few lines of code.
+
+Configuring LM and RM[​](#configuring-lm-and-rm "Direct link to Configuring LM and RM")
+
+----------------------------------------------------------------------------------------
+
+We'll start by setting up the language model (LM) and retrieval model (RM), which **DSPy** supports through multiple [LM](https://dspy-docs.vercel.app/docs/category/language-model-clients)
+ and [RM](https://dspy-docs.vercel.app/docs/category/retrieval-model-clients)
+ APIs and [local models hosting](https://dspy-docs.vercel.app/docs/category/local-language-model-clients)
+.
+
+In this notebook, we'll work with GPT-3.5 (`gpt-3.5-turbo`) and the `ColBERTv2` retriever (a free server hosting a Wikipedia 2017 "abstracts" search index containing the first paragraph of each article from this [2017 dump](https://hotpotqa.github.io/wiki-readme.html)
+). We configure the LM and RM within DSPy, allowing DSPy to internally call the respective module when needed for generation or retrieval.
+
+    import dspyturbo = dspy.OpenAI(model='gpt-3.5-turbo')colbertv2_wiki17_abstracts = dspy.ColBERTv2(url='http://20.102.90.50:2017/wiki17_abstracts')dspy.settings.configure(lm=turbo, rm=colbertv2_wiki17_abstracts)
+
+Loading the Dataset[​](#loading-the-dataset "Direct link to Loading the Dataset")
+
+----------------------------------------------------------------------------------
+
+For this tutorial, we make use of the mentioned `HotPotQA` dataset, a collection of complex question-answer pairs typically answered in a multi-hop fashion. We can load this dataset provided by DSPy through the `HotPotQA` class:
+
+    from dspy.datasets import HotPotQA# Load the dataset.dataset = HotPotQA(train_seed=1, train_size=20, eval_seed=2023, dev_size=50, test_size=0)# Tell DSPy that the 'question' field is the input. Any other fields are labels and/or metadata.trainset = [x.with_inputs('question') for x in dataset.train]devset = [x.with_inputs('question') for x in dataset.dev]len(trainset), len(devset)
+
+**Output:**
+
+    (20, 50)
+
+Building Signature[​](#building-signature "Direct link to Building Signature")
+
+-------------------------------------------------------------------------------
+
+Now that we have the data loaded let's start defining the signatures for sub-tasks of out Baleen pipeline.
+
+We'll start by creating the `GenerateAnswer` signature that'll take `context` and `question` as input and give `answer` as output.
+
+    class GenerateAnswer(dspy.Signature):    """Answer questions with short factoid answers."""    context = dspy.InputField(desc="may contain relevant facts")    question = dspy.InputField()    answer = dspy.OutputField(desc="often between 1 and 5 words")
+
+Unlike usual QA pipelines, we have an intermediate question-generation step in Baleen for which we'll need to define a new Signature for the "hop" behavior: inputting some context and a question to generate a search query to find missing information.
+
+    class GenerateSearchQuery(dspy.Signature):    """Write a simple search query that will help answer a complex question."""    context = dspy.InputField(desc="may contain relevant facts")    question = dspy.InputField()    query = dspy.OutputField()
+
+info
+
+We could have written `context = GenerateAnswer.signature.context` to avoid duplicating the description of the context field.
+
+Now that we have the necessary signatures in place, we can start building the Baleen pipeline!
+
+Building the Pipeline[​](#building-the-pipeline "Direct link to Building the Pipeline")
+
+----------------------------------------------------------------------------------------
+
+So, let's define the program itself `SimplifiedBaleen`. There are many possible ways to implement this, but we'll keep this version down to the key elements.
+
+    from dsp.utils import deduplicateclass SimplifiedBaleen(dspy.Module):    def __init__(self, passages_per_hop=3, max_hops=2):        super().__init__()        self.generate_query = [dspy.ChainOfThought(GenerateSearchQuery) for _ in range(max_hops)]        self.retrieve = dspy.Retrieve(k=passages_per_hop)        self.generate_answer = dspy.ChainOfThought(GenerateAnswer)        self.max_hops = max_hops        def forward(self, question):        context = []                for hop in range(self.max_hops):            query = self.generate_query[hop](context=context, question=question).query            passages = self.retrieve(query).passages            context = deduplicate(context + passages)        pred = self.generate_answer(context=context, question=question)        return dspy.Prediction(context=context, answer=pred.answer)
+
+As we can see, the `__init__` method defines a few key sub-modules:
+
+*   **generate\_query**: For each hop, we will have one `dspy.ChainOfThought` predictor with the `GenerateSearchQuery` signature.
+*   **retrieve**: This module will conduct the search using the generated queries over our defined ColBERT RM search index via the `dspy.Retrieve` module.
+*   **generate\_answer**: This `dspy.Predict` module will be used with the `GenerateAnswer` signature to produce the final answer.
+
+The `forward` method uses these sub-modules in simple control flow.
+
+1.  First, we'll loop up to `self.max_hops` times.
+2.  In each iteration, we'll generate a search query using the predictor at `self.generate_query[hop]`.
+3.  We'll retrieve the top-k passages using that query.
+4.  We'll add the (deduplicated) passages to our `context` accumulator.
+5.  After the loop, we'll use `self.generate_answer` to produce an answer.
+6.  We'll return a prediction with the retrieved `context` and predicted `answer`.
+
+Executing the Pipeline[​](#executing-the-pipeline "Direct link to Executing the Pipeline")
+
+-------------------------------------------------------------------------------------------
+
+Let's execute this program in its zero-shot (uncompiled) setting.
+
+This doesn't necessarily imply the performance will be bad but rather that we're bottlenecked directly by the reliability of the underlying LM to understand our sub-tasks from minimal instructions. Often, this is perfectly fine when using the most expensive/powerful models (e.g., GPT-4) on the easiest and most standard tasks (e.g., answering simple questions about popular entities).
+
+    # Ask any question you like to this simple RAG program.my_question = "How many storeys are in the castle that David Gregory inherited?"# Get the prediction. This contains `pred.context` and `pred.answer`.uncompiled_baleen = SimplifiedBaleen()  # uncompiled (i.e., zero-shot) programpred = uncompiled_baleen(my_question)# Print the contexts and the answer.print(f"Question: {my_question}")print(f"Predicted Answer: {pred.answer}")print(f"Retrieved Contexts (truncated): {[c[:200] + '...' for c in pred.context]}")
+
+**Output:**
+
+    Question: How many storeys are in the castle that David Gregory inherited?Predicted Answer: fiveRetrieved Contexts (truncated): ['David Gregory (physician) | David Gregory (20 December 1625 – 1720) was a Scottish physician and inventor. His surname is sometimes spelt as Gregorie, the original Scottish spelling. He inherited Kinn...', 'The Boleyn Inheritance | The Boleyn Inheritance is a novel by British author Philippa Gregory which was first published in 2006. It is a direct sequel to her previous novel "The Other Boleyn Girl," an...', 'Gregory of Gaeta | Gregory was the Duke of Gaeta from 963 until his death. He was the second son of Docibilis II of Gaeta and his wife Orania. He succeeded his brother John II, who had left only daugh...', 'Kinnairdy Castle | Kinnairdy Castle is a tower house, having five storeys and a garret, two miles south of Aberchirder, Aberdeenshire, Scotland. The alternative name is Old Kinnairdy....', 'Kinnaird Head | Kinnaird Head (Scottish Gaelic: "An Ceann Àrd" , "high headland") is a headland projecting into the North Sea, within the town of Fraserburgh, Aberdeenshire on the east coast of Scotla...', 'Kinnaird Castle, Brechin | Kinnaird Castle is a 15th-century castle in Angus, Scotland. The castle has been home to the Carnegie family, the Earl of Southesk, for more than 600 years....']
+
+We can inspect the last **three** calls to the LM (i.e., generating the first hop's query, generating the second hop's query, and generating the answer) using:
+
+    turbo.inspect_history(n=3)
+
+Optimizing the Pipeline[​](#optimizing-the-pipeline "Direct link to Optimizing the Pipeline")
+
+----------------------------------------------------------------------------------------------
+
+However, a zero-shot approach quickly falls short for more specialized tasks, novel domains/settings, and more efficient (or open) models.
+
+To address this, **DSPy** offers compilation. Let's compile our multi-hop (`SimplifiedBaleen`) program.
+
+Let's first define our validation logic for compilation:
+
+*   The predicted answer matches the gold answer.
+*   The retrieved context contains the gold answer.
+*   None of the generated queries is rambling (i.e., none exceeds 100 characters in length).
+*   None of the generated queries is roughly repeated (i.e., none is within 0.8 or higher F1 score of earlier queries).
+
+    def validate_context_and_answer_and_hops(example, pred, trace=None):    if not dspy.evaluate.answer_exact_match(example, pred): return False    if not dspy.evaluate.answer_passage_match(example, pred): return False    hops = [example.question] + [outputs.query for *_, outputs in trace if 'query' in outputs]    if max([len(h) for h in hops]) > 100: return False    if any(dspy.evaluate.answer_exact_match_str(hops[idx], hops[:idx], frac=0.8) for idx in range(2, len(hops))): return False    return True
+
+We'll use one of the most basic teleprompters in **DSPy**, namely, `BootstrapFewShot` to optimize the predictors in pipeline with few-shot examples.
+
+    from dspy.teleprompt import BootstrapFewShotteleprompter = BootstrapFewShot(metric=validate_context_and_answer_and_hops)compiled_baleen = teleprompter.compile(SimplifiedBaleen(), teacher=SimplifiedBaleen(passages_per_hop=2), trainset=trainset)
+
+Evaluating the Pipeline[​](#evaluating-the-pipeline "Direct link to Evaluating the Pipeline")
+
+----------------------------------------------------------------------------------------------
+
+Let's now define our evaluation function and compare the performance of the uncompiled and compiled Baleen pipelines. While this devset does not serve as a completely reliable benchmark, it is instructive to use for this tutorial.
+
+    from dspy.evaluate.evaluate import Evaluate# Define metric to check if we retrieved the correct documentsdef gold_passages_retrieved(example, pred, trace=None):    gold_titles = set(map(dspy.evaluate.normalize_text, example["gold_titles"]))    found_titles = set(        map(dspy.evaluate.normalize_text, [c.split(" | ")[0] for c in pred.context])    )    return gold_titles.issubset(found_titles)# Set up the `evaluate_on_hotpotqa` function. We'll use this many times below.evaluate_on_hotpotqa = Evaluate(devset=devset, num_threads=1, display_progress=True, display_table=5)uncompiled_baleen_retrieval_score = evaluate_on_hotpotqa(uncompiled_baleen, metric=gold_passages_retrieved, display=False)compiled_baleen_retrieval_score = evaluate_on_hotpotqa(compiled_baleen, metric=gold_passages_retrieved)print(f"## Retrieval Score for uncompiled Baleen: {uncompiled_baleen_retrieval_score}")print(f"## Retrieval Score for compiled Baleen: {compiled_baleen_retrieval_score}")
+
+**Output:**
+
+    ## Retrieval Score for uncompiled Baleen: 36.0## Retrieval Score for compiled Baleen: 60.0
+
+Excellent! There might be something to this compiled, multi-hop program then.
+
+Earlier, we said simple programs are not very effective at finding all evidence required for answering each question. Is this resolved by the adding some greater prompting techniques in the forward function of `SimplifiedBaleen`? Does compiling programs improve performance?
+
+While in our tutorial we demonstrate our findings, the answer for these questions will not always be obvious. However, DSPy makes it extremely easy to try out the many diverse approaches with minimal effort.
+
+Now that you've seen a example of how to build a simple yet powerful pipeline, it's time for you to build one yourself!
+
+*   [Configuring LM and RM](#configuring-lm-and-rm)
+
+*   [Loading the Dataset](#loading-the-dataset)
+
+*   [Building Signature](#building-signature)
+
+*   [Building the Pipeline](#building-the-pipeline)
+
+*   [Executing the Pipeline](#executing-the-pipeline)
+
+*   [Optimizing the Pipeline](#optimizing-the-pipeline)
+
+*   [Evaluating the Pipeline](#evaluating-the-pipeline)
+
+
+========== Page https://dspy-docs.vercel.app/docs/tutorials/summarization ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+\[03\] Summarization
+====================
+
+Summarization is a fundamental task in natural language processing that involves condensing a longer piece of text into a shorter version while retaining its key information and main ideas. It's a crucial skill for both humans and machines, with applications ranging from creating article abstracts to generating concise reports from lengthy documents.
+
+While summarization is valuable, evaluating the quality of summaries produced by language models presents significant challenges. Unlike tasks with clear right or wrong answers, summarization quality is often subjective and context-dependent. Some key difficulties in evaluating summarized outputs include:
+
+1.  Balancing information retention with conciseness
+2.  Preserving the original text's tone and intent
+3.  Ensuring factual accuracy without introducing errors
+4.  Adapting to different types of source material and summary purposes
+5.  Accounting for varying reader preferences and background knowledge
+
+These challenges make it difficult to create universal metrics for summary quality, often requiring a combination of automated measures and human judgment for comprehensive evaluation.
+
+In this example, we show how you can build a summarization system using DSPy. The technique involves the following:
+
+1.  We build a DSPy program for doing the actual summarization task which takes a `passage` as input and gives a `summary` as output.
+2.  We would ideally want to optimize the summarization program over a metric in order to build an effective program. But since writing a metric function for summarization tasks is subjective and ambiguous in nature, we can use a LM to do this task which in turn means we can write another DSPy program to do the task of scoring a summary based on the variable we care about.
+3.  Finally, we compose the system by using the Metric program for defining the metric function in the Summarization program.
+
+Metric program[​](#metric-program "Direct link to Metric program")
+
+-------------------------------------------------------------------
+
+Define two signatures for scoring the summary.
+
+1.  The first signature breaks down the summary and assigns defined labels as grades.
+
+    import dspyclass Breakdown(dspy.Signature):    """    Given a passage, break down the passage into key ideas.    Enumerate every key idea in the passage and    assign it an importance grade    (High, Medium, or Low).    """    passage = dspy.InputField()    key_ideas: str = dspy.OutputField(        desc="numbered list of one key idea per line,"        "followed by its importance grade, "             "e.g. 1. <Idea here>. High.")    importance_grades: list[str] = dspy.OutputField(        desc='list of importance grades, '             'e.g. ["High", "Medium", "Low"].')
+
+2.  The second signature assigns a binary score using the summary and the break down from the previous signature as inputs
+
+    class SummaryCorrectness(dspy.Signature):    """    Compare a system generated summary to the key ideas in the passage.    For every key idea supplied,    assign a binary score based on whether the summary contains it.    And compute an overall score based on the binary scores.    """    key_ideas: str = dspy.InputField(        desc="key ideas in the passage "             "for evaluating the summary")    summary: str = dspy.InputField()    binary_scores: list[bool] = dspy.OutputField(        desc="list of binary scores for each key idea, "             "e.g. [True, False, True]")    overall_score: float = dspy.OutputField(        desc="overall score for the summary out of 1.0")
+
+3.  Now write the actual program that computes a weighted score between 0 to 1 and falls back to the overall\_score that's loosely scored by the model
+
+    class Metric(dspy.Module):    """    Compute a score for the correctness of a summary.    """    def __init__(self):        self.breakdown = dspy.ChainOfThought(Breakdown)        self.assess = dspy.ChainOfThought(SummaryCorrectness)    def forward(self, example, pred, trace=None):        breakdown = self.breakdown(            passage=example.passage        )        key_ideas = breakdown.key_ideas        importance_grades = breakdown.importance_grades        scores = self.assess(            key_ideas=key_ideas,            summary=pred.summary,        )        try:            weight_map = {'High': 1.0, 'Medium': 0.7}            score = sum(                weight_map.get(g, 0.2) * int(b)                for g, b in zip(importance_grades, scores.binary_scores)            )            score /= sum(weight_map.get(g, 0.2) for g in importance_grades)        # pylint: disable=broad-except        except Exception:            score = float(scores.overall_score)        return score if trace is None else score >= 0.75
+
+Summarization Program[​](#summarization-program "Direct link to Summarization Program")
+
+----------------------------------------------------------------------------------------
+
+First define it's signature
+
+    class SummarizeSignature(dspy.Signature):    """    Given a passage, generate a summary.    """    passage = dspy.InputField(desc="a passage to summarize")    summary: str = dspy.OutputField(        desc="a concise summary of the passage")
+
+Next, define the program
+
+    class Summarize(dspy.Module):    def __init__(self):        self.summarize = dspy.ChainOfThought(SummarizeSignature)    def forward(self, passage: str):        summary = self.summarize(            passage=passage        )        return summary
+
+Let's jump into the evaluation process now. First, define the language model.
+
+    lm = dspy.LM("openai/gpt-4o-mini", max_tokens=250)dspy.settings.configure(lm=lm)
+
+Load a dataset. The dataset is a `jsonl` file where each line has a passage, summary and a score.
+
+    dataset = []with open('src/summarization/programs/summarize/dataset.jsonl', 'r',          encoding='utf-8') as f:    for line in f:        data = json.loads(line)        passage = data.get("passage", "")        summary = data.get("summary", "")        score = data.get("score", 0)        example = dspy.Example(passage=passage, summary=summary, score=score)        dataset.append(example)trainset = [x.with_inputs("passage") for x in dataset]
+
+Now, define the metric. This is where we use the `Metric` program to compute the score for the summary generated by the `Summarization` program.
+
+    def metric(gold, pred, trace=None):    metric_program = Metric()    examp = dspy.Example(passage=gold.passage)    predicted = dspy.Example(summary=pred)    pred_score = metric_program(example=examp, pred=predicted)    gold_score = gold.score    # check if they are almost equal    return abs(float(gold_score) - float(pred_score)) < 0.2
+
+Create the program and evaluate it.
+
+    program = Summarize()evaluate = dspy.Evaluate(devset=trainset, metric=metric,                    display_progress=True,                    display_table=True, provide_traceback=True)res = evaluate(program, devset=trainset)print(res)
+
+That's it! Hopefully this example was helpful in understanding how you can compose DSPy programs to build a truly compound AI system that's optimized for isolated tasks.
+
+*   [Metric program](#metric-program)
+
+*   [Summarization Program](#summarization-program)
+
+
+========== Page https://dspy-docs.vercel.app/docs/tutorials/examples ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+Community Examples
+==================
+
+The DSPy team believes complexity has to be justified. We take this seriously: we never release a complex tutorial (above) or example (below) _unless we can demonstrate empirically that this complexity has generally led to improved quality or cost._ This kind of rule is rarely enforced by other frameworks or docs, but you can count on it in DSPy examples.
+
+There's a bunch of examples in the `examples/` directory and in the top-level directory. We welcome contributions!
+
+You can find other examples tweeted by [@lateinteraction](https://twitter.com/lateinteraction)
+ on Twitter/X.
+
+**Some other examples (not exhaustive, feel free to add more via PR):**
+
+*   Applying DSPy Assertions
+    *   [Long-form Answer Generation with Citations, by Arnav Singhvi](https://colab.research.google.com/github/stanfordnlp/dspy/blob/main/examples/longformqa/longformqa_assertions.ipynb)
+
+    *   [Generating Answer Choices for Quiz Questions, by Arnav Singhvi](https://colab.research.google.com/github/stanfordnlp/dspy/blob/main/examples/quiz/quiz_assertions.ipynb)
+
+    *   [Generating Tweets for QA, by Arnav Singhvi](https://colab.research.google.com/github/stanfordnlp/dspy/blob/main/examples/tweets/tweets_assertions.ipynb)
+
+*   [Compiling LCEL runnables from LangChain in DSPy](https://github.com/stanfordnlp/dspy/blob/main/examples/tweets/compiling_langchain.ipynb)
+
+*   [AI feedback, or writing LM-based metrics in DSPy](https://github.com/stanfordnlp/dspy/blob/main/examples/tweets/tweet_metric.py)
+
+*   [DSPy Optimizers Benchmark on a bunch of different tasks, by Michael Ryan](https://github.com/stanfordnlp/dspy/tree/main/testing/tasks)
+
+*   [Indian Languages NLI with gains due to compiling by Saiful Haq](https://github.com/saifulhaq95/DSPy-Indic/blob/main/indicxlni.ipynb)
+
+*   [Sophisticated Extreme Multi-Class Classification, IReRa, by Karel D’Oosterlinck](https://github.com/KarelDO/xmc.dspy)
+
+*   [DSPy on BIG-Bench Hard Example, by Chris Levy](https://drchrislevy.github.io/posts/dspy/dspy.html)
+
+*   [Using Ollama with DSPy for Mistral (quantized) by @jrknox1977](https://gist.github.com/jrknox1977/78c17e492b5a75ee5bbaf9673aee4641)
+
+*   [Using DSPy, "The Unreasonable Effectiveness of Eccentric Automatic Prompts" (paper) by VMware's Rick Battle & Teja Gollapudi, and interview at TheRegister](https://www.theregister.com/2024/02/22/prompt_engineering_ai_models/)
+
+*   [Portkey with DSPy: Efficiently Track Metrics, Optimize Performance, and Scale Across 250+ LLMs](https://docs.portkey.ai/docs/integrations/libraries/dspy)
+
+*   [Langtrace AI DSPy Examples Repository](https://github.com/Scale3-Labs/dspy-examples)
+
+*   [Langtrace Blogpost - Build a summarization system using DSPy](https://www.langtrace.ai/blog/build-a-reliable-summarization-system-using-dspy-and-langtrace)
+
+
+There are also recent cool examples at [Weaviate's DSPy cookbook](https://github.com/weaviate/recipes/tree/main/integrations/llm-frameworks/dspy)
+ by Connor Shorten. [See tutorial on YouTube](https://www.youtube.com/watch?v=CEuUG4Umfxs)
+.
+
+
+========== Page https://dspy-docs.vercel.app/docs/deep-dive/signature/understanding-signatures ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Understanding Signatures
+========================
+
+A DSPy Signature is the most basic form of task description which simply requires inputs and outputs and optionally, a small description about them and the task too.
+
+There are 2 ways to define a Signature: **Inline** and **Class-Based**. But before diving into creating signatures, let's understand what a signature is and why we need it.
+
+What is a Signature?[​](#what-is-a-signature "Direct link to What is a Signature?")
+
+------------------------------------------------------------------------------------
+
+In the typical LLM pipeline, you'll have two key components at work i.e. an LLM and a prompt. In DSPy, we have an LLM configured at the beginning of any DSPy script via the LM(Language Model - which is shown in the next blog) and a prompt defined via **Signatures**.
+
+A Signature is usually composed of 2 essential components: **Input Fields** and **Output Fields**. You can optionally pass an instruction defining more robust requirements of your task. An **Input Field** is an attribute of Signature that defines an input to the prompt and an **Output Field** is an attribute of Signature that defines an output of the prompt received from an LLM call. Let's understand this by an example.
+
+![DSPy Signatures](https://dspy-docs.vercel.app/assets/images/dspy_signatures-ecce334894d717def48a13ab7364011e.png)
+
+Let's think of a basic Question-Answer task where the question serves as an input to the LLM from which you receive an answer response. We directly map this in DSPy as the question serves as the Signature's **Input Field** and the answer as the Signature's **Output Field** .
+
+Now that we understand the components of a Signature, let's see how we can declare a signature and what a prompt for that signature looks like.
+
+Inline Method[​](#inline-method "Direct link to Inline Method")
+
+----------------------------------------------------------------
+
+DSPy offers an intuitive, simple approach for defining tasks: simply state the inputs and outputs to convey the task in its simplest form. For example, if your input is **question** and output is **answer**, it should be clear that the task is a Question-Answer task. If your inputs are **context** and **question** and outputs are **answer** and **reason**, this should imply some form of Chain-Of-Thought prompting, potentially within a RAG pipeline.
+
+Inspired by this simplicity, DSPy Signatures mirrors an Einops-like abstract manner:
+
+    input_field_1,input_field_2,input_field_3...->output_field_1,output_field_2,output_field_3...
+
+**Input Fields** of the Signature are declared on the left side of `->` with the **Output Fields** on the right side. So let's go ahead and define DSPy signatures for the QA and RAG tasks:
+
+    QA Task: question->answerRAG Task: context,question->answer,rationale
+
+This simplistic naming of the fields is essential for the LLM to understand the nature of inputs and outputs, reducing sensitivity and ensuring clarity for expected inputs and generations.
+
+However, this barebones signature may not provide a clear picture for how the model should approach the task, and to meet these needs, DSPy modules offer simplistic yet robust instructional templates that integrate the Signatures. Let's take a deeper look at the prompt constructed by DSPy to understand it better when used within a `dspy.Predict` module as `dspy.Predict(question->answer)`:
+
+    Given the fields `question`, produce the fields `answer`.---Follow the following format.Question: ${question}Answer: ${answer}---Question:
+
+As you can see, DSPy populates the instruction `Given the fields ``question``, produce the fields ``answer``.` to define the task and provides instructions for the prompt format. And this format is pretty standard for any Signature you create as we can see in this prompting setup for RAG:
+
+![Prompt Creation for Inline](https://dspy-docs.vercel.app/assets/images/prompt_creation-c68b7f0128cd65ec74da8303633c3d03.png)
+
+Now these instructional templates are well defined for their respective prompting techniques (CoT, ProgramOfThought, ReAct), leaving the user only having to define their task's Signature input and outputs with the rest handled by the DSPy modules library!
+
+However, it would be nice to give more instructions beyond the simplistic in-line signature and for this, we turn to class-based signatures.
+
+Class Based Method[​](#class-based-method "Direct link to Class Based Method")
+
+-------------------------------------------------------------------------------
+
+A Signature class comprises of three things:
+
+*   **Task Description/Instruction:** We define in the signature class docstring.
+*   **Inputs Field:** We define these as `dspy.InputField()`.
+*   **Outputs Field:** We define these as `dspy.OutputField()`.
+
+    class BasicQA(dspy.Signature):    """Answer questions with short factoid answers."""    question = dspy.InputField()    answer = dspy.OutputField(desc="often between 1 and 5 words", prefix="Question's Answer:")
+
+The I/O Fields take 3 inputs: `desc`, `prefix` and `format`. `desc` is the description to the input, `prefix` is the placeholder text of the field in the prompt(one that has been `${field_name}` until now) and `format` which is a method that'll define how to handle non-string inputs. If the input to field is a list rather than a string, we can specify this through `format`.
+
+Both `InputField` and `OutputField` are similar in implementation as well:
+
+    class InputField(Field):    def __init__(self, *, prefix=None, desc=None, format=None):        super().__init__(prefix=prefix, desc=desc, input=True, format=format)class OutputField(Field):    def __init__(self, *, prefix=None, desc=None, format=None):        super().__init__(prefix=prefix, desc=desc, input=False, format=format)
+
+Let's take a look at how a prompt for the class based signature looks like:
+
+    Answer questions with short factoid answers.---Follow the following format.Question: ${question}Question's Answer: often between 1 and 5 words---Question:
+
+As you can see, the instruction is more well-defined by our task's instruction in the docstring. The prefix and description for the `answer` field reflects our definitions. This ensures a more refined prompt structure, giving the user more control on defining its contents per task requirements.
+
+![Class Based Prompt Creation](https://dspy-docs.vercel.app/assets/images/class_based_prompt_creation-6c053fae10074fa99f0f5b71b15555fc.png)
+
+* * *
+
+Written By: Herumb Shandilya
+
+[](https://twitter.com/krypticmouse)
+[](https://www.linkedin.com/in/herumb-shandilya/)
+[](https://herumbshandilya.com/)
+
+*   [What is a Signature?](#what-is-a-signature)
+
+*   [Inline Method](#inline-method)
+
+*   [Class Based Method](#class-based-method)
+
+
+========== Page https://dspy-docs.vercel.app/docs/deep-dive/signature/executing-signatures ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Executing Signatures
+====================
+
+So far we've understood what signatures are and how we can use them to craft our prompt, but now let's take a look at how to execute them.
+
+Configuring LM[​](#configuring-lm "Direct link to Configuring LM")
+
+-------------------------------------------------------------------
+
+To execute signatures, we require DSPy modules which are themselves dependent on a client connection to a language model (LM) client. DSPy supports LM APIs and local model hosting. Within this example, we will make use of the OpenAI client and configure the GPT-3.5 (`gpt-3.5-turbo`) model.
+
+    turbo = dspy.OpenAI(model='gpt-3.5-turbo')dspy.settings.configure(lm=turbo)
+
+Executing Signatures[​](#executing-signatures-1 "Direct link to Executing Signatures")
+
+---------------------------------------------------------------------------------------
+
+Let's make use of the simplest module in DSPy - the `Predict` module that takes this signature as input to construct the prompt sent to the LM and generates a response for it.
+
+    class BasicQA(dspy.Signature):    """Answer questions with short factoid answers."""    question = dspy.InputField()    answer = dspy.OutputField(desc="often between 1 and 5 words")# Define the predictor.predictor = dspy.Predict(BasicQA)# Call the predictor on a particular input.pred = predictor(question=devset[0].question)# Print the input and the prediction.print(f"Question: {devset[0].question}")print(f"Predicted Answer: {pred.answer}")print(f"Actual Answer: {devset[0].answer}")
+
+**Output:**
+
+    Question: Are both Cangzhou and Qionghai in the Hebei province of China?Predicted Answer: No.Actual Answer: no
+
+The `Predict` module generates a response via the LM we configured above and executes the prompt crafted by the signature. This returns the output i.e. `answer` which is present in the object returned by the `predictor` and can be accessed via `.` operator.
+
+Inspecting Output[​](#inspecting-output "Direct link to Inspecting Output")
+
+----------------------------------------------------------------------------
+
+Let's dive deeper into DSPy uses our signature to build up the prompt, which we can do through the `inspect_history` method on the configured LM following the program's execution. This method returns the last `n` prompts executed by LM.
+
+    turbo.inspect_history(n=1)
+
+**Output:**
+
+    Answer questions with short factoid answers.---Follow the following format.Question: ${question}Answer: often between 1 and 5 words---Question: Are both Cangzhou and Qionghai in the Hebei province of China?Answer: No.
+
+Additionally, if you want to store or use this prompt, you can access the `history` attribute of the LM object, which stores a list of dictionaries containing respective `prompt:response` entries for each LM generation.
+
+    turbo.history[0]
+
+**Output:**
+
+    {'prompt': "Answer questions with short factoid answers.\n\n---\n\nFollow the following format.\n\nQuestion: ${question}\nQuestion's Answer: often between 1 and 5 words\n\n---\n\nQuestion: Are both Cangzhou and Qionghai in the Hebei province of China?\nQuestion's Answer:", 'response': <OpenAIObject chat.completion id=chatcmpl-8kCPsxikpVpmSaxdGLUIqubFZS05p at 0x7c3ba41fa840> JSON: {   "id": "chatcmpl-8kCPsxikpVpmSaxdGLUIqubFZS05p",   "object": "chat.completion",   "created": 1706021508,   "model": "gpt-3.5-turbo-0613",   "choices": [     {       "index": 0,       "message": {         "role": "assistant",         "content": "No."       },       "logprobs": null,       "finish_reason": "stop"     }   ],   "usage": {     "prompt_tokens": 64,     "completion_tokens": 2,     "total_tokens": 66   },   "system_fingerprint": null }, 'kwargs': {'stringify_request': '{"temperature": 0.0, "max_tokens": 150, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0, "n": 1, "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "Answer questions with short factoid answers.\\n\\n---\\n\\nFollow the following format.\\n\\nQuestion: ${question}\\nQuestion\'s Answer: often between 1 and 5 words\\n\\n---\\n\\nQuestion: Are both Cangzhou and Qionghai in the Hebei province of China?\\nQuestion\'s Answer:"}]}'}, 'raw_kwargs': {}}
+
+How `Predict` works?[​](#how-predict-works "Direct link to how-predict-works")
+
+-------------------------------------------------------------------------------
+
+The output of predictor is a `Prediction` class object which mirrors the `Example` class with additional functionalities for LM completion interactivity.
+
+How does `Predict` module actually 'predict' though? Here is a step-by-step breakdown:
+
+1.  A call to the predictor will get executed in `__call__` method of `Predict` Module which executes the `forward` method of the class.
+
+2.  In `forward` method, DSPy initializes the signature, LM call parameters and few-shot examples, if any.
+
+3.  The `_generate` method formats the few shots example to mirror the signature and uses the LM object we configured to generate the output as a `Prediction` object.
+
+
+In case you are wondering how the prompt is constructed, the DSPy Signature framework internally handles the prompt structure, utilizing the DSP Template primitive to craft the prompt.
+
+Predict gives you a predefined pipeline to execute signature which is nice but you can build much more complicated pipelines with this by creating custom Modules.
+
+* * *
+
+Written By: Herumb Shandilya
+
+[](https://twitter.com/krypticmouse)
+[](https://www.linkedin.com/in/herumb-shandilya/)
+[](https://herumbshandilya.com/)
+
+*   [Configuring LM](#configuring-lm)
+
+*   [Executing Signatures](#executing-signatures-1)
+
+*   [Inspecting Output](#inspecting-output)
+
+*   [How `Predict` works?](#how-predict-works)
+
+
+========== Page https://dspy-docs.vercel.app/docs/deep-dive/signature/internal-signatures ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+DSPy's Internal Signatures[​](#dspys-internal-signatures "Direct link to DSPy's Internal Signatures")
+
+------------------------------------------------------------------------------------------------------
+
+DSPy makes extensive use of signatures internally to define tasks and their requirements. Signatures are used to define the inputs and outputs of a task, and optionally, a small description about them and the task too.
+
+Sometimes, you may want to update the signature of a task to include instructions or additional fields. You can access and replace any signature in DSPy using the `dspy.Signature.replace` context manager.
+
+Updating Signatures[​](#updating-signatures "Direct link to Updating Signatures")
+
+----------------------------------------------------------------------------------
+
+To update a signature, you can use the `dspy.Signature.replace` context manager. This context manager allows you to replace the signature of a task with a new one. Here's an example of updating one of the signatures used in the Copro optimizer to add additional instructions:
+
+    from dspy.teleprompt import copro_optimizerimport dspyclass MyBasicGenerateInstruction(mipro_optimizer.BasicGenerateInstruction):    """    <PERSONA>    You are an instruction optimizer for large language models.    </PERSONA>    <TASK>    I will give you a ``signature`` of fields (inputs and outputs) in English. Your task is to propose an instruction that will lead a good language model to perform the task well. Don't be afraid to be creative, but the new instruction you propose should be clear and concise.    </TASK>    """    basic_instruction = dspy.InputField(desc="The unoptimized instruction. New instructions should achieve the same goals.")with mipro_optimizer.BasicGenerateInstruction.replace(MyBasicGenerateInstruction):    teleprompter = COPRO(prompt_model=prompt_model, metric=metric, breadth=BREADTH, depth=DEPTH, init_temperature=INIT_TEMPERATURE)    kwargs = dict(num_threads=NUM_THREADS, display_progress=True, display_table=0)    compiled_prompt_opt = teleprompter.compile(program.deepcopy(), trainset=trainset[:DEV_NUM], eval_kwargs=kwargs)    eval_score = evaluate(compiled_prompt_opt, devset=evalset[:EVAL_NUM], **kwargs)
+
+This will now update the signature of the `BasicGenerateInstruction` task in the Copro optimizer to include the new `basic_instruction` field.
+
+You can replace any signature in DSPy using this method, which will be used as long as the context manager is active.
+
+There is also a helper function `dspy.update_signatures` that can update multiple signatures at once. This function takes a dictionary of signatures to update, with the key being the signature to update and the value being the new signature class.
+
+    from dspy.teleprompt import copro_optimizerimport dspyclass MyBasicGenerateInstruction(mipro_optimizer.BasicGenerateInstruction):    """    <PERSONA>    You are an instruction optimizer for large language models.    </PERSONA>    <TASK>    I will give you a ``signature`` of fields (inputs and outputs) in English. Your task is to propose an instruction that will lead a good language model to perform the task well. Don't be afraid to be creative, but the new instruction you propose should be clear and concise.    </TASK>    """    basic_instruction = dspy.InputField(desc="The unoptimized instruction. New instructions should achieve the same goals.")class GenerateInstructionGivenAttempts(mipro_optimizer.GenerateInstructionGivenAttempts):    """    <PERSONA>    You are an instruction optimizer for large language models.    </PERSONA>    <TASK>    I will give some task instructions I've tried, along with their corresponding validation scores. The instructions are arranged in increasing order based on their scores, where higher scores indicate better quality.    Your task is to propose a new instruction that will lead a good language model to perform the task even better. Don't be afraid to be creative    </TASK>    """    passwith dspy.update_signatures({    copro_optimizer.BasicGenerateInstruction: MyBasicGenerateInstruction,    copro_optimizer.GenerateInstructionGivenAttempts: GenerateInstructionGivenAttempts    }):    ...
+
+* * *
+
+Written By: Michael Jones
+
+*   [DSPy's Internal Signatures](#dspys-internal-signatures)
+
+*   [Updating Signatures](#updating-signatures)
+
+
+========== Page https://dspy-docs.vercel.app/docs/deep-dive/typed_predictors/functional_typed_predictors ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Functional Typed Predictors
+===========================
+
+Typed Predictors as Decorators[​](#typed-predictors-as-decorators "Direct link to Typed Predictors as Decorators")
+
+-------------------------------------------------------------------------------------------------------------------
+
+Functional Typed Predictors in `dspy.Module`[​](#functional-typed-predictors-in-dspymodule "Direct link to functional-typed-predictors-in-dspymodule")
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+How Functional Typed Predictors work?[​](#how-functional-typed-predictors-work "Direct link to How Functional Typed Predictors work?")
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+*   [Typed Predictors as Decorators](#typed-predictors-as-decorators)
+
+*   [Functional Typed Predictors in `dspy.Module`](#functional-typed-predictors-in-dspymodule)
+
+*   [How Functional Typed Predictors work?](#how-functional-typed-predictors-work)
+
+
+========== Page https://dspy-docs.vercel.app/docs/deep-dive/typed_predictors/understanding_predictors ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Understanding Typed Predictors
+==============================
+
+Why use a Typed Predictor?[​](#why-use-a-typed-predictor "Direct link to Why use a Typed Predictor?")
+
+------------------------------------------------------------------------------------------------------
+
+How to use a Typed Predictor?[​](#how-to-use-a-typed-predictor "Direct link to How to use a Typed Predictor?")
+
+---------------------------------------------------------------------------------------------------------------
+
+Prompt of Typed Predictors[​](#prompt-of-typed-predictors "Direct link to Prompt of Typed Predictors")
+
+-------------------------------------------------------------------------------------------------------
+
+How Typed Predictors work?[​](#how-typed-predictors-work "Direct link to How Typed Predictors work?")
+
+------------------------------------------------------------------------------------------------------
+
+*   [Why use a Typed Predictor?](#why-use-a-typed-predictor)
+
+*   [How to use a Typed Predictor?](#how-to-use-a-typed-predictor)
+
+*   [Prompt of Typed Predictors](#prompt-of-typed-predictors)
+
+*   [How Typed Predictors work?](#how-typed-predictors-work)
+
+
+========== Page https://dspy-docs.vercel.app/docs/cheatsheet ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+DSPy Cheatsheet
+===============
+
+This page will contain snippets for frequent usage patterns.
+
+DSPy DataLoaders[​](#dspy-dataloaders "Direct link to DSPy DataLoaders")
+
+-------------------------------------------------------------------------
+
+Import and initializing a DataLoader Object:
+
+    import dspyfrom dspy.datasets import DataLoaderdl = DataLoader()
+
+### Loading from HuggingFace Datasets[​](#loading-from-huggingface-datasets "Direct link to Loading from HuggingFace Datasets")
+
+    code_alpaca = dl.from_huggingface("HuggingFaceH4/CodeAlpaca_20K")
+
+You can access the dataset of the splits by calling key of the corresponding split:
+
+    train_dataset = code_alpaca['train']test_dataset = code_alpaca['test']
+
+### Loading specific splits from HuggingFace[​](#loading-specific-splits-from-huggingface "Direct link to Loading specific splits from HuggingFace")
+
+You can also manually specify splits you want to include as a parameters and it'll return a dictionary where keys are splits that you specified:
+
+    code_alpaca = dl.from_huggingface(    "HuggingFaceH4/CodeAlpaca_20K",    split = ["train", "test"],)print(f"Splits in dataset: {code_alpaca.keys()}")
+
+If you specify a single split then dataloader will return a List of `dspy.Example` instead of dictionary:
+
+    code_alpaca = dl.from_huggingface(    "HuggingFaceH4/CodeAlpaca_20K",    split = "train",)print(f"Number of examples in split: {len(code_alpaca)}")
+
+You can slice the split just like you do with HuggingFace Dataset too:
+
+    code_alpaca_80 = dl.from_huggingface(    "HuggingFaceH4/CodeAlpaca_20K",    split = "train[:80%]",)print(f"Number of examples in split: {len(code_alpaca_80)}")code_alpaca_20_80 = dl.from_huggingface(    "HuggingFaceH4/CodeAlpaca_20K",    split = "train[20%:80%]",)print(f"Number of examples in split: {len(code_alpaca_20_80)}")
+
+### Loading specific subset from HuggingFace[​](#loading-specific-subset-from-huggingface "Direct link to Loading specific subset from HuggingFace")
+
+If a dataset has a subset you can pass it as an arg like you do with `load_dataset` in HuggingFace:
+
+    gms8k = dl.from_huggingface(    "gsm8k",    "main",    input_keys = ("question",),)print(f"Keys present in the returned dict: {list(gms8k.keys())}")print(f"Number of examples in train set: {len(gms8k['train'])}")print(f"Number of examples in test set: {len(gms8k['test'])}")
+
+### Loading from CSV[​](#loading-from-csv "Direct link to Loading from CSV")
+
+    dolly_100_dataset = dl.from_csv("dolly_subset_100_rows.csv",)
+
+You can choose only selected columns from the csv by specifying them in the arguments:
+
+    dolly_100_dataset = dl.from_csv(    "dolly_subset_100_rows.csv",    fields=("instruction", "context", "response"),    input_keys=("instruction", "context"))
+
+### Splitting a List of `dspy.Example`[​](#splitting-a-list-of-dspyexample "Direct link to splitting-a-list-of-dspyexample")
+
+    splits = dl.train_test_split(dataset, train_size=0.8) # `dataset` is a List of dspy.Exampletrain_dataset = splits['train']test_dataset = splits['test']
+
+### Sampling from List of `dspy.Example`[​](#sampling-from-list-of-dspyexample "Direct link to sampling-from-list-of-dspyexample")
+
+    sampled_example = dl.sample(dataset, n=5) # `dataset` is a List of dspy.Example
+
+DSPy Programs[​](#dspy-programs "Direct link to DSPy Programs")
+
+----------------------------------------------------------------
+
+### dspy.Signature[​](#dspysignature "Direct link to dspy.Signature")
+
+    class BasicQA(dspy.Signature):    """Answer questions with short factoid answers."""    question = dspy.InputField()    answer = dspy.OutputField(desc="often between 1 and 5 words")
+
+### dspy.ChainOfThought[​](#dspychainofthought "Direct link to dspy.ChainOfThought")
+
+    generate_answer = dspy.ChainOfThought(BasicQA)# Call the predictor on a particular input alongside a hint.question='What is the color of the sky?'pred = generate_answer(question=question)
+
+### dspy.ChainOfThoughtwithHint[​](#dspychainofthoughtwithhint "Direct link to dspy.ChainOfThoughtwithHint")
+
+    generate_answer = dspy.ChainOfThoughtWithHint(BasicQA)# Call the predictor on a particular input alongside a hint.question='What is the color of the sky?'hint = "It's what you often see during a sunny day."pred = generate_answer(question=question, hint=hint)
+
+### dspy.ProgramOfThought[​](#dspyprogramofthought "Direct link to dspy.ProgramOfThought")
+
+    pot = dspy.ProgramOfThought(BasicQA)question = 'Sarah has 5 apples. She buys 7 more apples from the store. How many apples does Sarah have now?'result = pot(question=question)print(f"Question: {question}")print(f"Final Predicted Answer (after ProgramOfThought process): {result.answer}")
+
+### dspy.ReACT[​](#dspyreact "Direct link to dspy.ReACT")
+
+    react_module = dspy.ReAct(BasicQA)question = 'Sarah has 5 apples. She buys 7 more apples from the store. How many apples does Sarah have now?'result = react_module(question=question)print(f"Question: {question}")print(f"Final Predicted Answer (after ReAct process): {result.answer}")
+
+### dspy.Retrieve[​](#dspyretrieve "Direct link to dspy.Retrieve")
+
+    colbertv2_wiki17_abstracts = dspy.ColBERTv2(url='http://20.102.90.50:2017/wiki17_abstracts')dspy.settings.configure(rm=colbertv2_wiki17_abstracts)#Define Retrieve Moduleretriever = dspy.Retrieve(k=3)query='When was the first FIFA World Cup held?'# Call the retriever on a particular query.topK_passages = retriever(query).passagesfor idx, passage in enumerate(topK_passages):    print(f'{idx+1}]', passage, '\n')
+
+DSPy Metrics[​](#dspy-metrics "Direct link to DSPy Metrics")
+
+-------------------------------------------------------------
+
+### Function as Metric[​](#function-as-metric "Direct link to Function as Metric")
+
+To create a custom metric you can create a function that returns either a number or a boolean value:
+
+    def parse_integer_answer(answer, only_first_line=True):    try:        if only_first_line:            answer = answer.strip().split('\n')[0]        # find the last token that has a number in it        answer = [token for token in answer.split() if any(c.isdigit() for c in token)][-1]        answer = answer.split('.')[0]        answer = ''.join([c for c in answer if c.isdigit()])        answer = int(answer)    except (ValueError, IndexError):        # print(answer)        answer = 0        return answer# Metric Functiondef gsm8k_metric(gold, pred, trace=None) -> int:    return int(parse_integer_answer(str(gold.answer))) == int(parse_integer_answer(str(pred.answer)))
+
+### LLM as Judge[​](#llm-as-judge "Direct link to LLM as Judge")
+
+    class FactJudge(dspy.Signature):    """Judge if the answer is factually correct based on the context."""    context = dspy.InputField(desc="Context for the prediciton")    question = dspy.InputField(desc="Question to be answered")    answer = dspy.InputField(desc="Answer for the question")    factually_correct = dspy.OutputField(desc="Is the answer factually correct based on the context?", prefix="Factual[Yes/No]:")judge = dspy.ChainOfThought(FactJudge)def factuality_metric(example, pred):    factual = judge(context=example.context, question=example.question, answer=pred.answer)    return int(factual=="Yes")
+
+DSPy Evaluation[​](#dspy-evaluation "Direct link to DSPy Evaluation")
+
+----------------------------------------------------------------------
+
+    from dspy.evaluate import Evaluateevaluate_program = Evaluate(devset=devset, metric=your_defined_metric, num_threads=NUM_THREADS, display_progress=True, display_table=num_rows_to_display)evaluate_program(your_dspy_program)
+
+DSPy Optimizers[​](#dspy-optimizers "Direct link to DSPy Optimizers")
+
+----------------------------------------------------------------------
+
+### LabeledFewShot[​](#labeledfewshot "Direct link to LabeledFewShot")
+
+    from dspy.teleprompt import LabeledFewShotlabeled_fewshot_optimizer = LabeledFewShot(k=8)your_dspy_program_compiled = labeled_fewshot_optimizer.compile(student = your_dspy_program, trainset=trainset)
+
+### BootstrapFewShot[​](#bootstrapfewshot "Direct link to BootstrapFewShot")
+
+    from dspy.teleprompt import BootstrapFewShotfewshot_optimizer = BootstrapFewShot(metric=your_defined_metric, max_bootstrapped_demos=4, max_labeled_demos=16, max_rounds=1, max_errors=5)your_dspy_program_compiled = fewshot_optimizer.compile(student = your_dspy_program, trainset=trainset)
+
+#### Using another LM for compilation, specifying in teacher\_settings[​](#using-another-lm-for-compilation-specifying-in-teacher_settings "Direct link to Using another LM for compilation, specifying in teacher_settings")
+
+    from dspy.teleprompt import BootstrapFewShotfewshot_optimizer = BootstrapFewShot(metric=your_defined_metric, max_bootstrapped_demos=4, max_labeled_demos=16, max_rounds=1, max_errors=5, teacher_settings=dict(lm=gpt4))your_dspy_program_compiled = fewshot_optimizer.compile(student = your_dspy_program, trainset=trainset)
+
+#### Compiling a compiled program - bootstrapping a bootstrapped program[​](#compiling-a-compiled-program---bootstrapping-a-bootstrapped-program "Direct link to Compiling a compiled program - bootstrapping a bootstrapped program")
+
+    your_dspy_program_compiledx2 = teleprompter.compile(    your_dspy_program,    teacher=your_dspy_program_compiled,    trainset=trainset,)
+
+#### Saving/loading a compiled program[​](#savingloading-a-compiled-program "Direct link to Saving/loading a compiled program")
+
+    save_path = './v1.json'your_dspy_program_compiledx2.save(save_path)
+
+    loaded_program = YourProgramClass()loaded_program.load(path=save_path)
+
+### BootstrapFewShotWithRandomSearch[​](#bootstrapfewshotwithrandomsearch "Direct link to BootstrapFewShotWithRandomSearch")
+
+Detailed documentation on BootstrapFewShotWithRandomSearch can be found [here](/docs/deep-dive/optimizers/bootstrap-fewshot)
+.
+
+    from dspy.teleprompt import BootstrapFewShotWithRandomSearchfewshot_optimizer = BootstrapFewShotWithRandomSearch(metric=your_defined_metric, max_bootstrapped_demos=2, num_candidate_programs=8, num_threads=NUM_THREADS)your_dspy_program_compiled = fewshot_optimizer.compile(student = your_dspy_program, trainset=trainset, valset=devset)
+
+Other custom configurations are similar to customizing the `BootstrapFewShot` optimizer.
+
+### Ensemble[​](#ensemble "Direct link to Ensemble")
+
+    from dspy.teleprompt import BootstrapFewShotWithRandomSearchfrom dspy.teleprompt.ensemble import Ensemblefewshot_optimizer = BootstrapFewShotWithRandomSearch(metric=your_defined_metric, max_bootstrapped_demos=2, num_candidate_programs=8, num_threads=NUM_THREADS)your_dspy_program_compiled = fewshot_optimizer.compile(student = your_dspy_program, trainset=trainset, valset=devset)ensemble_optimizer = Ensemble(reduce_fn=dspy.majority)programs = [x[-1] for x in your_dspy_program_compiled.candidate_programs]your_dspy_program_compiled_ensemble = ensemble_optimizer.compile(programs[:3])
+
+### BootstrapFinetune[​](#bootstrapfinetune "Direct link to BootstrapFinetune")
+
+    from dspy.teleprompt import BootstrapFewShotWithRandomSearch, BootstrapFinetune#Compile program on current dspy.settings.lmfewshot_optimizer = BootstrapFewShotWithRandomSearch(metric=your_defined_metric, max_bootstrapped_demos=2, num_threads=NUM_THREADS)your_dspy_program_compiled = tp.compile(your_dspy_program, trainset=trainset[:some_num], valset=trainset[some_num:])#Configure model to finetuneconfig = dict(target=model_to_finetune, epochs=2, bf16=True, bsize=6, accumsteps=2, lr=5e-5)#Compile program on BootstrapFinetunefinetune_optimizer = BootstrapFinetune(metric=your_defined_metric)finetune_program = finetune_optimizer.compile(your_dspy_program, trainset=some_new_dataset_for_finetuning_model, **config)finetune_program = your_dspy_program#Load program and activate model's parameters in program before evaluationckpt_path = "saved_checkpoint_path_from_finetuning"LM = dspy.HFModel(checkpoint=ckpt_path, model=model_to_finetune)for p in finetune_program.predictors():    p.lm = LM    p.activated = False
+
+### COPRO[​](#copro "Direct link to COPRO")
+
+Detailed documentation on COPRO can be found [here](/docs/deep-dive/optimizers/copro)
+.
+
+    from dspy.teleprompt import COPROeval_kwargs = dict(num_threads=16, display_progress=True, display_table=0)copro_teleprompter = COPRO(prompt_model=model_to_generate_prompts, metric=your_defined_metric, breadth=num_new_prompts_generated, depth=times_to_generate_prompts, init_temperature=prompt_generation_temperature, verbose=False)compiled_program_optimized_signature = copro_teleprompter.compile(your_dspy_program, trainset=trainset, eval_kwargs=eval_kwargs)
+
+### MIPRO[​](#mipro "Direct link to MIPRO")
+
+    from dspy.teleprompt import MIPROteleprompter = MIPRO(prompt_model=model_to_generate_prompts, task_model=model_that_solves_task, metric=your_defined_metric, num_candidates=num_new_prompts_generated, init_temperature=prompt_generation_temperature)kwargs = dict(num_threads=NUM_THREADS, display_progress=True, display_table=0)compiled_program_optimized_bayesian_signature = teleprompter.compile(your_dspy_program, trainset=trainset, num_trials=100, max_bootstrapped_demos=3, max_labeled_demos=5, eval_kwargs=kwargs)
+
+### MIPROv2[​](#miprov2 "Direct link to MIPROv2")
+
+Note: detailed documentation can be found [here](/docs/deep-dive/optimizers/miprov2)
+. `MIPROv2` is the latest extension of `MIPRO` which includes updates such as (1) improvements to instruction proposal and (2) more efficient search with minibatching.
+
+#### Optimizing with MIPROv2[​](#optimizing-with-miprov2 "Direct link to Optimizing with MIPROv2")
+
+This shows how to perform an easy out-of-the box run with `auto=light`, which configures many hyperparameters for you and performs a light optimization run. You can alternatively set `auto=medium` or `auto=heavy` to perform longer optimization runs. The more detailed `MIPROv2` documentation [here](/docs/deep-dive/optimizers/miprov2)
+ also provides more information about how to set hyperparameters by hand.
+
+    # Import the optimizerfrom dspy.teleprompt import MIPROv2# Initialize optimizerteleprompter = MIPROv2(    metric=gsm8k_metric,    auto="light", # Can choose between light, medium, and heavy optimization runs)# Optimize programprint(f"Optimizing program with MIPRO...")optimized_program = teleprompter.compile(    program.deepcopy(),    trainset=trainset,    max_bootstrapped_demos=3,    max_labeled_demos=4,    requires_permission_to_run=False,)# Save optimize program for future useoptimized_program.save(f"mipro_optimized")# Evaluate optimized programprint(f"Evluate optimized program...")evaluate(optimized_program, devset=devset[:])
+
+#### Optimizing instructions only with MIPROv2 (0-Shot)[​](#optimizing-instructions-only-with-miprov2-0-shot "Direct link to Optimizing instructions only with MIPROv2 (0-Shot)")
+
+    # Import the optimizerfrom dspy.teleprompt import MIPROv2# Initialize optimizerteleprompter = MIPROv2(    metric=gsm8k_metric,    auto="light", # Can choose between light, medium, and heavy optimization runs)# Optimize programprint(f"Optimizing program with MIPRO...")optimized_program = teleprompter.compile(    program.deepcopy(),    trainset=trainset,    max_bootstrapped_demos=0,    max_labeled_demos=0,    requires_permission_to_run=False,)# Save optimize program for future useoptimized_program.save(f"mipro_optimized")# Evaluate optimized programprint(f"Evluate optimized program...")evaluate(optimized_program, devset=devset[:])
+
+### Signature Optimizer with Types[​](#signature-optimizer-with-types "Direct link to Signature Optimizer with Types")
+
+    from dspy.teleprompt.signature_opt_typed import optimize_signaturefrom dspy.evaluate.metrics import answer_exact_matchfrom dspy.functional import TypedChainOfThoughtcompiled_program = optimize_signature(    student=TypedChainOfThought("question -> answer"),    evaluator=Evaluate(devset=devset, metric=answer_exact_match, num_threads=10, display_progress=True),    n_iterations=50,).program
+
+### KNNFewShot[​](#knnfewshot "Direct link to KNNFewShot")
+
+    from dspy.predict import KNNfrom dspy.teleprompt import KNNFewShotknn_optimizer = KNNFewShot(KNN, k=3, trainset=trainset)your_dspy_program_compiled = knn_optimizer.compile(student=your_dspy_program, trainset=trainset, valset=devset)
+
+### BootstrapFewShotWithOptuna[​](#bootstrapfewshotwithoptuna "Direct link to BootstrapFewShotWithOptuna")
+
+    from dspy.teleprompt import BootstrapFewShotWithOptunafewshot_optuna_optimizer = BootstrapFewShotWithOptuna(metric=your_defined_metric, max_bootstrapped_demos=2, num_candidate_programs=8, num_threads=NUM_THREADS)your_dspy_program_compiled = fewshot_optuna_optimizer.compile(student=your_dspy_program, trainset=trainset, valset=devset)
+
+Other custom configurations are similar to customizing the `dspy.BootstrapFewShot` optimizer.
+
+DSPy Assertions[​](#dspy-assertions "Direct link to DSPy Assertions")
+
+----------------------------------------------------------------------
+
+### Including `dspy.Assert` and `dspy.Suggest` statements[​](#including-dspyassert-and-dspysuggest-statements "Direct link to including-dspyassert-and-dspysuggest-statements")
+
+    dspy.Assert(your_validation_fn(model_outputs), "your feedback message", target_module="YourDSPyModule")dspy.Suggest(your_validation_fn(model_outputs), "your feedback message", target_module="YourDSPyModule")
+
+### Activating DSPy Program with Assertions[​](#activating-dspy-program-with-assertions "Direct link to Activating DSPy Program with Assertions")
+
+**Note**: To use Assertions properly, you must **activate** a DSPy program that includes `dspy.Assert` or `dspy.Suggest` statements from either of the methods above.
+
+    #1. Using `assert_transform_module:from dspy.primitives.assertions import assert_transform_module, backtrack_handlerprogram_with_assertions = assert_transform_module(ProgramWithAssertions(), backtrack_handler)#2. Using `activate_assertions()`program_with_assertions = ProgramWithAssertions().activate_assertions()
+
+Compiling with DSPy Programs with Assertions[​](#compiling-with-dspy-programs-with-assertions "Direct link to Compiling with DSPy Programs with Assertions")
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    program_with_assertions = assert_transform_module(ProgramWithAssertions(), backtrack_handler)fewshot_optimizer = BootstrapFewShotWithRandomSearch(metric = your_defined_metric, max_bootstrapped_demos=2, num_candidate_programs=6)compiled_dspy_program_with_assertions = fewshot_optimizer.compile(student=program_with_assertions, teacher = program_with_assertions, trainset=trainset, valset=devset) #student can also be program_without_assertions
+
+*   [DSPy DataLoaders](#dspy-dataloaders)
+    *   [Loading from HuggingFace Datasets](#loading-from-huggingface-datasets)
+
+    *   [Loading specific splits from HuggingFace](#loading-specific-splits-from-huggingface)
+
+    *   [Loading specific subset from HuggingFace](#loading-specific-subset-from-huggingface)
+
+    *   [Loading from CSV](#loading-from-csv)
+
+    *   [Splitting a List of `dspy.Example`](#splitting-a-list-of-dspyexample)
+
+    *   [Sampling from List of `dspy.Example`](#sampling-from-list-of-dspyexample)
+
+*   [DSPy Programs](#dspy-programs)
+    *   [dspy.Signature](#dspysignature)
+
+    *   [dspy.ChainOfThought](#dspychainofthought)
+
+    *   [dspy.ChainOfThoughtwithHint](#dspychainofthoughtwithhint)
+
+    *   [dspy.ProgramOfThought](#dspyprogramofthought)
+
+    *   [dspy.ReACT](#dspyreact)
+
+    *   [dspy.Retrieve](#dspyretrieve)
+
+*   [DSPy Metrics](#dspy-metrics)
+    *   [Function as Metric](#function-as-metric)
+
+    *   [LLM as Judge](#llm-as-judge)
+
+*   [DSPy Evaluation](#dspy-evaluation)
+
+*   [DSPy Optimizers](#dspy-optimizers)
+    *   [LabeledFewShot](#labeledfewshot)
+
+    *   [BootstrapFewShot](#bootstrapfewshot)
+
+    *   [BootstrapFewShotWithRandomSearch](#bootstrapfewshotwithrandomsearch)
+
+    *   [Ensemble](#ensemble)
+
+    *   [BootstrapFinetune](#bootstrapfinetune)
+
+    *   [COPRO](#copro)
+
+    *   [MIPRO](#mipro)
+
+    *   [MIPROv2](#miprov2)
+
+    *   [Signature Optimizer with Types](#signature-optimizer-with-types)
+
+    *   [KNNFewShot](#knnfewshot)
+
+    *   [BootstrapFewShotWithOptuna](#bootstrapfewshotwithoptuna)
+
+*   [DSPy Assertions](#dspy-assertions)
+    *   [Including `dspy.Assert` and `dspy.Suggest` statements](#including-dspyassert-and-dspysuggest-statements)
+
+    *   [Activating DSPy Program with Assertions](#activating-dspy-program-with-assertions)
+
+*   [Compiling with DSPy Programs with Assertions](#compiling-with-dspy-programs-with-assertions)
+

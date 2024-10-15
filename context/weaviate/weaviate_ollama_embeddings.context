@@ -1,0 +1,231 @@
+
+========== Page https://weaviate.io/developers/weaviate/model-providers/ollama/embeddings ==========:
+
+![](https://static.scarf.sh/a.png?x-pxid=a41b0758-a3a9-4874-a880-8b5d5a363d40) ![](https://px.ads.linkedin.com/collect/?pid=6758089&fmt=gif)       
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Ollama Embeddings with Weaviate
+===============================
+
+Weaviate's integration with Ollama's models allows you to access their models' capabilities directly from Weaviate.
+
+[Configure a Weaviate vector index](#configure-the-vectorizer)
+ to use an Ollama embedding model, and Weaviate will generate embeddings for various operations using the specified model via your local Ollama instance. This feature is called the _vectorizer_.
+
+At [import time](#data-import)
+, Weaviate generates text object embeddings and saves them into the index. For [vector](#vector-near-text-search)
+ and [hybrid](#hybrid-search)
+ search operations, Weaviate converts text queries into embeddings.
+
+![Embedding integration illustration](https://weaviate.io/assets/images/integration_ollama_embedding-cf5e4a5bca3869d0642b3b56a6ceb0bf.png)
+
+Requirements[​](#requirements "Direct link to Requirements")
+
+-------------------------------------------------------------
+
+### Ollama[​](#ollama "Direct link to Ollama")
+
+This integration requires a locally running Ollama instance with your selected model available. Refer to the [Ollama documentation](https://ollama.com/)
+ for installation and model download instructions.
+
+### Weaviate configuration[​](#weaviate-configuration "Direct link to Weaviate configuration")
+
+Your Weaviate instance must be configured with the Ollama vectorizer integration (`text2vec-ollama`) module.
+
+For Weaviate Cloud (WCD) users
+
+This integration is not available for Weaviate Cloud (WCD) serverless instances, as it requires a locally running Ollama instance.
+
+For self-hosted users
+
+*   Check the [cluster metadata](/developers/weaviate/config-refs/meta)
+     to verify if the module is enabled.
+*   Follow the [how-to configure modules](/developers/weaviate/configuration/modules)
+     guide to enable the module in Weaviate.
+
+### Credentials[​](#credentials "Direct link to Credentials")
+
+As this integration connects to a local Ollama container, no additional credentials (e.g. API key) are required. Connect to Weaviate as usual, such as in the examples below.
+
+*   Python API v4
+*   JS/TS API v3
+
+    import weaviateclient = weaviate.connect_to_local()# Work with Weaviateclient.close()
+
+    import weaviate from 'weaviate-client'const client = await weaviate.connectToLocal()// Work with Weaviateclient.close()
+
+Configure the vectorizer[​](#configure-the-vectorizer "Direct link to Configure the vectorizer")
+
+-------------------------------------------------------------------------------------------------
+
+[Configure a Weaviate index](/developers/weaviate/manage-data/collections#specify-a-vectorizer)
+ as follows to use an Ollama embedding model:
+
+*   Python API v4
+*   JS/TS API v3
+
+    from weaviate.classes.config import Configureclient.collections.create(    "DemoCollection",    vectorizer_config=[        Configure.NamedVectors.text2vec_ollama(            name="title_vector",            source_properties=["title"],            api_endpoint="http://host.docker.internal:11434",  # If using Docker, use this to contact your local Ollama instance            model="snowflake-arctic-embed",  # The model to use, e.g. "nomic-embed-text"        )    ],    # Additional parameters not shown)
+
+    await client.collections.create({  name: 'DemoCollection',  vectorizers: [    weaviate.configure.vectorizer.text2VecOllama({      name: 'title_vector',      sourceProperties: ['title'],      apiEndpoint: 'http://host.docker.internal:11434',  // If using Docker, use this to contact your local Ollama instance      model: 'snowflake-arctic-embed',  // The model to use, e.g. "nomic-embed-text"    }),  ],  // Additional parameters not shown});
+
+The [default model](#available-models)
+ is used if no model is specified.
+
+The Weaviate server has to be able to reach the Ollama API endpoint. If Weaviate is running in a Docker container and Ollama is running locally, use `host.docker.internal` to redirect Weaviate from `localhost` inside the container to `localhost` on the host machine.
+
+If your Weaviate instance and Ollama instance are hosted in a different way, adjust the API endpoint parameter so it points to your Ollama instance.
+
+Vectorization behavior
+
+Weaviate follows the collection configuration and a set of predetermined rules to vectorize objects.
+
+  
+
+Unless specified otherwise in the collection definition, the default behavior is to:
+
+  
+
+*   Only vectorize properties that use the `text` or `text[]` data type (unless [skip](/developers/weaviate/manage-data/collections#property-level-module-settings)
+    ped)
+*   Sort properties in alphabetical (a-z) order before concatenating values
+*   If `vectorizePropertyName` is `true` (`false` by default) prepend the property name to each property value
+*   Join the (prepended) property values with spaces
+*   Prepend the class name (unless `vectorizeClassName` is `false`)
+*   Convert the produced string to lowercase
+
+Data import[​](#data-import "Direct link to Data import")
+
+----------------------------------------------------------
+
+After configuring the vectorizer, [import data](/developers/weaviate/manage-data/import)
+ into Weaviate. Weaviate generates embeddings for text objects using the specified model.
+
+*   Python API v4
+*   JS/TS API v3
+
+    collection = client.collections.get("DemoCollection")with collection.batch.dynamic() as batch:    for src_obj in source_objects:        weaviate_obj = {            "title": src_obj["title"],            "description": src_obj["description"],        }        # The model provider integration will automatically vectorize the object        batch.add_object(            properties=weaviate_obj,            # vector=vector  # Optionally provide a pre-obtained vector        )
+
+    const collectionName = 'DemoCollection'const myCollection = client.collections.get(collectionName)let dataObjects = []for (let srcObject of srcObjects) {  dataObject.push({    title: srcObject.title,    description: srcObject.description,  });}const response = await myCollection.data.insertMany(dataObjects);console.log(response);
+
+Re-use existing vectors
+
+If you already have a compatible model vector available, you can provide it directly to Weaviate. This can be useful if you have already generated embeddings using the same model and want to use them in Weaviate, such as when migrating data from another system.
+
+Searches[​](#searches "Direct link to Searches")
+
+-------------------------------------------------
+
+Once the vectorizer is configured, Weaviate will perform vector and hybrid search operations using the specified Ollama model.
+
+![Embedding integration at search illustration](https://weaviate.io/assets/images/integration_ollama_embedding_search-87c167a20097c9e4f3069dadea1b980d.png)
+
+### Vector (near text) search[​](#vector-near-text-search "Direct link to Vector (near text) search")
+
+When you perform a [vector search](/developers/weaviate/search/similarity#search-with-text)
+, Weaviate converts the text query into an embedding using the specified model and returns the most similar objects from the database.
+
+The query below returns the `n` most similar objects from the database, set by `limit`.
+
+*   Python API v4
+*   JS/TS API v3
+
+    collection = client.collections.get("DemoCollection")response = collection.query.near_text(    query="A holiday film",  # The model provider integration will automatically vectorize the query    limit=2)for obj in response.objects:    print(obj.properties["title"])
+
+    const collectionName = 'DemoCollection'const myCollection = client.collections.get(collectionName)let result;result = await myCollection.query.nearText(  'A holiday film',  // The model provider integration will automatically vectorize the query  {    limit: 2,  })console.log(JSON.stringify(result.objects, null, 2));
+
+### Hybrid search[​](#hybrid-search "Direct link to Hybrid search")
+
+What is a hybrid search?
+
+A hybrid search performs a vector search and a keyword (BM25) search, before [combining the results](/developers/weaviate/search/hybrid#change-the-ranking-method)
+ to return the best matching objects from the database.
+
+When you perform a [hybrid search](/developers/weaviate/search/hybrid)
+, Weaviate converts the text query into an embedding using the specified model and returns the best scoring objects from the database.
+
+The query below returns the `n` best scoring objects from the database, set by `limit`.
+
+*   Python API v4
+*   JS/TS API v3
+
+    collection = client.collections.get("DemoCollection")response = collection.query.hybrid(    query="A holiday film",  # The model provider integration will automatically vectorize the query    limit=2)for obj in response.objects:    print(obj.properties["title"])
+
+    const collectionName = 'DemoCollection'const myCollection = client.collections.get(collectionName)result = await myCollection.query.hybrid(  'A holiday film',  // The model provider integration will automatically vectorize the query  {    limit: 2,  })console.log(JSON.stringify(result.objects, null, 2));
+
+References[​](#references "Direct link to References")
+
+-------------------------------------------------------
+
+### Available models[​](#available-models "Direct link to Available models")
+
+See the [Ollama documentation](https://ollama.com/library)
+ for a list of available models. This list includes both large language models and embedding models; look for the word `embed` in the name or description to identify embedding models.
+
+Download the desired model with `ollama pull <model-name>`.
+
+If no model is specified, the default model (`nomic-embed-text`) is used.
+
+Further resources[​](#further-resources "Direct link to Further resources")
+
+----------------------------------------------------------------------------
+
+### Other integrations[​](#other-integrations "Direct link to Other integrations")
+
+*   [Ollama generative models + Weaviate](/developers/weaviate/model-providers/ollama/generative)
+    .
+
+### Code examples[​](#code-examples "Direct link to Code examples")
+
+Once the integrations are configured at the collection, the data management and search operations in Weaviate work identically to any other collection. See the following model-agnostic examples:
+
+*   The [how-to: manage data](/developers/weaviate/manage-data)
+     guides show how to perform data operations (i.e. create, update, delete).
+*   The [how-to: search](/developers/weaviate/search)
+     guides show how to perform search operations (i.e. vector, keyword, hybrid) as well as retrieval augmented generation.
+
+### External resources[​](#external-resources "Direct link to External resources")
+
+*   [Ollama models](https://ollama.com/library)
+    
+*   [Ollama repository](https://github.com/ollama/ollama)
+    
+*   [How to change the host and port of the Ollama server](https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-expose-ollama-on-my-network)
+    
+
+If you have any questions or feedback, let us know in the [user forum](https://forum.weaviate.io/)
+.
+
+*   [Technical questions](https://forum.weaviate.io/new-topic?title=%5BQuestion%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=technical)
+    
+*   [Documentation feedback](https://forum.weaviate.io/new-topic?title=%5BDocs%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=documentation)
+    
+
+*   [Requirements](#requirements)
+    *   [Ollama](#ollama)
+        
+    *   [Weaviate configuration](#weaviate-configuration)
+        
+    *   [Credentials](#credentials)
+        
+*   [Configure the vectorizer](#configure-the-vectorizer)
+    
+*   [Data import](#data-import)
+    
+*   [Searches](#searches)
+    *   [Vector (near text) search](#vector-near-text-search)
+        
+    *   [Hybrid search](#hybrid-search)
+        
+*   [References](#references)
+    *   [Available models](#available-models)
+        
+*   [Further resources](#further-resources)
+    *   [Other integrations](#other-integrations)
+        
+    *   [Code examples](#code-examples)
+        
+    *   [External resources](#external-resources)
+

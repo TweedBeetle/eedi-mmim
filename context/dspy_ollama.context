@@ -1,0 +1,54 @@
+
+========== Page https://dspy-docs.vercel.app/docs/deep-dive/language_model_clients/lm_local_models/Ollama ==========:
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+OllamaLocal
+===========
+
+note
+
+Adapted from documentation provided by [https://github.com/insop](https://github.com/insop)
+
+Ollama is a good software tool that allows you to run LLMs locally, such as Mistral, Llama2, and Phi. The following are the instructions to install and run Ollama.
+
+### Prerequisites[​](#prerequisites "Direct link to Prerequisites")
+
+Install Ollama by following the instructions from this page:
+
+*   [https://ollama.ai](https://ollama.ai)
+    
+
+Download model: `ollama pull`
+
+Download a model by running the `ollama pull` command. You can download Mistral, Llama2, and Phi.
+
+    # download mistralollama pull mistral
+
+Here is the list of other models you can download:
+
+*   [https://ollama.ai/library](https://ollama.ai/library)
+    
+
+### Running Ollama model[​](#running-ollama-model "Direct link to Running Ollama model")
+
+Run model: `ollama run`
+
+You need to start the model server with the `ollama run` command.
+
+    # run mistralollama run mistral
+
+### Sending requests to the server[​](#sending-requests-to-the-server "Direct link to Sending requests to the server")
+
+Here is the code to load a model through Ollama:
+
+    lm = dspy.OllamaLocal(model='mistral')
+
+*   [Prerequisites](#prerequisites)
+    
+*   [Running Ollama model](#running-ollama-model)
+    
+*   [Sending requests to the server](#sending-requests-to-the-server)
+

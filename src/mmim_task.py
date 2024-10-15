@@ -23,7 +23,7 @@ from src.sidequests.eedi_mmim.src.misconception_model import MisconceptionsModel
 @cache
 def get_formatted_misconceptions():
     misconceptions = load_misconception_mapping(str(mmim_data_path / "misconception_mapping.csv"))
-    formatted_misconceptions = "\n".join([f"{m.MisconceptionId}: {m.MisconceptionName}" for m in misconceptions])
+    formatted_misconceptions = "\n".join([f"{m.misconception_id}: {m.misconception_name}" for m in misconceptions])
     return f"Available misconceptions:\n{formatted_misconceptions}"
 
 
@@ -96,29 +96,29 @@ class MMIMTask(
         @classmethod
         def from_question(cls, question: TrainModel) -> 'MMIMTask.Input':
             answers = {
-                'A': question.AnswerAText,
-                'B': question.AnswerBText,
-                'C': question.AnswerCText,
-                'D': question.AnswerDText
+                'A': question.answer_a_text,
+                'B': question.answer_b_text,
+                'C': question.answer_c_text,
+                'D': question.answer_d_text
             }
 
             ground_truth_misconceptions = {}
-            for option, misconception_id in [('A', question.MisconceptionAId),
-                                             ('B', question.MisconceptionBId),
-                                             ('C', question.MisconceptionCId),
-                                             ('D', question.MisconceptionDId)]:
+            for option, misconception_id in [('A', question.misconception_a_id),
+                                             ('B', question.misconception_b_id),
+                                             ('C', question.misconception_c_id),
+                                             ('D', question.misconception_d_id)]:
                 if misconception_id is not None:
                     ground_truth_misconceptions[option] = [misconception_id]
 
             return cls(
-                question_id=question.QuestionId,
-                question_text=question.QuestionText,
-                correct_answer=question.CorrectAnswer,
+                question_id=question.question_id,
+                question_text=question.question_text,
+                correct_answer=question.correct_answer,
                 answers=answers,
-                construct_id=question.ConstructId,
-                construct_name=question.ConstructName,
-                subject_id=question.SubjectId,
-                subject_name=question.SubjectName,
+                construct_id=question.construct_id,
+                construct_name=question.construct_name,
+                subject_id=question.subject_id,
+                subject_name=question.subject_name,
                 ground_truth_misconceptions=ground_truth_misconceptions if ground_truth_misconceptions else None
             )
 

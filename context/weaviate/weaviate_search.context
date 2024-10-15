@@ -1,0 +1,1266 @@
+
+========== Page https://weaviate.io/developers/weaviate/search/basics ==========:
+
+![](https://static.scarf.sh/a.png?x-pxid=a41b0758-a3a9-4874-a880-8b5d5a363d40) ![](https://px.ads.linkedin.com/collect/?pid=6758089&fmt=gif)
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+With Weaviate you can query your data using [vector similarity search](/developers/weaviate/search/similarity)
+, [keyword search](/developers/weaviate/search/bm25)
+, or a mix of both with [hybrid search](/developers/weaviate/search/hybrid)
+. You can control what object [properties](#specify-object-properties)
+ and [metadata](#retrieve-metadata-values)
+ to return.
+
+This page provides fundamental search syntax to get you started.
+
+List objects[​](#list-objects "Direct link to List objects")
+
+-------------------------------------------------------------
+
+You can get objects without specifying any parameters. This returns objects in ascending UUID order.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    jeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.fetch_objects()for o in response.objects:    print(o.properties)
+
+    response = client.query.get("JeopardyQuestion", ["question"]).do()print(response)
+
+    const myCollection = client.collections.get('JeopardyQuestion');const result = await myCollection.query.fetchObjects()console.log(JSON.stringify(result, null, 2));
+
+    result = await client  .graphql  .get()  .withClassName('JeopardyQuestion')  .withFields('question')  .do();console.log(JSON.stringify(result, null, 2));
+
+    response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(graphql.Field{Name: "question"}).  Do(ctx)
+
+    Result<List<WeaviateObject>> resultObj = client.data().objectsGetter()  .withClassName(className)  .run();
+
+    {  Get {    JeopardyQuestion {      question    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "question": "This prophet passed the time he spent inside a fish offering up prayers"        },        // shortened for brevity      ]    }  }}
+
+Additional information
+
+Specify the information that you want your query to return. You can return object properties, object IDs, and object metadata.
+
+`limit` returned objects[​](#limit-returned-objects "Direct link to limit-returned-objects")
+
+---------------------------------------------------------------------------------------------
+
+Use `limit` to set a fixed maximum number of objects to return.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    jeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.fetch_objects(    limit=1)for o in response.objects:    print(o.properties)
+
+    response = (    client.query.get("JeopardyQuestion", ["question"])    .with_limit(1)    .do())print(response)
+
+    const myCollection = client.collections.get('JeopardyQuestion');const result = await myCollection.query.fetchObjects(  { limit: 1 })     console.log(JSON.stringify(result, null, 2));
+
+    result = await client  .graphql  .get()  .withClassName('JeopardyQuestion')  .withFields('question')  .withLimit(1)  .do();console.log(JSON.stringify(result, null, 2));
+
+    response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(graphql.Field{Name: "question"}).  WithLimit(1).  Do(ctx)
+
+    Result<List<WeaviateObject>> resultObj = client.data().objectsGetter()  .withClassName(className)  .withLimit(1) // Object IDs are included by default with the Java client  .run();
+
+    {  Get {    JeopardyQuestion (      limit: 1    ) {      question    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "question": "This prophet passed the time he spent inside a fish offering up prayers"        },        // Note this will only have one result as we limited it to 1      ]    }  }}
+
+Paginate with `limit` and `offset`[​](#paginate-with-limit-and-offset "Direct link to paginate-with-limit-and-offset")
+
+-----------------------------------------------------------------------------------------------------------------------
+
+To start in the middle of your result set, define an `offset`. Set a `limit` to return objects starting at the offset.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    jeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.fetch_objects(    limit=1,    offset=1)for o in response.objects:    print(o.properties)
+
+    response = (    client.query.get("JeopardyQuestion", ["question"])    .with_limit(1).with_offset(1)    .do())print(response)
+
+    const myCollection = client.collections.get('JeopardyQuestion');const result = await myCollection.query.fetchObjects({  limit: 1,  offset: 1,})console.log(JSON.stringify(result, null, 2));
+
+    result = await client  .graphql  .get()  .withClassName('JeopardyQuestion')  .withFields('question')  .withLimit(1)  .withOffset(1)  .do();console.log(JSON.stringify(result, null, 2));
+
+    response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(graphql.Field{Name: "question"}).  WithLimit(1).  WithOffset(1).  Do(ctx)
+
+    Result<List<WeaviateObject>> resultObj = client.data().objectsGetter()  .withClassName(className)  .withLimit(1)  .withOffset(1)  .run();
+
+    {  Get {    JeopardyQuestion (      limit: 1      offset: 1    ) {      question    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "question": "Pythons are oviparous, meaning they do this"        }      ]    }  }}
+
+To paginate through the entire database, use a [cursor](/developers/weaviate/manage-data/read-all-objects#read-all-objects)
+ instead of offset and limit.
+
+Specify object `properties`[​](#specify-object-properties "Direct link to specify-object-properties")
+
+------------------------------------------------------------------------------------------------------
+
+You can specify which object properties to return.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    jeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.fetch_objects(    limit=1,    return_properties=["question", "answer", "points"])for o in response.objects:    print(o.properties)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer", "points"])    .with_limit(1).do())print(response)
+
+    const myCollection = client.collections.get('JeopardyQuestion');const result = await myCollection.query.fetchObjects({  limit: 1,  returnProperties: ['question', 'answer', 'points'],})console.log(JSON.stringify(result, null, 2));
+
+    result = await client  .graphql  .get()  .withClassName('JeopardyQuestion')  .withFields('question answer points')  .withLimit(1)  .do();console.log(JSON.stringify(result, null, 2));
+
+    response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(  	graphql.Field{Name: "question"},  	graphql.Field{Name: "answer"},  	graphql.Field{Name: "points"},  ).  WithLimit(1).  Do(ctx)
+
+    Result<List<WeaviateObject>> resultObj = client.data().objectsGetter()  .withClassName(className)  .withLimit(1)  .run();resultObj.getResult().get(0).getProperties().get(propertyName);
+
+    {  Get {    JeopardyQuestion (limit: 1) {      question      answer      points    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "answer": "Jonah",          "points": 100,          "question": "This prophet passed the time he spent inside a fish offering up prayers"        },      ]    }  }}
+
+Retrieve the object `vector`[​](#retrieve-the-object-vector "Direct link to retrieve-the-object-vector")
+
+---------------------------------------------------------------------------------------------------------
+
+You can retrieve the object vector. (Also applicable where [named vectors](/developers/weaviate/config-refs/schema/multi-vector)
+ are used.)
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    jeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.fetch_objects(    include_vector=True,    limit=1)print(response.objects[0].vector["default"])
+
+    response = (    client.query.get("JeopardyQuestion")    .with_additional("vector")    .with_limit(1).do())print(response)
+
+    const myCollection = client.collections.get('JeopardyQuestion');const result = await myCollection.query.fetchObjects({  includeVector: true,  limit: 1,})console.log(JSON.stringify(result, null, 2));
+
+    result = await client  .graphql  .get()  .withClassName('JeopardyQuestion')  .withFields('_additional {vector}')  .withLimit(1)  .do();console.log(JSON.stringify(result, null, 2));
+
+    response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(  	graphql.Field{  		Name: "_additional",  		Fields: []graphql.Field{  			{Name: "vector"},  		},  	},  ).  WithLimit(1).  Do(ctx)
+
+    Result<List<WeaviateObject>> resultObj = client.data().objectsGetter()  .withClassName(className)  .withLimit(1)  .withVector()  .run();
+
+    {  Get {    JeopardyQuestion (limit: 1) {      _additional {        vector      }    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "_additional": {            "vector": [              0.0065065133,              -0.017786196,              0.005879146,              0.006707012,              ...  // shortened for brevity            ]          }        },      ]    }  }}
+
+Retrieve the object `id`[​](#retrieve-the-object-id "Direct link to retrieve-the-object-id")
+
+---------------------------------------------------------------------------------------------
+
+You can retrieve the object `id` (uuid).
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    jeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.fetch_objects(    # Object IDs are included by default with the `v4` client! :)    limit=1)for o in response.objects:    print(o.uuid)
+
+    response = (    client.query.get("JeopardyQuestion")    .with_additional("id")    .with_limit(1).do())print(response)
+
+    const myCollection = client.collections.get('JeopardyQuestion');const result = await myCollection.query.fetchObjects({  // Object IDs are included by default with the `v3` client! :)  limit: 1,})for (let object of result.objects) {   console.log(JSON.stringify(object.uuid, null, 2));}
+
+    result = await client  .graphql  .get()  .withClassName('JeopardyQuestion')  .withFields('_additional { id }')  .withLimit(1)  .do();console.log(JSON.stringify(result, null, 2));
+
+    response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(  	graphql.Field{  		Name: "_additional",  		Fields: []graphql.Field{  			{Name: "id"},  		},  	},  ).  WithLimit(1).  Do(ctx)
+
+    Result<List<WeaviateObject>> resultObj = client.data().objectsGetter()  .withClassName(className)  .withLimit(1)  .run();resultObj.getResult().get(0).getId();
+
+    {  Get {    JeopardyQuestion (limit: 1) {      _additional {        id      }    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "_additional": {            "id": "0002bf92-80c8-5d94-af34-0d6c5fea1aaf"          }        },        // shortened for brevity      ]    }  }}
+
+Retrieve cross-referenced properties[​](#retrieve-cross-referenced-properties "Direct link to Retrieve cross-referenced properties")
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+To retrieve properties from cross-referenced objects, specify:
+
+*   The cross-reference property
+*   The target cross-referenced collection
+*   The properties to retrieve
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   GraphQL
+
+    from weaviate.classes.query import QueryReferencejeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.fetch_objects(    return_references=[        QueryReference(            link_on="hasCategory",            return_properties=["title"]        ),    ],    limit=2)for o in response.objects:    print(o.properties["question"])    # print referenced objects    for ref_obj in o.references["hasCategory"].objects:        print(ref_obj.properties)
+
+    response = (    client.query    .get(        "JeopardyQuestion",        ["question", "hasCategory { ... on JeopardyCategory { title } }"],    )    .with_limit(2).do())print(json.dumps(response, indent=2))
+
+    const myCollection = client.collections.get('JeopardyQuestion');const result = await myCollection.query.fetchObjects({  limit: 2,  returnReferences: [{    linkOn: 'hasCategory',    returnProperties: ['title'],  }]})result.objects.forEach(item =>   console.log(JSON.stringify(item.references, null, 2)));
+
+    result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withFields(`  question  hasCategory {    ... on JeopardyCategory {      title    }  }`)  .withLimit(2)  .do();console.log(JSON.stringify(result, null, 2));
+
+    response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(  	graphql.Field{Name: "question"},  	graphql.Field{  		Name: "hasCategory",  		Fields: []graphql.Field{  			{Name: "... on JeopardyCategory", Fields: []graphql.Field{{Name: "title"}}},  		},  	},  ).  WithLimit(2).  Do(ctx)
+
+    {  Get {    JeopardyQuestion (      limit: 2    )    {      question      hasCategory {        ... on JeopardyCategory {          title        }      }    }  }}
+
+Example response
+
+The output is like this:
+
+        {        "data": {            "Get": {                "JeopardyQuestion": [                    {                        "hasCategory": [{"title": "THE BIBLE"}],                        "question": "This prophet passed the time he spent inside a fish offering up prayers",                    },                    {                        "hasCategory": [{"title": "ANIMALS"}],                        "question": "Pythons are oviparous, meaning they do this",                    },                ]            }        }    }
+
+Retrieve metadata values[​](#retrieve-metadata-values "Direct link to Retrieve metadata values")
+
+-------------------------------------------------------------------------------------------------
+
+You can specify metadata fields to be returned.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    from weaviate.classes.query import MetadataQueryjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.fetch_objects(    limit=1,    return_metadata=MetadataQuery(creation_time=True))for o in response.objects:    print(o.properties)  # View the returned properties    print(o.metadata.creation_time)  # View the returned creation time
+
+    response = (    client.query.get("JeopardyQuestion", ["question"])    .with_limit(1)    .with_additional("creationTimeUnix")    .do())print(json.dumps(response, indent=2))
+
+    const myCollection = client.collections.get('JeopardyQuestion');const result = await myCollection.query.fetchObjects({  limit: 2,  returnMetadata: ['creationTime', ]})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));  console.log(JSON.stringify(object.metadata?.creationTime, null, 2));}
+
+    result = await client  .graphql  .get()  .withClassName('JeopardyQuestion')  .withLimit(1)  .withFields('question _additional { creationTimeUnix }')  .do();console.log(JSON.stringify(result, null, 2));
+
+    response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithLimit(1).  WithFields(  	graphql.Field{Name: "question"},  	graphql.Field{  		Name: "_additional",  		Fields: []graphql.Field{  			{Name: "creationTimeUnix"},  		},  	},  ).  Do(ctx)
+
+    Result<List<WeaviateObject>> resultObj = client.data().objectsGetter()  .withClassName(className)  .run();resultObj.getResult().get(0).getLastUpdateTimeUnix();resultObj.getResult().get(0).getCreationTimeUnix();
+
+    {  Get {    JeopardyQuestion (      limit: 1    ) {      question      _additional { creationTimeUnix }    }  }}
+
+For a comprehensive list of metadata fields, see [GraphQL: Additional properties](/developers/weaviate/api/graphql/additional-properties)
+.
+
+Multi-tenancy[​](#multi-tenancy "Direct link to Multi-tenancy")
+
+----------------------------------------------------------------
+
+If [multi-tenancy](/developers/weaviate/concepts/data#multi-tenancy)
+ is enabled, specify the tenant parameter in each query.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+
+    # Connect to the collectionmt_collection = client.collections.get("WineReviewMT")# Get the specific tenant's version of the collectioncollection_tenant_a = mt_collection.with_tenant("tenantA")# Query tenantA's versionresponse = collection_tenant_a.query.fetch_objects(    return_properties=["review_body", "title"],    limit=1,)print(response.objects[0].properties)
+
+    results = (    client.query.get("MultiTenancyClass", ["property1", "property2"]).with_limit(1)    .with_tenant("tenantA")    .do())
+
+    const myMTCollection = client.collections.get('WineReviewMT');const collectionTenantA = myMTCollection.withTenant('tenantA');const multiTenantResult = await collectionTenantA.query.fetchObjects({  limit: 1,  returnProperties: ['review_body','title']})console.log(JSON.stringify(multiTenantResult.objects[0].properties, null, 2));
+
+    result = await client   .graphql   .get()   .withClassName('MultiTenancyClass')   .withFields('property1 property2')   .withTenant('TenantA')   .do();console.log(JSON.stringify(result, null, 2));
+
+    response, err := client.GraphQL().Get().  WithClassName("MultiTenancyClass").  WithFields(graphql.Field{Name: "property1"}, graphql.Field{Name: "property2"}).  WithLimit(1).  WithTenant("tenantA").  Do(ctx)
+
+    Result<List<WeaviateObject>> resultObj = client.data().objectsGetter()  .withClassName(className)  .withTenant(tenantName)  .withVector()  .run();
+
+Replication[​](#replication "Direct link to Replication")
+
+----------------------------------------------------------
+
+For collections with replication enabled, you can specify the consistency level in your queries. This applies to CRUD queries as well as searches.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   Curl
+
+    from weaviate.classes.config import ConsistencyLevelquestions = client.collections.get(collection_name).with_consistency_level(    consistency_level=ConsistencyLevel.QUORUM)response = collection.query.fetch_object_by_id("36ddd591-2dee-4e7e-a3cc-eb86d30a4303")# The parameter passed to `withConsistencyLevel` can be one of:# * 'ALL',# * 'QUORUM' (default), or# * 'ONE'.## It determines how many replicas must acknowledge a request# before it is considered successful.for o in response.objects:    print(o.properties)  # Inspect returned objects
+
+    import weaviatefrom weaviate.data.replication import ConsistencyLevelclient = weaviate.Client("http://localhost:8080")data_object = (  client.data_object.get_by_id(    uuid="36ddd591-2dee-4e7e-a3cc-eb86d30a4303",    class_name="MyClass",    consistency_level=ConsistencyLevel.ONE,  ))# The parameter "consistency_level" can be one of ConsistencyLevel.ALL,# ConsistencyLevel.QUORUM (default), or ConsistencyLevel.ONE. Determines how many# replicas must acknowledge a request before it is considered successful.print(data_object)
+
+    const myCollection = client.collections.get('Article').withConsistency('QUORUM');const result = await myCollection.query.fetchObjectById("36ddd591-2dee-4e7e-a3cc-eb86d30a4303")console.log(JSON.stringify(result, null, 2));// The parameter passed to `withConsistencyLevel` can be one of:// * 'ALL',// * 'QUORUM' (default), or// * 'ONE'.//// It determines how many replicas must acknowledge a request// before it is considered successful.
+
+    import weaviate from 'weaviate-ts-client';const client = weaviate.client({  scheme: 'http',  host: 'localhost:8080',});const response = await client.data  .getterById()  .withClassName('MyClass')  .withId('36ddd591-2dee-4e7e-a3cc-eb86d30a4303')  .withConsistencyLevel('ONE')  // default QUORUM  .do();console.log(JSON.stringify(response, null, 2));// The parameter passed to `withConsistencyLevel` can be one of:// * 'ALL',// * 'QUORUM' (default), or// * 'ONE'.//// It determines how many replicas must acknowledge a request// before it is considered successful.
+
+
+
+    curl "http://localhost:8080/v1/objects/MyClass/36ddd591-2dee-4e7e-a3cc-eb86d30a4303?consistency_level=QUORUM"# The parameter "consistency_level" can be one of ALL, QUORUM (default), or ONE. Determines how many# replicas must acknowledge a request before it is considered successful.# curl "/v1/objects/{ClassName}/{id}?consistency_level=ONE"
+
+Related pages[​](#related-pages "Direct link to Related pages")
+
+----------------------------------------------------------------
+
+*   [Connect to Weaviate](/developers/weaviate/connections)
+
+*   [API References: GraphQL: Get](/developers/weaviate/api/graphql/get)
+
+*   For tutorials, see [Queries](/developers/weaviate/tutorials/query)
+
+*   For search using the GraphQL API, see [GraphQL API](/developers/weaviate/api/graphql/get)
+
+
+Questions and feedback[​](#questions-and-feedback "Direct link to Questions and feedback")
+
+-------------------------------------------------------------------------------------------
+
+If you have any questions or feedback, let us know in the [user forum](https://forum.weaviate.io/)
+.
+
+*   [Technical questions](https://forum.weaviate.io/new-topic?title=%5BQuestion%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=technical)
+
+*   [Documentation feedback](https://forum.weaviate.io/new-topic?title=%5BDocs%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=documentation)
+
+
+*   [List objects](#list-objects)
+
+*   [`limit` returned objects](#limit-returned-objects)
+
+*   [Paginate with `limit` and `offset`](#paginate-with-limit-and-offset)
+
+*   [Specify object `properties`](#specify-object-properties)
+
+*   [Retrieve the object `vector`](#retrieve-the-object-vector)
+
+*   [Retrieve the object `id`](#retrieve-the-object-id)
+
+*   [Retrieve cross-referenced properties](#retrieve-cross-referenced-properties)
+
+*   [Retrieve metadata values](#retrieve-metadata-values)
+
+*   [Multi-tenancy](#multi-tenancy)
+
+*   [Replication](#replication)
+
+*   [Related pages](#related-pages)
+
+*   [Questions and feedback](#questions-and-feedback)
+
+
+========== Page https://weaviate.io/developers/weaviate/search/similarity ==========:
+
+![](https://static.scarf.sh/a.png?x-pxid=a41b0758-a3a9-4874-a880-8b5d5a363d40) ![](https://px.ads.linkedin.com/collect/?pid=6758089&fmt=gif)
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Vector search returns the objects with most similar vectors to that of the query.
+
+Search with text[​](#search-with-text "Direct link to Search with text")
+
+-------------------------------------------------------------------------
+
+Use the [`Near Text`](/developers/weaviate/api/graphql/search-operators#neartext)
+ operator to find objects with the nearest vector to an input text.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    from weaviate.classes.query import MetadataQueryjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.near_text(    query="animals in movies",    limit=2,    return_metadata=MetadataQuery(distance=True))for o in response.objects:    print(o.properties)    print(o.metadata.distance)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer"])    .with_near_text({        "concepts": ["animals in movies"]    })    .with_limit(2)    .with_additional(["distance"])    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.nearText('animals in movies', {  limit: 2,  returnMetadata: ['distance']})result.objects.forEach(item => {  console.log(JSON.stringify(item.properties, null, 2))  console.log(item.metadata?.distance)})
+
+    let result;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withNearText({ concepts: ['animals in movies'] })  .withLimit(2)  .withFields('question answer _additional { distance }')  .do();console.log(JSON.stringify(result, null, 2));
+
+    response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(    graphql.Field{Name: "question"},    graphql.Field{Name: "answer"},    graphql.Field{      Name: "_additional",      Fields: []graphql.Field{        {Name: "distance"},      },    },  ).  WithNearText(client.GraphQL().NearTextArgBuilder().    WithConcepts([]string{"animals in movies"})).  WithLimit(2).  Do(ctx)
+
+    NearTextArgument nearText = NearTextArgument.builder()  .concepts(new String[]{ "animals in movies" })  .build();Fields fields = Fields.builder()  .fields(new Field[]{    Field.builder().name("question").build(),    Field.builder().name("answer").build(),    Field.builder().name("_additional").fields(new Field[]{      Field.builder().name("distance").build()    }).build()  })  .build();String query = GetBuilder.builder()  .className(className)  .fields(fields)  .withNearTextFilter(nearText)  .limit(2)  .build()  .buildQuery();Result<GraphQLResponse> result = client.graphQL().raw().withQuery(query).run();
+
+    {  Get {    JeopardyQuestion(      limit: 2      nearText: {        concepts: ["animals in movies"]      }    ) {      question      answer      _additional {        distance      }    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "answer": "meerkats",          "question": "Group of mammals seen <a href=\"http://www.j-archive.com/media/1998-06-01_J_28.jpg\" target=\"_blank\">here</a>:  [like Timon in <i>The Lion King</i>]",          "_additional": { "distance": 0.17602634 }        },        {          "answer": "dogs",          "question": "Scooby-Doo, Goofy & Pluto are cartoon versions",          "_additional": { "distance": 0.17842108 }        }      ]    }  }}
+
+Search with image[​](#search-with-image "Direct link to Search with image")
+
+----------------------------------------------------------------------------
+
+Use the [`Near Image`](/developers/weaviate/api/graphql/search-operators#nearimage)
+ operator to find objects with the nearest vector to an image.
+This example uses a base64 representation of an image.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Java
+
+    base64_string="SOME_BASE_64_REPRESENTATION"# Get the collection containing imagesdogs = client.collections.get("Dog")# Perform queryresponse = dogs.query.near_image(    near_image=base64_string,    return_properties=["breed"],    limit=1,    # targetVector: "vector_name" # required when using multiple named vectors)print(response.objects[0])client.close()
+
+    base64_string="SOME_BASE_64_REPRESENTATION"# Perform queryresponse = (    client.query    .get("Dog", "breed")    .with_near_image(        {"image": base64_string},        encode=False  # False because the image is already base64-encoded    )    .with_limit(1)    .do())print(json.dumps(response, indent=2))
+
+    // Perform queryconst myCollection = client.collections.get('Dog');const base64String = 'SOME_BASE_64_REPRESENTATION';const result = await myCollection.query.nearImage(base64String, {  returnProperties: ['breed'],  limit: 1,  // targetVector: 'vector_name' // required when using multiple named vectors})console.log(JSON.stringify(result.objects, null, 2));
+
+    const base64String = 'SOME_BASE_64_REPRESENTATION';// Perform querylet result = await client.graphql  .get()  .withClassName('Dog')  .withNearImage({    image: base64String,  })  .withLimit(1)  .withFields('breed')  .do();console.log(JSON.stringify(result, null, 2));
+
+    String base64_string = "SOME_BASE_64_REPRESENTATION";NearImageArgument nearImage = NearImageArgument.builder()  .image(base64_string)  .build();Fields fields = Fields.builder()  .fields(new Field[]{    Field.builder().name("Breed").build()  })  .build();String query = GetBuilder.builder()  .className(className)  .fields(fields)  .withNearImageFilter(nearImage)  .limit(1)  .build()  .buildQuery();Result<GraphQLResponse> result = client.graphQL().raw().withQuery(query).run();
+
+See [Image search](/developers/weaviate/search/image)
+ for more information.
+
+Search with an existing object[​](#search-with-an-existing-object "Direct link to Search with an existing object")
+
+-------------------------------------------------------------------------------------------------------------------
+
+If you have an object ID, use the [`Near Object`](/developers/weaviate/api/graphql/search-operators#nearobject)
+ operator to find similar objects to that object.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    from weaviate.classes.query import MetadataQueryjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.near_object(    near_object=uuid,  # A UUID of an object (e.g. "56b9449e-65db-5df4-887b-0a4773f52aa7")    limit=2,    return_metadata=MetadataQuery(distance=True))for o in response.objects:    print(o.properties)    print(o.metadata.distance)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer"])    .with_near_object({        "id": "56b9449e-65db-5df4-887b-0a4773f52aa7"    })    .with_limit(2)    .with_additional(["distance"])    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.nearObject('56b9449e-65db-5df4-887b-0a4773f52aa7', {  limit: 2,  returnMetadata: ['distance']})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));  console.log(JSON.stringify(object.metadata?.distance, null, 2));}
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.nearObject('56b9449e-65db-5df4-887b-0a4773f52aa7', {  limit: 2,  returnMetadata: ['distance']})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));  console.log(JSON.stringify(object.metadata?.distance, null, 2));}
+
+    response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(    graphql.Field{Name: "question"},    graphql.Field{Name: "answer"},    graphql.Field{      Name: "_additional",      Fields: []graphql.Field{        {Name: "distance"},      },    },  ).  WithNearObject(client.GraphQL().NearObjectArgBuilder().    WithID("56b9449e-65db-5df4-887b-0a4773f52aa7")).  WithLimit(2).  Do(ctx)
+
+    String id = "0b7235c5-86f1-48a9-baab-3b9571dca854";NearObjectArgument nearObject = NearObjectArgument.builder()  .id(id)  .build();String query = GetBuilder.builder()  .className(className)  .withNearObjectFilter(nearObject)  .limit(2)  .build()  .buildQuery();Result<GraphQLResponse> result = client.graphQL().raw().withQuery(query).run();
+
+
+
+Additional information
+
+To get the object ID, see \[Retrieve the object ID\](/developers/weaviate/search/basics#retrieve-the-object-id).
+
+Search with a vector[​](#search-with-a-vector "Direct link to Search with a vector")
+
+-------------------------------------------------------------------------------------
+
+If you have an input vector, use the [`Near Vector`](/developers/weaviate/api/graphql/search-operators#nearvector)
+ operator to find objects with similar vectors
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    from weaviate.classes.query import MetadataQueryjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.near_vector(    near_vector=query_vector, # your query vector goes here    limit=2,    return_metadata=MetadataQuery(distance=True))for o in response.objects:    print(o.properties)    print(o.metadata.distance)
+
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.nearVector(queryVector, {  limit: 2,  returnMetadata: ['distance']})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));  console.log(JSON.stringify(object.metadata?.distance, null, 2));}
+
+
+    // Edit the vector variable to add a vector of length 384// vector := ADD_A_VECTOR_HEREresponse, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(    graphql.Field{Name: "question"},    graphql.Field{Name: "answer"},    graphql.Field{      Name: "_additional",      Fields: []graphql.Field{        {Name: "distance"},      },    },  ).  WithNearVector(client.GraphQL().NearVectorArgBuilder().    WithVector(vector)).  WithLimit(2).  Do(ctx)
+
+    To run the example, paste the sample test vector into the code sample.
+
+Sample test vector
+
+
+    Float[] vector = { -0.0125526935f, -0.021168863f, -0.01076519f, -0.02589537f, -0.0070362035f,  0.019870078f, -0.010001986f, -0.019120263f, 0.00090044655f, -0.017393013f };NearVectorArgument nearVector = NearVectorArgument.builder()  .vector(vector)  .build();String query = GetBuilder.builder()  .className(className)  .withNearVectorFilter(nearVector)  .limit(2)  .build()  .buildQuery();Result<GraphQLResponse> result = client.graphQL().raw().withQuery(query).run();
+
+
+Named vectors[​](#named-vectors "Direct link to Named vectors")
+
+----------------------------------------------------------------
+
+Added in `v1.24`
+
+To search a collection that has [named vectors](/developers/weaviate/config-refs/schema/multi-vector)
+, use the `target vector` field to specify which named vector to search.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    from weaviate.classes.query import MetadataQueryreviews = client.collections.get("WineReviewNV")response = reviews.query.near_text(    query="a sweet German white wine",    limit=2,    target_vector="title_country",  # Specify the target vector for named vector collections    return_metadata=MetadataQuery(distance=True))for o in response.objects:    print(o.properties)    print(o.metadata.distance)
+
+    # Unfortunately, named vectors are not suppored in the v3 API / Python client.# Please upgrade to the v4 API / Python client to use named vectors.
+
+    const myNVCollection = client.collections.get('WineReviewNV');const result = await myNVCollection.query.nearText('a sweet German white wine', {  targetVector: 'title_country',  returnMetadata: ['distance'],  limit: 2,})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));  console.log(JSON.stringify(object.metadata?.distance, null, 2));}
+
+    result = await client.graphql  .get()  .withClassName('WineReviewNV')  .withNearText({    concepts: ['a sweet German white wine'],    targetVectors: ['title_country'],  })  .withLimit(2)  .withFields('title review_body country')  .do();console.log(JSON.stringify(result, null, 2));
+
+    className := "WineReviewNV"targetVector := "title_country"limit := 2response, err := client.GraphQL().Get().  WithClassName(className).  WithFields(    graphql.Field{Name: "_additional",      Fields: []graphql.Field{{Name: "distance"}}},  ).  WithNearText((&graphql.NearTextArgumentBuilder{}).    WithConcepts([]string{"a sweet German white wine"}).    WithTargetVectors(targetVector),  ).  WithLimit(limit).  Do(ctx)
+
+    String[] target_vector = { "title_country" };NearTextArgument nearText = NearTextArgument.builder()  .concepts(new String[]{ "a sweet German white wine" })  .targetVectors(target_vector)  .build();String query = GetBuilder.builder()  .className(className)  .withNearTextFilter(nearText)  .limit(1)  .build()  .buildQuery();Result<GraphQLResponse> result = client.graphQL().raw().withQuery(query).run();
+
+    {  Get {    WineReviewNV(      limit: 2      nearText: {        targetVectors: ["title_country"]        concepts: ["a sweet German white wine"]      }    ) {      title      review_body      country    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "WineReviewNV": [    {      "country": "Austria",      "review_body": "With notions of cherry and cinnamon on the nose and just slight fizz, this is a refreshing, fruit-driven sparkling ros\u00e9 that's full of strawberry and cherry notes\u2014it might just be the very definition of easy summer wine. It ends dry, yet refreshing.",      "title": "Gebeshuber 2013 Frizzante Ros\u00e9 Pinot Noir (\u00d6sterreichischer Perlwein)"    },    {      "country": "Austria",      "review_body": "Beautifully perfumed, with acidity, white fruits and a mineral context. The wine is layered with citrus and lime, hints of fresh pineapple acidity. Screw cap.",      "title": "Stadt Krems 2009 Steinterrassen Riesling (Kremstal)"    }  ]}
+
+Set a similarity threshold[​](#set-a-similarity-threshold "Direct link to Set a similarity threshold")
+
+-------------------------------------------------------------------------------------------------------
+
+To set a similarity threshold between the search and target vectors, define a maximum `distance` (or `certainty`).
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    from weaviate.classes.query import MetadataQueryjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.near_text(    query="animals in movies",    distance=0.25, # max accepted distance    return_metadata=MetadataQuery(distance=True))for o in response.objects:    print(o.properties)    print(o.metadata.distance)
+
+    max_distance = 0.18response = (    client.query    .get("JeopardyQuestion", ["question", "answer"])    .with_near_text({        "concepts": ["animals in movies"],        "distance": max_distance    })    .with_additional(["distance"])    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const maxDistance = 0.18;const result = await jeopardy.query.nearText('animals in movies', {  distance: maxDistance,  returnMetadata: ['distance'],})result.objects.forEach(item => {  console.log(JSON.stringify(item.properties, null, 2))  console.log(item.metadata?.distance)})
+
+    let result;const maxDistance = 0.18;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withNearText({    concepts: ['animals in movies'],    distance: maxDistance,  })  .withFields('question answer _additional { distance }')  .do();console.log(JSON.stringify(result, null, 2));
+
+    maxDistance := float32(0.18)response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(    graphql.Field{Name: "question"},    graphql.Field{Name: "answer"},    graphql.Field{      Name: "_additional",      Fields: []graphql.Field{        {Name: "distance"},      },    },  ).  WithNearText(client.GraphQL().NearTextArgBuilder().    WithConcepts([]string{"animals in movies"}).    WithDistance(maxDistance)).  Do(ctx)
+
+    NearTextArgument nearText = NearTextArgument.builder()  .concepts(new String[]{ "animals in movies" })  .distance(0.25f)  .build();String query = GetBuilder.builder()  .className(className)  .withNearTextFilter(nearText)  .build()  .buildQuery();Result<GraphQLResponse> result = client.graphQL().raw().withQuery(query).run();
+
+    {  Get {    JeopardyQuestion(      nearText: {        concepts: ["animals in movies"]        distance: 0.18      }    ) {      question      answer      _additional {        distance      }    }  }}
+
+Additional information
+
+*   The distance value depends on many factors, including the vectorization model you use. Experiment with your data to find a value that works for you.
+*   [`certainty`](/developers/weaviate/config-refs/distances#distance-vs-certainty)
+     is only available with `cosine` distance.
+*   To find the least similar objects, use the negative cosine distance with `nearVector` search.
+
+`limit` & `offset`[​](#limit--offset "Direct link to limit--offset")
+
+---------------------------------------------------------------------
+
+Use `limit` to set a fixed maximum number of objects to return.
+
+Optionally, use `offset` to paginate the results.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    from weaviate.classes.query import MetadataQueryjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.near_text(    query="animals in movies",    limit=2,  # return 2 objects    offset=1,  # With an offset of 1    return_metadata=MetadataQuery(distance=True))for o in response.objects:    print(o.properties)    print(o.metadata.distance)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer"])    .with_near_text({        "concepts": ["animals in movies"]    }).with_additional(["distance"])    .with_limit(2)    .with_offset(1)    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.nearText('animals in movies', {  limit: 2,  offset: 1,  returnMetadata: ['distance']})console.log(JSON.stringify(result.objects, null, 2));
+
+    let result;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withNearText({ concepts: ['animals in movies'] })  .withLimit(2)  .withOffset(1)  .withFields('question answer _additional { distance }')  .do();console.log(JSON.stringify(result, null, 2));
+
+    response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(    graphql.Field{Name: "question"},    graphql.Field{Name: "answer"},    graphql.Field{      Name: "_additional",      Fields: []graphql.Field{        {Name: "distance"},      },    },  ).  WithNearText(client.GraphQL().NearTextArgBuilder().    WithConcepts([]string{"animals in movies"})).  WithLimit(2).  WithOffset(1).  Do(ctx)
+
+    NearTextArgument nearText = NearTextArgument.builder()  .concepts(new String[]{ "animals in movies" })  .build();Fields fields = Fields.builder()  .fields(new Field[]{    Field.builder().name("question").build(),    Field.builder().name("answer").build(),    Field.builder().name("_additional").fields(new Field[]{      Field.builder().name("distance").build()    }).build()  })  .build();String query = GetBuilder.builder()  .className(className)  .withNearTextFilter(nearText)  .fields(fields)  .limit(3)  .offset(1)  .build()  .buildQuery();Result<GraphQLResponse> result = client.graphQL().raw().withQuery(query).run();
+
+    {  Get {    JeopardyQuestion(      nearText: {        concepts: ["animals in movies"]      }      limit: 2      offset: 1    ) {      question      answer      _additional {        distance      }    }  }}
+
+Limit result groups[​](#limit-result-groups "Direct link to Limit result groups")
+
+----------------------------------------------------------------------------------
+
+To limit results to groups of similar distances to the query, use the [`autocut`](/developers/weaviate/api/graphql/additional-operators#autocut)
+ filter to set the number of groups to return.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    from weaviate.classes.query import MetadataQueryjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.near_text(    query="animals in movies",    auto_limit=1, # number of close groups    return_metadata=MetadataQuery(distance=True))for o in response.objects:    print(o.properties)    print(o.metadata.distance)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer"])    .with_near_text({        "concepts": ["animals in movies"],        "distance": max_distance    })    .with_autocut(1)    .with_additional(["distance"])    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.nearText('animals in movies', {  autoLimit: 1,  returnMetadata: ['distance'],})result.objects.forEach(item => {  console.log(JSON.stringify(item.properties, null, 2))  console.log(item.metadata?.distance)})
+
+    let result;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withNearText({    concepts: ['animals in movies'],  })  .withAutocut(1)  .withFields('question answer _additional { distance }')  .do();console.log(JSON.stringify(result, null, 2));
+
+    response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(    graphql.Field{Name: "question"},    graphql.Field{Name: "answer"},    graphql.Field{      Name: "_additional",      Fields: []graphql.Field{        {Name: "distance"},      },    },  ).  WithNearText(client.GraphQL().NearTextArgBuilder().    WithConcepts([]string{"animals in movies"})).  WithAutocut(1).  Do(ctx)
+
+    NearTextArgument nearText = NearTextArgument.builder()  .concepts(new String[]{ "animals in movies" })  .build();Fields fields = Fields.builder()  .fields(new Field[]{    Field.builder().name("question").build(),    Field.builder().name("answer").build(),    Field.builder().name("_additional").fields(new Field[]{      Field.builder().name("distance").build()    }).build()  })  .build();String query = GetBuilder.builder()  .className(className)  .fields(fields)  .withNearTextFilter(nearText)  .autocut(1)  .build()  .buildQuery();Result<GraphQLResponse> result = client.graphQL().raw().withQuery(query).run();
+
+    {  Get {    JeopardyQuestion(      nearText: {        concepts: ["animals in movies"]      }      autocut: 1    ) {      question      answer      _additional {        distance      }    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "answer": "meerkats",          "question": "Group of mammals seen <a href=\"http://www.j-archive.com/media/1998-06-01_J_28.jpg\" target=\"_blank\">here</a>:  [like Timon in <i>The Lion King</i>]",          "_additional": { "distance": 0.17602634 }        },        {          "answer": "dogs",          "question": "Scooby-Doo, Goofy & Pluto are cartoon versions",          "_additional": { "distance": 0.17842108 }        }      ]    }  }}
+
+Group results[​](#group-results "Direct link to Group results")
+
+----------------------------------------------------------------
+
+Use a property or a cross-reference to group results. To group returned objects, the query must include a `Near` search operator, such as `Near Text` or `Near Object`.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    from weaviate.classes.query import MetadataQuery, GroupByjeopardy = client.collections.get("JeopardyQuestion")group_by = GroupBy(    prop="round",  # group by this property    objects_per_group=2,  # maximum objects per group    number_of_groups=2,  # maximum number of groups)response = jeopardy.query.near_text(    query="animals in movies", # find object based on this query    limit=10,  # maximum total objects    return_metadata=MetadataQuery(distance=True),    group_by=group_by)for o in response.objects:    print(o.uuid)    print(o.belongs_to_group)    print(o.metadata.distance)for grp, grp_items in response.groups.items():    print("=" * 10 + grp_items.name + "=" * 10)    print(grp_items.number_of_objects)    for o in grp_items.objects:        print(o.properties)        print(o.metadata)
+
+    max_groups = 2max_objects_per_group = 2response = (    client.query    .get("JeopardyQuestion")    .with_near_text({        "concepts": ["animals in movies"]})    .with_limit(10)    .with_group_by(        ["round"],        groups=max_groups,        objects_per_group=max_objects_per_group    )    .with_additional([        """        group {            id            groupedBy {                path                value            }            count            minDistance            maxDistance            hits {                question                answer            }        }        """    ])    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.nearText('animals in movies', {  limit: 10,  returnMetadata: ['distance'],  groupBy: {    property: 'round',    objectsPerGroup: 2,    numberOfGroups: 2  }})for (let group of result.objects) {  console.log(group.uuid);  console.log(JSON.stringify(group.belongsToGroup, null, 2));  console.log(group.metadata?.distance);}
+
+    let result;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withNearText({    concepts: ['animals in movies'],  })  .withLimit(10)  .withGroupBy({    path: ['round'],    groups: 2,    objectsPerGroup: 2,  })  .withFields(`    _additional {      group {        id        groupedBy {          path          value        }        count        minDistance        maxDistance        hits {          question          answer        }      }    }  `)  .do();for (const group of result.data.Get.JeopardyQuestion)  console.log(group['_additional']['group']);
+
+    maxGroups := 2maxObjectsPerGroup := 2response, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithNearText(client.GraphQL().NearTextArgBuilder().    WithConcepts([]string{"animals in movies"})).  WithLimit(10).  WithGroupBy(client.GraphQL().GroupByArgBuilder().    WithPath([]string{"round"}).    WithGroups(maxGroups).    WithObjectsPerGroup(maxObjectsPerGroup)).  WithFields(graphql.Field{    Name: "_additional",    Fields: []graphql.Field{      {Name: "group",        Fields: []graphql.Field{          {Name: "id"},          {Name: "groupedBy",            Fields: []graphql.Field{              {Name: "path"},              {Name: "value"},            },          },          {Name: "count"},          {Name: "minDistance"},          {Name: "maxDistance"},          {Name: "hits",            Fields: []graphql.Field{              {Name: "question"},              {Name: "answer"},            },          },        },      },    },  }).  Do(ctx)
+
+    NearTextArgument nearText = NearTextArgument.builder()  .concepts(new String[]{ "animals in movies" })  .build();// Define the group hits fieldsField[] hits = new Field[]{  Field.builder().name("answer").build(),  Field.builder().name("question").build(),};// Define the group fieldField group = Field.builder()  .name("group")  .fields(new Field[]{    Field.builder().name("id").build(),    Field.builder().name("groupedBy")      .fields(new Field[]{        Field.builder().name("path").build(),        Field.builder().name("value").build(),      }).build(),    Field.builder().name("count").build(),    Field.builder().name("minDistance").build(),    Field.builder().name("maxDistance").build(),    Field.builder().name("hits").fields(hits).build(),  }).build();Field _additional = Field.builder().name("_additional").fields(new Field[]{ group }).build();Fields fields = Fields.builder()  .fields(new Field[]{ _additional })  .build();// Define the GroupBy argumentGroupByArgument groupBy = client.graphQL().arguments().groupByArgBuilder()  .path(new String[]{ "round" })  // Path to group by  .groups(2)  // Number of groups  .objectsPerGroup(2)  // Number of objects per group  .build();String query = GetBuilder.builder()  .className(className)  .fields(fields)  .withNearTextFilter(nearText)  .withGroupByArgument(groupBy)  .build()  .buildQuery();Result<GraphQLResponse> result = client.graphQL().raw().withQuery(query).run();
+
+    {  Get {    JeopardyQuestion(      nearText: {        concepts: ["animals in movies"],      }      limit: 10      groupBy: {        path: ["round"],        groups: 2,        objectsPerGroup: 2      }    ) {      _additional {        group {          id          groupedBy {            path            value          }          count          minDistance          maxDistance          hits {            question            answer          }        }      }    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "_additional": {            "group": {              "count": 2,              "groupedBy": {                "path": [                  "round"                ],                "value": "Jeopardy!"              },              "hits": [                {                  "answer": "meerkats",                  "question": "Group of mammals seen <a href=\"http://www.j-archive.com/media/1998-06-01_J_28.jpg\" target=\"_blank\">here</a>:  [like Timon in <i>The Lion King</i>]"                },                {                  "answer": "dogs",                  "question": "Scooby-Doo, Goofy & Pluto are cartoon versions"                }              ],              "id": 0,              "maxDistance": 0.17842054,              "minDistance": 0.17602539            }          }        },        {          "_additional": {            "group": {              "count": 1,              "groupedBy": {                "path": [                  "round"                ],                "value": "Double Jeopardy!"              },              "hits": [                {                  "answer": "fox",                  "question": "In titles, animal associated with both Volpone and Reynard"                }              ],              "id": 1,              "maxDistance": 0.18770188,              "minDistance": 0.18770188            }          }        }      ]    }  }}
+
+Filter results[​](#filter-results "Direct link to Filter results")
+
+-------------------------------------------------------------------
+
+For more specific results, use a [`filter`](/developers/weaviate/api/graphql/filters)
+ to narrow your search.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   Java
+*   GraphQL
+
+    from weaviate.classes.query import MetadataQuery, Filterjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.near_text(    query="animals in movies",    filters=Filter.by_property("round").equal("Double Jeopardy!"),    limit=2,    return_metadata=MetadataQuery(distance=True),)for o in response.objects:    print(o.properties)    print(o.metadata.distance)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer", "round"])    .with_near_text({        "concepts": ["animals in movies"]    })    .with_limit(2)    .with_additional(["distance"])    .with_where({        "path": ["round"],        "operator": "Equal",        "valueText": "Double Jeopardy!"    })    .do())# (json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.nearText('animals in movies', {  limit: 2,  returnMetadata: ['distance'],  filters: jeopardy.filter.byProperty('round').equal('Double Jeopardy!')})result.objects.forEach(item => {  console.log(JSON.stringify(item.properties, null, 2))  console.log(item.metadata?.distance)})
+
+    let result;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withNearText({ concepts: ['animals in movies'] })  .withLimit(2)  .withWhere({    path: ['round'],    operator: 'Equal',    valueText: 'Double Jeopardy!',  })  .withFields('question answer round _additional { distance }')  .do();console.log(JSON.stringify(result, null, 2));
+
+    // Add "github.com/weaviate/weaviate-go-client/v4/weaviate/filters" to importresponse, err := client.GraphQL().Get().  WithClassName("JeopardyQuestion").  WithFields(    graphql.Field{Name: "question"},    graphql.Field{Name: "answer"},    graphql.Field{Name: "round"},    graphql.Field{      Name: "_additional",      Fields: []graphql.Field{        {Name: "distance"},      },    },  ).  WithNearText(client.GraphQL().NearTextArgBuilder().    WithConcepts([]string{"animals in movies"})).  WithLimit(2).  WithWhere(filters.Where().    WithPath([]string{"round"}).    WithOperator(filters.Equal).    WithValueString("Double Jeopardy!")).  Do(ctx)
+
+    NearTextArgument nearText = NearTextArgument.builder()  .concepts(new String[]{ "animals in movies" })  // Search concept  .build();Fields fields = Fields.builder()  .fields(new Field[]{    Field.builder().name("question").build(),    Field.builder().name("answer").build(),    Field.builder().name("round").build(),    Field.builder().name("_additional").fields(new Field[]{      Field.builder().name("distance").build()    }).build()  })  .build();WhereFilter whereFilter = WhereFilter.builder()  .path(new String[]{ "round" })  // Path to filter by  .operator(Operator.Equal)  .valueText("Double Jeopardy!")  .build();WhereArgument whereArgument = WhereArgument.builder()  .filter(whereFilter)  .build();String query = GetBuilder.builder()  .className(className)  .fields(fields)  .withNearTextFilter(nearText)  .withWhereFilter(whereArgument)  .limit(2)  .build()  .buildQuery();Result<GraphQLResponse> result = client.graphQL().raw().withQuery(query).run();
+
+    {  Get {    JeopardyQuestion(      limit: 2      nearText: {        concepts: ["animals in movies"]      }      where: {        path: ["round"]        operator: Equal        valueText: "Double Jeopardy!"      }    ) {      question      answer      _additional {        distance      }    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "_additional": {            "distance": 0.18759078          },          "answer": "fox",          "question": "In titles, animal associated with both Volpone and Reynard",          "round": "Double Jeopardy!"        },        {          "_additional": {            "distance": 0.19532347          },          "answer": "Swan",          "question": "In a Tchaikovsky ballet, Prince Siegfried goes hunting for these animals & falls in love with 1 of them",          "round": "Double Jeopardy!"        }      ]    }  }}
+
+Related pages[​](#related-pages "Direct link to Related pages")
+
+----------------------------------------------------------------
+
+*   [Connect to Weaviate](/developers/weaviate/connections)
+
+*   For image search, see [Image search](/developers/weaviate/search/image)
+    .
+*   For tutorials, see [Queries](/developers/weaviate/tutorials/query)
+    .
+*   For search using the GraphQL API, see [GraphQL API](/developers/weaviate/api/graphql)
+    .
+
+Questions and feedback[​](#questions-and-feedback "Direct link to Questions and feedback")
+
+-------------------------------------------------------------------------------------------
+
+If you have any questions or feedback, let us know in the [user forum](https://forum.weaviate.io/)
+.
+
+*   [Technical questions](https://forum.weaviate.io/new-topic?title=%5BQuestion%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=technical)
+
+*   [Documentation feedback](https://forum.weaviate.io/new-topic?title=%5BDocs%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=documentation)
+
+
+*   [Search with text](#search-with-text)
+
+*   [Search with image](#search-with-image)
+
+*   [Search with an existing object](#search-with-an-existing-object)
+
+*   [Search with a vector](#search-with-a-vector)
+
+*   [Named vectors](#named-vectors)
+
+*   [Set a similarity threshold](#set-a-similarity-threshold)
+
+*   [`limit` & `offset`](#limit--offset)
+
+*   [Limit result groups](#limit-result-groups)
+
+*   [Group results](#group-results)
+
+*   [Filter results](#filter-results)
+
+*   [Related pages](#related-pages)
+
+*   [Questions and feedback](#questions-and-feedback)
+
+
+========== Page https://weaviate.io/developers/weaviate/search/hybrid ==========:
+
+![](https://static.scarf.sh/a.png?x-pxid=a41b0758-a3a9-4874-a880-8b5d5a363d40) ![](https://px.ads.linkedin.com/collect/?pid=6758089&fmt=gif)
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+`Hybrid` search combines the results of a vector search and a keyword (BM25F) search by fusing the two result sets.
+
+The [fusion method](#change-the-fusion-method)
+ and the [relative weights](#balance-keyword-and-vector-search)
+ are configurable.
+
+Basic hybrid search[​](#basic-hybrid-search "Direct link to Basic hybrid search")
+
+----------------------------------------------------------------------------------
+
+Combine the results of a vector search and a keyword search. The search uses a single query string.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   GraphQL
+
+    jeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.hybrid(query="food", limit=3)for o in response.objects:    print(o.properties)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer"])    .with_hybrid(        query="food"    )    .with_limit(3)    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.hybrid('food', {  limit: 2,})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));}
+
+    let result;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withHybrid({    query: 'food',  })  .withLimit(3)  .withFields('question answer')  .do();console.log(JSON.stringify(result, null, 2));
+
+    ctx := context.Background()className := "JeopardyQuestion"query := "food"limit := 3q := client.GraphQL().Get().  WithClassName(className).  WithFields(graphql.Field{Name: "question"}, graphql.Field{Name: "answer"}).  WithHybrid(client.GraphQL().HybridArgumentBuilder().WithQuery(query)).  WithLimit(limit)result, err := q.Do(ctx)
+
+    {  Get {    JeopardyQuestion(      limit: 3      hybrid: {        query: "food"      }    ) {      question      answer    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "answer": "a closer grocer",          "question": "A nearer food merchant"        },        {          "answer": "Famine",          "question": "From the Latin for \"hunger\", it's a period when food is extremely scarce"        },        {          "answer": "Tofu",          "question": "A popular health food, this soybean curd is used to make a variety of dishes & an ice cream substitute"        }      ]    }  }}
+
+Named vectors[​](#named-vectors "Direct link to Named vectors")
+
+----------------------------------------------------------------
+
+Added in `v1.24`
+
+A hybrid search on a collection that has [named vectors](/developers/weaviate/config-refs/schema/multi-vector)
+ must specify a `target` vector. Weaviate uses the query vector to search the target vector space.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   GraphQL
+
+    reviews = client.collections.get("WineReviewNV")response = reviews.query.hybrid(    query="A French Riesling",    target_vector="title_country",    limit=3)for o in response.objects:    print(o.properties)
+
+    # Named vectors are not supported in the v3 API / Python client.# Please upgrade to the v4 API / Python client to use named vectors.
+
+    const myNVCollection = client.collections.get('WineReviewNV');const result = await myNVCollection.query.hybrid('a sweet German white wine', {  targetVector: 'title_country',  limit: 2,})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));}
+
+    result = await client.graphql  .get()  .withClassName('WineReviewNV')  .withHybrid({    query: 'a sweet German white wine',    targetVectors: ['title_country'],  })  .withLimit(2)  .withFields('title review_body country')  .do();console.log(JSON.stringify(result, null, 2));
+
+    {  Get {    WineReviewNV(      limit: 2      hybrid: {        targetVectors: ["title_country"]        query: "A French Riesling"      }    ) {      title      review_body      country    }  }}
+
+Example response
+
+The output is like this:
+
+
+
+Explain the search results[​](#explain-the-search-results "Direct link to Explain the search results")
+
+-------------------------------------------------------------------------------------------------------
+
+To see the object rankings, set the `explain score` field in your query. The search rankings are part of the object metadata. Weaviate uses the score to order the search results.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   GraphQL
+
+    from weaviate.classes.query import MetadataQueryjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.hybrid(    query="food",    alpha=0.5,    return_metadata=MetadataQuery(score=True, explain_score=True),    limit=3,)for o in response.objects:    print(o.properties)    print(o.metadata.score, o.metadata.explain_score)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer"])    .with_hybrid(        query="food",    )    .with_additional(["score", "explainScore"])    .with_limit(3)    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.hybrid('food', {  limit: 2,  returnProperties: ['question', 'answer'],  returnMetadata: ['score','explainScore']})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));  console.log(object.metadata?.score);  console.log(object.metadata?.explainScore);}
+
+    let result;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withHybrid({    query: 'food',  })  .withFields('question answer _additional { score explainScore }')  .withLimit(3)  .do();console.log(JSON.stringify(result, null, 2));
+
+    ctx := context.Background()className := "JeopardyQuestion"query := "food"limit := 3result, err := client.GraphQL().Get().  WithClassName(className).  WithFields(  	graphql.Field{Name: "question"},  	graphql.Field{Name: "answer"},  	graphql.Field{Name: "_additional", Fields: []graphql.Field{{Name: "score"}, {Name: "explainScore"}}},  ).  WithHybrid(client.GraphQL().HybridArgumentBuilder().WithQuery(query)).  WithLimit(limit).  Do(ctx)
+
+    {  Get {    JeopardyQuestion(      limit: 3      hybrid: {        query: "food"      }    ) {      question      answer      _additional {        score        explainScore      }    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "_additional": {            "explainScore": "(bm25)\n(hybrid) Document df958a90-c3ad-5fde-9122-cd777c22da6c contributed 0.003968253968253968 to the score\n(hybrid) Document df958a90-c3ad-5fde-9122-cd777c22da6c contributed 0.012295081967213115 to the score",            "score": "0.016263336"          },          "answer": "a closer grocer",          "question": "A nearer food merchant"        },        {          "_additional": {            "explainScore": "(vector) [0.0223698 -0.02752683 -0.0061537363 0.0023812135 -0.00036100898 -0.0078375945 -0.018505432 -0.037500713 -0.0042215516 -0.012620432]...  \n(hybrid) Document ec776112-e651-519d-afd1-b48e6237bbcb contributed 0.012096774193548387 to the score",            "score": "0.012096774"          },          "answer": "Famine",          "question": "From the Latin for \"hunger\", it's a period when food is extremely scarce"        },        {          "_additional": {            "explainScore": "(vector) [0.0223698 -0.02752683 -0.0061537363 0.0023812135 -0.00036100898 -0.0078375945 -0.018505432 -0.037500713 -0.0042215516 -0.012620432]...  \n(hybrid) Document 98807640-cd16-507d-86a1-801902d784de contributed 0.011904761904761904 to the score",            "score": "0.011904762"          },          "answer": "Tofu",          "question": "A popular health food, this soybean curd is used to make a variety of dishes & an ice cream substitute"        }      ]    }  }}
+
+Balance keyword and vector search[​](#balance-keyword-and-vector-search "Direct link to Balance keyword and vector search")
+
+----------------------------------------------------------------------------------------------------------------------------
+
+Hybrid search results can favor the keyword component or the vector component. To change the relative weights of the keyword and vector components, set the `alpha` value in your query.
+
+*   An `alpha` of `1` is a pure vector search.
+*   An `alpha` of `0` is a pure keyword search.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   GraphQL
+
+    client.collections.get("JeopardyQuestion")response = jeopardy.query.hybrid(    query="food",    alpha=0.25,    limit=3,)for o in response.objects:    print(o.properties)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer"])    .with_hybrid(        query="food",        alpha=0.25    )    .with_limit(3)    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.hybrid('food', {  alpha: 0.25,  limit: 3})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));}
+
+    let result;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withHybrid({    query: 'food',    alpha: 0.25,  })  .withLimit(3)  .withFields('question answer')  .do();console.log(JSON.stringify(result, null, 2));
+
+    ctx := context.Background()className := "JeopardyQuestion"query := "food"limit := 3alpha := float32(0.25)result, err := client.GraphQL().Get().  WithClassName(className).  WithFields(graphql.Field{Name: "question"}, graphql.Field{Name: "answer"}).  WithHybrid(client.GraphQL().HybridArgumentBuilder().  	WithQuery(query).  	WithAlpha(alpha),  ).  WithLimit(limit).  Do(ctx)
+
+    {  Get {    JeopardyQuestion(      limit: 3      hybrid: {        query: "food"        alpha: 0.25      }    ) {      question      answer    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "answer": "a closer grocer",          "question": "A nearer food merchant"        },        {          "answer": "food stores (supermarkets)",          "question": "This type of retail store sells more shampoo & makeup than any other"        },        {          "answer": "cake",          "question": "Devil's food & angel food are types of this dessert"        }      ]    }  }}
+
+Change the fusion method[​](#change-the-fusion-method "Direct link to Change the fusion method")
+
+-------------------------------------------------------------------------------------------------
+
+`Relative Score Fusion` is the default fusion method starting in `v1.24`.
+
+*   To use the keyword and vector search relative scores instead of the search rankings, use `Relative Score Fusion`.
+*   To use [`autocut`](/developers/weaviate/api/graphql/additional-operators#autocut)
+     with the `hybrid` operator, use `Relative Score Fusion`.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   GraphQL
+
+    from weaviate.classes.query import HybridFusionjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.hybrid(    query="food",    fusion_type=HybridFusion.RELATIVE_SCORE,    limit=3,)for o in response.objects:    print(o.properties)
+
+    from weaviate.gql.get import HybridFusionresponse = (    client.query    .get("JeopardyQuestion", ["question", "answer"])    .with_hybrid(        query="food",        fusion_type=HybridFusion.RELATIVE_SCORE    )    .with_limit(3)    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.hybrid('food', {  limit: 2,  fusionType: 'RelativeScore', // can also be 'Ranked'})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));}
+
+    import { FusionType } from 'weaviate-ts-client';let result;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withHybrid({    query: 'food',    alpha: 0.25,    fusionType: FusionType.rankedFusion  })  .withLimit(3)  .withFields('question answer')  .do();console.log(JSON.stringify(result, null, 2));
+
+    ctx := context.Background()className := "JeopardyQuestion"query := "food"limit := 3fusionType := "relativeScoreFusion"result, err := client.GraphQL().Get().  WithClassName(className).  WithFields(graphql.Field{Name: "question"}, graphql.Field{Name: "answer"}).  WithHybrid(client.GraphQL().HybridArgumentBuilder().  	WithQuery(query).  	WithFusionType(graphql.FusionType(fusionType)),  ).  WithLimit(limit).  Do(ctx)
+
+    {  Get {    JeopardyQuestion(      limit: 3      hybrid: {        query: "food"        fusionType: relativeScoreFusion      }    ) {      question      answer    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "answer": "a closer grocer",          "question": "A nearer food merchant"        },        {          "answer": "food stores (supermarkets)",          "question": "This type of retail store sells more shampoo & makeup than any other"        },        {          "answer": "cake",          "question": "Devil's food & angel food are types of this dessert"        }      ]    }  }}
+
+Additional information
+
+For a discussion of fusion methods, see [this blog post](/blog/hybrid-search-fusion-algorithms)
+ and [this reference page](/developers/weaviate/api/graphql/search-operators#variables-2)
+
+Specify keyword search properties[​](#specify-keyword-search-properties "Direct link to Specify keyword search properties")
+
+----------------------------------------------------------------------------------------------------------------------------
+
+Added in `v1.19.0`
+
+The keyword search portion of hybrid search can be directed to only search a subset of object properties. This does not affect the vector search portion.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   GraphQL
+
+    jeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.hybrid(    query="food",    query_properties=["question"],    alpha=0.25,    limit=3,)for o in response.objects:    print(o.properties)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer"])    .with_hybrid(        query="food",        properties=["question"],        alpha=0.25    )    .with_limit(3)    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.hybrid('food', {  queryProperties: ['question'],  alpha: 0.25,  limit: 3})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));}
+
+    let result;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withHybrid({    query: 'food',    properties: ['question'],    alpha: 0.25,  })  .withLimit(3)  .withFields('question answer')  .do();console.log(JSON.stringify(result, null, 2));
+
+    ctx := context.Background()className := "JeopardyQuestion"query := "food"limit := 3alpha := float32(0.25)properties := []string{"question"}result, err := client.GraphQL().Get().  WithClassName(className).  WithFields(graphql.Field{Name: "question"}, graphql.Field{Name: "answer"}).  WithHybrid(client.GraphQL().HybridArgumentBuilder().  	WithQuery(query).  	WithAlpha(alpha).  	WithProperties(properties),  ).  WithLimit(limit).  Do(ctx)
+
+    {  Get {    JeopardyQuestion(      limit: 3      hybrid: {        query: "food"        properties: ["question"]        alpha: 0.25      }    ) {      question      answer    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "answer": "a closer grocer",          "question": "A nearer food merchant"        },        {          "answer": "cake",          "question": "Devil's food & angel food are types of this dessert"        },        {          "answer": "honey",          "question": "The primary source of this food is the Apis mellifera"        }      ]    }  }}
+
+Set weights on property values[​](#set-weights-on-property-values "Direct link to Set weights on property values")
+
+-------------------------------------------------------------------------------------------------------------------
+
+Specify the relative value of an object's `properties` in the keyword search. Higher values increase the property's contribution to the search score.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   GraphQL
+
+    jeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.hybrid(    query="food",    query_properties=["question^2", "answer"],    alpha=0.25,    limit=3,)for o in response.objects:    print(o.properties)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer"])    .with_hybrid(        query="food",        properties=["question^2", "answer"],        alpha=0.25    )    .with_limit(3)    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.hybrid('food', {  queryProperties: ['question^2', 'answer'],  alpha: 0.25,  limit: 3})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));}
+
+    result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withHybrid({    query: 'food',    properties: ['question^2', 'answer'],    alpha: 0.25,  })  .withLimit(3)  .withFields('question answer')  .do();console.log(JSON.stringify(result, null, 2));
+
+    ctx := context.Background()className := "JeopardyQuestion"query := "food"limit := 3alpha := float32(0.25)properties := []string{"question^2", "answer"}result, err := client.GraphQL().Get().  WithClassName(className).  WithFields(graphql.Field{Name: "question"}, graphql.Field{Name: "answer"}).  WithHybrid(client.GraphQL().HybridArgumentBuilder().  	WithQuery(query).  	WithAlpha(alpha).  	WithProperties(properties),  ).  WithLimit(limit).  Do(ctx)
+
+    {  Get {    JeopardyQuestion(      limit: 3      hybrid: {        query: "food"        properties: ["question^2", "answer"]        alpha: 0.25      }    ) {      question      answer    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "answer": "a closer grocer",          "question": "A nearer food merchant"        },        {          "answer": "cake",          "question": "Devil's food & angel food are types of this dessert"        },        {          "answer": "food stores (supermarkets)",          "question": "This type of retail store sells more shampoo & makeup than any other"        }      ]    }  }}
+
+Specify a search vector[​](#specify-a-search-vector "Direct link to Specify a search vector")
+
+----------------------------------------------------------------------------------------------
+
+The vector component of hybrid search can use a query string or a query vector. To specify a query vector instead of a query string, provide a query vector (for the vector search) and a query string (for the keyword search) in your query.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   GraphQL
+
+    query_vector = [-0.02] * 1536  # Some vector that is compatible with object vectorsjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.hybrid(    query="food",    vector=query_vector,    alpha=0.25,    limit=3,)for o in response.objects:    print(o.properties)
+
+
+    const jeopardy = client.collections.get('JeopardyQuestion');let queryVector = Array(1536).fill(0.12345) // Query vector [0.12345, 0.12345, 0.12345...]const result = await jeopardy.query.hybrid('food', {  vector: queryVector,  alpha: 0.25,  limit: 3})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));}
+
+
+    ctx := context.Background()className := "JeopardyQuestion"query := "food"limit := 3//Create a vector 384 dimensions long// Define the length of the slicelength := 384// Initialize the slice with the specified lengthvalues := make([]float32, length)// Fill the slice with valuesfor i := 0; i < length; i++ {  values[i] = 0.1 * float32(i+1)}vector := valuesresult, err := client.GraphQL().Get().  WithClassName(className).  WithFields(graphql.Field{Name: "question"}, graphql.Field{Name: "answer"}).  WithHybrid(client.GraphQL().HybridArgumentBuilder().  	WithQuery(query).  	WithVector(vector),  ).  WithLimit(limit).  Do(ctx)
+
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "answer": "Risotto",          "question": "From the Italian word for rice, it's a rice dish cooked with broth & often grated cheese"        },        {          "answer": "arrabiata",          "question": "Italian for \"angry\", it describes a pasta sauce spiced up with plenty of chiles"        },        {          "answer": "Fettucine Alfredo",          "question": "Ribbon-shaped noodles, sweet butter, cream, parmesan cheese & black pepper make up this pasta dish"        }      ]    }  }}
+
+Vector search parameters[​](#vector-search-parameters "Direct link to Vector search parameters")
+
+-------------------------------------------------------------------------------------------------
+
+Added in `v1.25`
+
+You can specify [vector similarity search](/developers/weaviate/search/similarity)
+ parameters similar to [near text](/developers/weaviate/search/similarity#search-with-text)
+ or [near vector](/developers/weaviate/search/similarity#search-with-a-vector)
+ searches, such as `group by` and `move to` / `move away`. An equvalent `distance` [threshold for vector search](/developers/weaviate/search/similarity#set-a-similarity-threshold)
+ can be specified with the `max vector distance` parameter.
+
+*   Python Client v4
+*   GraphQL
+*   JS/TS Client v3
+
+    from weaviate.classes.query import HybridVector, Move, HybridFusionjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.hybrid(    query="California",    max_vector_distance=0.4,  # Maximum threshold for the vector search component    vector=HybridVector.near_text(        query="large animal",        move_away=Move(force=0.5, concepts=["mammal", "terrestrial"]),    ),    alpha=0.75,    limit=5,)
+
+    {    Get {      JeopardyQuestion(        limit: 5        hybrid: {          searches: {             nearText: {                concepts: [ "large animal" ]             }             maxVectorDistance: 0.5           }           alpha: 0.75,           query: "California"         }       )         {           question           answer           points         }     }}
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.hybrid('California', {  vector: {    query: 'large animal',    moveAway: { force: 0.5, concepts:['mamal', 'terrestrial'] }  },  // maxVectorDistance support coming soon  alpha: 0.75,  limit: 5})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "answer": "Rhinoceros",          "points": 400,          "question": "The \"black\" species of this large horned mammal can grasp twigs with its upper lip"        },        {          "answer": "the hippopotamus",          "points": 400,          "question": "Close relative of the pig, though its name means \"river horse\""        },        {          "answer": "buffalo",          "points": 400,          "question": "Animal that was the main staple of the Plains Indians economy"        },        {          "answer": "California",          "points": 200,          "question": "Its state animal is the grizzly bear, & the state tree is a type of redwood"        },        {          "answer": "California",          "points": 200,          "question": "This western state sent its first refrigerated trainload of oranges back east February 14, 1886"        }      ]    }  }}
+
+Group results[​](#group-results "Direct link to Group results")
+
+----------------------------------------------------------------
+
+Added in `v1.25`
+
+Define criteria to group search results.
+
+*   Python Client v4
+
+    # Grouping parametersgroup_by = GroupBy(    prop="round",  # group by this property    objects_per_group=3,  # maximum objects per group    number_of_groups=2,  # maximum number of groups)# Queryjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.hybrid(    alpha=0.75,    query="California",    group_by=group_by)for grp_name, grp_content in response.groups.items():    print(grp_name, grp_content.objects)
+
+Example response
+
+The response is like this:
+
+    'Jeopardy!''Double Jeopardy!'
+
+`limit` & `offset`[​](#limit--offset "Direct link to limit--offset")
+
+---------------------------------------------------------------------
+
+Use `limit` to set a fixed maximum number of objects to return.
+
+Optionally, use `offset` to paginate the results.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   GraphQL
+
+    jeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.hybrid(    query="food",    limit=3,    offset=1)for o in response.objects:    print(o.properties)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer"])    .with_hybrid(      query="safety"    )    .with_additional("score")    .with_limit(3)    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.hybrid('safety', {   limit: 3,   offset: 1})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));}
+
+    let result;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withHybrid({    query: 'safety',  })  .withFields('question answer _additional { score }')  .withLimit(3)  .do();console.log(JSON.stringify(result, null, 2));
+
+    ctx := context.Background()className := "JeopardyQuestion"query := "safety"limit := 3result, err := client.GraphQL().Get().  WithClassName(className).  WithFields(  	graphql.Field{Name: "question"},  	graphql.Field{Name: "answer"},  	graphql.Field{Name: "_additional", Fields: []graphql.Field{{Name: "score"}}},  ).  WithHybrid(client.GraphQL().HybridArgumentBuilder().WithQuery(query)).  WithLimit(limit).  Do(ctx)
+
+    {  Get {    JeopardyQuestion(      hybrid: {        query: "safety"      }      limit: 3    ) {      question      answer      _additional {        score      }    }  }}
+
+Limit result groups[​](#limit-result-groups "Direct link to Limit result groups")
+
+----------------------------------------------------------------------------------
+
+To limit results to groups with similar distances from the query, use the [`autocut`](/developers/weaviate/api/graphql/additional-operators#autocut)
+ filter. Specify the `Relative Score Fusion` ranking method when you use autocut with hybrid search.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   GraphQL
+
+    from weaviate.classes.query import HybridFusionjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.hybrid(    query="food",    fusion_type=HybridFusion.RANKED,    auto_limit=1)for o in response.objects:    print(o.properties)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer"])    .with_hybrid(      query="safety"    )    .with_additional("score")    .with_autocut(1)    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.hybrid('safety', {  fusionType: 'Ranked',  autoLimit: 1})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));}
+
+    let result;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withHybrid({    query: 'safety',  })  .withFields('question answer _additional { score }')  .withAutocut(1)  .do();console.log(JSON.stringify(result, null, 2));
+
+    ctx := context.Background()className := "JeopardyQuestion"query := "safety"autocut := 1result, err := client.GraphQL().Get().  WithClassName(className).  WithFields(  	graphql.Field{Name: "question"},  	graphql.Field{Name: "answer"},  	graphql.Field{Name: "_additional", Fields: []graphql.Field{{Name: "score"}}},  ).  WithHybrid(client.GraphQL().HybridArgumentBuilder().WithQuery(query)).  WithAutocut(autocut).  Do(ctx)
+
+    {  Get {    JeopardyQuestion(      hybrid: {        query: "safety"      }      autocut: 1    ) {      question      answer      _additional {        score      }    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "answer": "Guards",          "question": "Life, Security, Shin",          "_additional": {            "score": "0.75"          },        },        # ... trimmed for brevity      ]    }  }}
+
+Filter results[​](#filter-results "Direct link to Filter results")
+
+-------------------------------------------------------------------
+
+To narrow your search results, use a [`filter`](/developers/weaviate/api/graphql/filters)
+.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Go
+*   GraphQL
+
+    from weaviate.classes.query import Filterjeopardy = client.collections.get("JeopardyQuestion")response = jeopardy.query.hybrid(    query="food",    filters=Filter.by_property("round").equal("Double Jeopardy!"),    limit=3,)for o in response.objects:    print(o.properties)
+
+    response = (    client.query    .get("JeopardyQuestion", ["question", "answer", "round"])    .with_hybrid(        query="food"    )    .with_where({        "path": ["round"],        "operator": "Equal",        "valueText": "Double Jeopardy!"    })    .with_limit(3)    .do())print(json.dumps(response, indent=2))
+
+    const jeopardy = client.collections.get('JeopardyQuestion');const result = await jeopardy.query.hybrid('food',{    filters: jeopardy.filter.byProperty('round').equal('Double Jeopardy!'),    limit: 3,})for (let object of result.objects) {  console.log(JSON.stringify(object.properties, null, 2));}
+
+    let result;result = await client.graphql  .get()  .withClassName('JeopardyQuestion')  .withHybrid({    query: 'food',  })  .withWhere({    path: ['round'],    operator: 'Equal',    valueText: 'Double Jeopardy!',  })  .withLimit(3)  .withFields('question answer round')  .do();console.log(JSON.stringify(result, null, 2));
+
+    ctx := context.Background()className := "JeopardyQuestion"query := "food"limit := 3filter := filters.Where().  WithPath([]string{"round"}).  WithOperator(filters.Equal).  WithValueString("Double Jeopardy!")result, err := client.GraphQL().Get().  WithClassName(className).  WithFields(graphql.Field{Name: "question"}, graphql.Field{Name: "answer"}, graphql.Field{Name: "round"}).  WithHybrid(client.GraphQL().HybridArgumentBuilder().WithQuery(query)).  WithWhere(filter).  WithLimit(limit).  Do(ctx)
+
+    {  Get {    JeopardyQuestion(      limit: 3      hybrid: {        query: "food"      }      where: {        path: ["round"]        operator: Equal        valueText: "Double Jeopardy!"      }    ) {      question      answer      round    }  }}
+
+Example response
+
+The output is like this:
+
+    {  "data": {    "Get": {      "JeopardyQuestion": [        {          "answer": "food stores (supermarkets)",          "question": "This type of retail store sells more shampoo & makeup than any other",          "round": "Double Jeopardy!"        },        {          "answer": "Tofu",          "question": "A popular health food, this soybean curd is used to make a variety of dishes & an ice cream substitute",          "round": "Double Jeopardy!"        },        {          "answer": "gastronomy",          "question": "This word for the art & science of good eating goes back to Greek for \"belly\"",          "round": "Double Jeopardy!"        }      ]    }  }}
+
+### Tokenization[​](#tokenization "Direct link to Tokenization")
+
+Weaviate converts filter terms into tokens. The default tokenization is `word`. The `word` tokenizer keeps alphanumeric characters, lowercase them and splits on whitespace. It converts a string like "Test\_domain\_weaviate" into "test", "domain", and "weaviate".
+
+For details and additional tokenization methods, see [Tokenization](/developers/weaviate/config-refs/schema#tokenization)
+.
+
+Related pages[​](#related-pages "Direct link to Related pages")
+
+----------------------------------------------------------------
+
+*   [Connect to Weaviate](/developers/weaviate/connections)
+
+*   [API References: Search operators # Hybrid](/developers/weaviate/api/graphql/search-operators#hybrid)
+
+*   [Weaviate Academy: Tokenization](/developers/academy/py/tokenization)
+
+*   About [hybrid fusion algorithms](/blog/hybrid-search-fusion-algorithms)
+    .
+*   For tutorials, see [Queries](/developers/weaviate/tutorials/query)
+
+*   For search using the GraphQL API, see [GraphQL API](/developers/weaviate/api/graphql/get)
+    .
+
+Questions and feedback[​](#questions-and-feedback "Direct link to Questions and feedback")
+
+-------------------------------------------------------------------------------------------
+
+If you have any questions or feedback, let us know in the [user forum](https://forum.weaviate.io/)
+.
+
+*   [Technical questions](https://forum.weaviate.io/new-topic?title=%5BQuestion%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=technical)
+
+*   [Documentation feedback](https://forum.weaviate.io/new-topic?title=%5BDocs%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=documentation)
+
+
+*   [Basic hybrid search](#basic-hybrid-search)
+
+*   [Named vectors](#named-vectors)
+
+*   [Explain the search results](#explain-the-search-results)
+
+*   [Balance keyword and vector search](#balance-keyword-and-vector-search)
+
+*   [Change the fusion method](#change-the-fusion-method)
+
+*   [Specify keyword search properties](#specify-keyword-search-properties)
+
+*   [Set weights on property values](#set-weights-on-property-values)
+
+*   [Specify a search vector](#specify-a-search-vector)
+
+*   [Vector search parameters](#vector-search-parameters)
+
+*   [Group results](#group-results)
+
+*   [`limit` & `offset`](#limit--offset)
+
+*   [Limit result groups](#limit-result-groups)
+
+*   [Filter results](#filter-results)
+    *   [Tokenization](#tokenization)
+
+*   [Related pages](#related-pages)
+
+*   [Questions and feedback](#questions-and-feedback)

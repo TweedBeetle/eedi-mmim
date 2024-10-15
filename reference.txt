@@ -1,0 +1,7 @@
+https://github.com/stanfordnlp/dspy/blob/main/examples/qa/hotpot/multihop_finetune.ipynb
+
+https://weaviate.io/developers/weaviate/model-providers/ollama/embeddings
+
+https://dspy-docs.vercel.app/docs/deep-dive/language_model_clients/lm_local_models/Ollama
+
+https://dspy-docs.vercel.app/docs/deep-dive/retrieval_models_clients/WeaviateRM

@@ -11,19 +11,18 @@ class CorrectAnswerEnum(str, Enum):
     D = 'D'
 
 
-
 class Question(BaseModel):
-    question_id: int
-    construct_id: int
-    construct_name: str
-    subject_id: int
-    subject_name: str
-    correct_answer: CorrectAnswerEnum
-    question_text: str
-    answer_a_text: str
-    answer_b_text: str
-    answer_c_text: str
-    answer_d_text: str
+    question_id: int = Field(..., alias="QuestionId")
+    construct_id: int = Field(..., alias="ConstructId")
+    construct_name: str = Field(..., alias="ConstructName")
+    subject_id: int = Field(..., alias="SubjectId")
+    subject_name: str = Field(..., alias="SubjectName")
+    correct_answer: CorrectAnswerEnum = Field(..., alias="CorrectAnswer")
+    question_text: str = Field(..., alias="QuestionText")
+    answer_a_text: str = Field(..., alias="AnswerAText")
+    answer_b_text: str = Field(..., alias="AnswerBText")
+    answer_c_text: str = Field(..., alias="AnswerCText")
+    answer_d_text: str = Field(..., alias="AnswerDText")
 
     def __repr__(self) -> str:
         content = (
@@ -50,7 +49,7 @@ class Question(BaseModel):
         )
         return content
 
-    def format_without_ids(self) -> str:
+    def format(self) -> str:
         content = (
             f"Construct: {self.construct_name}\n"
             f"Subject: {self.subject_name}\n"
@@ -72,10 +71,10 @@ class Question(BaseModel):
 
 
 class TrainingQuestion(Question):
-    misconception_a_id: Optional[int] = Field(default=None)
-    misconception_b_id: Optional[int] = Field(default=None)
-    misconception_c_id: Optional[int] = Field(default=None)
-    misconception_d_id: Optional[int] = Field(default=None)
+    misconception_a_id: Optional[int] = Field(default=None, alias="MisconceptionAId")
+    misconception_b_id: Optional[int] = Field(default=None, alias="MisconceptionBId")
+    misconception_c_id: Optional[int] = Field(default=None, alias="MisconceptionCId")
+    misconception_d_id: Optional[int] = Field(default=None, alias="MisconceptionDId")
 
     @field_validator('misconception_a_id', 'misconception_b_id', 'misconception_c_id', 'misconception_d_id')
     @classmethod
@@ -86,8 +85,8 @@ class TrainingQuestion(Question):
 
 
 class Misconception(BaseModel):
-    misconception_id: int
-    misconception_name: str
+    misconception_id: int = Field(..., alias="MisconceptionId")
+    misconception_name: str = Field(..., alias="MisconceptionName")
 
     @field_validator('misconception_name')
     @classmethod
@@ -97,10 +96,10 @@ class Misconception(BaseModel):
 
 
 class SubmissionEntry(BaseModel):
-    QuestionId_Answer: str
-    misconception_id: List[int]
+    question_id: str = Field(..., alias="QuestionId_Answer")
+    misconception_id: List[int] = Field(..., alias="MisconceptionId")
 
-    @field_validator('QuestionId_Answer')
+    @field_validator('question_id')
     @classmethod
     def validate_format(cls, v: str) -> str:
         parts = v.split('_')
@@ -184,5 +183,6 @@ if __name__ == '__main__':
         answer_d_text="x = 0"
     )
 
-    print(repr(question))
+    # print(repr(question))
+    print(question.format())
     # print(str(question))

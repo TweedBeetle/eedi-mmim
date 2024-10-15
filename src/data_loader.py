@@ -1,16 +1,19 @@
+import inflection
 import pandas as pd
 import numpy as np
 from typing import List
 from loguru import logger
 from tqdm import tqdm
-from models import TrainModel, TestModel, MisconceptionMappingModel, SampleSubmissionModel
+
+from src.constants import mmim_data_path
+from src.models import TrainingQuestion, Question, Misconception, SubmissionEntry
 
 
 # Configure loguru
 # logger.add("data_loading.log", rotation="1 MB")
 
 
-def load_train_data(filepath: str) -> List[TrainModel]:
+def load_train_data(filepath: str = str(mmim_data_path / "train.csv")) -> List[TrainingQuestion]:
     logger.info(f"Loading training data from {filepath}")
     try:
         df = pd.read_csv(filepath)
@@ -25,7 +28,7 @@ def load_train_data(filepath: str) -> List[TrainModel]:
     errors = []
     for index, row in tqdm(df.iterrows(), total=df.shape[0], desc="Validating Train Data"):
         try:
-            model = TrainModel(**row.to_dict())
+            model = TrainingQuestion(**row.to_dict())
             train_data.append(model)
         except Exception as e:
             errors.append((index, str(e)))
@@ -37,12 +40,12 @@ def load_train_data(filepath: str) -> List[TrainModel]:
             logger.warning(f"Row {index}: {error}")
         if len(errors) > 10:
             logger.warning(f"... and {len(errors) - 10} more errors")
-    
+
     logger.info(f"Successfully loaded and validated {len(train_data)} training data records")
     return train_data
 
 
-def load_test_data(filepath: str) -> List[TestModel]:
+def load_test_data(filepath: str) -> List[Question]:
     logger.info(f"Loading test data from {filepath}")
     try:
         df = pd.read_csv(filepath)
@@ -53,7 +56,7 @@ def load_test_data(filepath: str) -> List[TestModel]:
     test_data = []
     for index, row in tqdm(df.iterrows(), total=df.shape[0], desc="Validating Test Data"):
         try:
-            model = TestModel(**row.to_dict())
+            model = Question(**row.to_dict())
             test_data.append(model)
         except Exception as e:
             logger.error(f"Validation error at row {index}: {e}")
@@ -62,7 +65,7 @@ def load_test_data(filepath: str) -> List[TestModel]:
     return test_data
 
 
-def load_misconception_mapping(filepath: str) -> List[MisconceptionMappingModel]:
+def load_misconceptions(filepath: str = str(mmim_data_path / "misconception_mapping.csv")) -> List[Misconception]:
     logger.info(f"Loading misconception mapping from {filepath}")
     try:
         df = pd.read_csv(filepath)
@@ -73,7 +76,9 @@ def load_misconception_mapping(filepath: str) -> List[MisconceptionMappingModel]
     mapping_data = []
     for index, row in tqdm(df.iterrows(), total=df.shape[0], desc="Validating Misconception Mapping"):
         try:
-            model = MisconceptionMappingModel(**row.to_dict())
+            row_dict = row.to_dict()
+            # snake_case_row = {inflection.underscore(k): v for k, v in row_dict.items()}
+            model = Misconception.model_validate(row_dict)
             mapping_data.append(model)
         except Exception as e:
             logger.error(f"Validation error at row {index}: {e}")
@@ -82,7 +87,7 @@ def load_misconception_mapping(filepath: str) -> List[MisconceptionMappingModel]
     return mapping_data
 
 
-def load_sample_submission(filepath: str) -> List[SampleSubmissionModel]:
+def load_sample_submission(filepath: str) -> List[SubmissionEntry]:
     logger.info(f"Loading sample submission data from {filepath}")
     try:
         df = pd.read_csv(filepath)
@@ -93,14 +98,13 @@ def load_sample_submission(filepath: str) -> List[SampleSubmissionModel]:
     submission_data = []
     for index, row in tqdm(df.iterrows(), total=df.shape[0], desc="Validating Sample Submission Data"):
         try:
-            model = SampleSubmissionModel(**row.to_dict())
+            model = SubmissionEntry(**row.to_dict())
             submission_data.append(model)
         except Exception as e:
             logger.error(f"Validation error at row {index}: {e}")
             raise
     logger.info("Successfully loaded and validated sample submission data")
     return submission_data
-
 
 # 2024-09-27 16:18:28.197 | INFO     | src.sidequests.eedi_mmim.src.data_loader:load_sample_submission:101 - Successfully loaded and validated sample submission data
 # 2024-09-27 16:18:28.252 | INFO     | __main__:generate_train_statistics:22 - Generating statistics for Training Data

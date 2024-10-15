@@ -41,7 +41,9 @@ def get_weaviate_client():
     return client
 
 
-def define_misconception_collection(client: WeaviateClient, collection_name: str = "Misconception", overwrite: bool = True):
+def define_misconception_collection(
+        client: WeaviateClient, collection_name: str = "Misconception", overwrite: bool = True
+        ):
     """
     Define a new collection in embedded Weaviate for storing misconceptions.
     If the collection already exists, either delete and recreate it or skip creation based on the overwrite parameter.
@@ -189,8 +191,8 @@ def main():
     parser.add_argument("--collection", type=str, default="Misconception", help="The name of the Weaviate collection.")
     parser.add_argument("--limit", type=int, default=5, help="Number of top misconceptions to retrieve.")
     parser.add_argument(
-        # "--ingest_limit", type=int, default=None,
-        "--ingest_limit", type=int, default=100,
+        "--ingest_limit", type=int, default=None,
+        # "--ingest_limit", type=int, default=100,
         help="Maximum number of misconceptions to ingest. If not specified, ingest all."
     )
     args = parser.parse_args()
@@ -201,7 +203,7 @@ def main():
 def pipeline(args):
     try:
         client = get_weaviate_client()
-        define_misconception_collection(client, args.collection)
+        # define_misconception_collection(client, args.collection)
         embed_misconceptions(client, args.collection, args.ingest_limit)
         retrieve_misconceptions(client, args.query, args.collection, args.limit)
     except Exception as e:

@@ -1,0 +1,1213 @@
+
+========== Page https://weaviate.io/developers/weaviate/starter-guides/which-weaviate ==========:
+
+![](https://static.scarf.sh/a.png?x-pxid=a41b0758-a3a9-4874-a880-8b5d5a363d40) ![](https://px.ads.linkedin.com/collect/?pid=6758089&fmt=gif)
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Weaviate can be configured and deployed in many different ways. Important configuration decisions include:
+
+*   The [deployment setup](/developers/weaviate/installation)
+
+*   The [model integration](/developers/weaviate/model-providers)
+     to enable
+
+This page helps you to find the right combination for your project.
+
+Deploy Weaviate[​](#deploy-weaviate "Direct link to Deploy Weaviate")
+
+----------------------------------------------------------------------
+
+Weaviate can be deployed in the following ways:
+
+*   [Embedded Weaviate](/developers/weaviate/installation/embedded)
+
+*   [Docker-Compose](/developers/weaviate/installation/docker-compose)
+
+*   [Weaviate Cloud (WCD)](/developers/weaviate/installation/weaviate-cloud-services)
+
+*   [Self-managed Kubernetes](/developers/weaviate/installation/kubernetes)
+
+*   [Hybrid SaaS](https://weaviate.io/pricing)
+
+
+Vectorization options[​](#vectorization-options "Direct link to Vectorization options")
+
+----------------------------------------------------------------------------------------
+
+When adding data objects to Weaviate, you have two choices:
+
+*   Specify the object vector directly.
+*   Use a Weaviate vectorizer module to generate the object vector.
+
+If you are using a vectorizer module, your choices depend on your input medium/modality, as well as whether you would prefer a local or API-based vectorizer.
+
+Generally speaking, an API-based vectorizer is more convenient to use, but it incurs additional costs. A local vectorizer can cost less, but may require specialized hardware (such as a GPU) to run at comparable speeds.
+
+For text, [this open-source benchmark](https://huggingface.co/blog/mteb)
+ provides a good overview of the performance of different vectorizers. Remember, domain-specific and real-world performance may vary.
+
+Use cases[​](#use-cases "Direct link to Use cases")
+
+----------------------------------------------------
+
+Here are some recommendations for different use cases.
+
+### Quick evaluation[​](#quick-evaluation "Direct link to Quick evaluation")
+
+If you are evaluating Weaviate, we recommend using one of these instance types to get started quickly:
+
+*   [Weaviate Cloud (WCD)](/developers/wcs)
+     sandbox
+*   [Embedded Weaviate](/developers/weaviate/installation/embedded)
+
+
+Use an inference-API based text vectorizer with your instance, for example, `text2vec-cohere`, `text2vec-huggingface`, `text2vec-openai`, or `text2vec-palm`.
+
+The [Quickstart guide](/developers/weaviate/quickstart)
+ uses a WCD sandbox and an API based vectorizer to run the examples.
+
+### Development[​](#development "Direct link to Development")
+
+For development, we recommend using
+
+*   [Weaviate Cloud (WCD)](https://console.weaviate.cloud/)
+     or [Docker Compose](/developers/weaviate/installation/docker-compose)
+    .
+*   A vectorization strategy that matches your production vectorization strategy.
+
+#### Docker-Compose vs. Weaviate Cloud (WCD)[​](#docker-compose-vs-weaviate-cloud-wcd "Direct link to Docker-Compose vs. Weaviate Cloud (WCD)")
+
+Of the two, Docker-Compose is more flexible as it exposes all configuration options, and can be used in a local development environment. Additionally, it can use local vectorizer modules such as `text2vec-transformers` or `multi2vec-clip` for example.
+
+On the other hand, WCD instances are easier to spin up, and takes away the need to manage the deployment yourself.
+
+Note that Embedded Weaviate is currently not recommended for serious development use as it is at an experimental phase.
+
+#### Vectorization strategy[​](#vectorization-strategy "Direct link to Vectorization strategy")
+
+For development, we recommend using a vectorizer module that at least approximates your needs.
+
+As a first point, you must choose:
+
+*   Whether to vectorize data yourself and import it into Weaviate, or
+*   To use a Weaviate vectorizer module.
+
+Then, we recommend choosing a vectorizer module that is as close as possible to your production needs. For example, if search quality is of paramount importance, we suggest using your preferred vectorizer module in development as well.
+
+Keep in mind two other factors, which are cost, and their footprint.
+
+*   Vectorization, such as with an API-based vectorizer, can be expensive. This is especially true if you are dealing with very large datasets.
+*   Vector lengths can vary by a factor of ~5, which will impact both your storage and memory requirements. This can ultimately impact cost down the line.
+
+### Production[​](#production "Direct link to Production")
+
+For production deployments, consider one of these hosting models:
+
+*   [Weaviate Cloud (WCD)](/developers/wcs)
+
+*   [Self-managed Kubernetes](/developers/weaviate/starter-guides/developers/weaviate/installation/kubernetes)
+
+*   [Hybrid SaaS](/developers/wcs#bring-your-own-cloud)
+
+
+All of these options are scalable. Kubernetes and Hybrid SaaS offer the most configuration flexibility.
+
+A WCD-based solution is the easiest way to deploy Weaviate in terms of setup and maintenance. A self-managed Kubernetes deployment combines flexibility and scalability.
+
+If you need additional configuration control, but you don't want to manage your Weaviate deployment, Hybrid SaaS offers a best-of-both-worlds solution.
+
+By Vectorizer & Reranker[​](#by-vectorizer--reranker "Direct link to By Vectorizer & Reranker")
+
+------------------------------------------------------------------------------------------------
+
+Weaviate makes various vectorizer & reranker modules available for different media types, also called modalities.
+
+Some model types such as Ollama or Transformers models are locally hosted, while others such as Cohere or OpenAI are API-based. This affects their availability in different Weaviate setups.
+
+We recommend reviewing from the available [model integrations](/developers/weaviate/model-providers)
+ and their availability in different Weaviate setups. Then, choose the one that best fits your needs.
+
+Questions and feedback[​](#questions-and-feedback "Direct link to Questions and feedback")
+
+-------------------------------------------------------------------------------------------
+
+If you have any questions or feedback, let us know in the [user forum](https://forum.weaviate.io/)
+.
+
+*   [Technical questions](https://forum.weaviate.io/new-topic?title=%5BQuestion%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=technical)
+
+*   [Documentation feedback](https://forum.weaviate.io/new-topic?title=%5BDocs%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=documentation)
+
+
+*   [Deploy Weaviate](#deploy-weaviate)
+
+*   [Vectorization options](#vectorization-options)
+
+*   [Use cases](#use-cases)
+    *   [Quick evaluation](#quick-evaluation)
+
+    *   [Development](#development)
+
+    *   [Production](#production)
+
+*   [By Vectorizer & Reranker](#by-vectorizer--reranker)
+
+*   [Questions and feedback](#questions-and-feedback)
+
+
+========== Page https://weaviate.io/developers/weaviate/starter-guides/schema ==========:
+
+![](https://static.scarf.sh/a.png?x-pxid=a41b0758-a3a9-4874-a880-8b5d5a363d40) ![](https://px.ads.linkedin.com/collect/?pid=6758089&fmt=gif)
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Overview[​](#overview "Direct link to Overview")
+
+-------------------------------------------------
+
+This tutorial will guide you through the process of defining a schema for your data, including commonly used settings and key considerations.
+
+Prerequisites
+
+*   (Recommended) Complete the [Quickstart tutorial](/developers/weaviate/quickstart)
+    .
+*   A Weaviate instance with an administrator API key.
+*   Install your preferred Weaviate client library.
+
+Schema: An Introduction[​](#schema-an-introduction "Direct link to Schema: An Introduction")
+
+---------------------------------------------------------------------------------------------
+
+The database schema defines how data is stored, organized and retrieved in Weaviate.
+
+Define a collection before importing data. Weaviate cannot import data if the collection is undefined. If [auto-schema](/developers/weaviate/config-refs/schema#auto-schema)
+ is enabled, Weaviate can infer missing elements and add them to the collection definition. However, it is a best practice to manually define as much of the schema as possible since manual definition gives you the most control.
+
+Let's begin with a simple example before diving into the details.
+
+### Basic schema creation[​](#basic-schema-creation "Direct link to Basic schema creation")
+
+This example creates a collection called `Question`. The collection has three properties, `answer`, `question`, and `category`. The definition specifies the `text2vec-openai` vectorizer and the `generative-cohere` module for RAG.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v2
+
+    import weaviateimport weaviate.classes as wvcimport osclient = weaviate.connect_to_local(    headers={        "X-OpenAI-Api-Key": os.environ["OPENAI_APIKEY"]  # Replace with your inference API key    })try:    questions = client.collections.create(        name="Question",        vectorizer_config=wvc.config.Configure.Vectorizer.text2vec_openai(),    # Set the vectorizer to "text2vec-openai" to use the OpenAI API for vector-related operations        generative_config=wvc.config.Configure.Generative.cohere(),             # Set the generative module to "generative-cohere" to use the Cohere API for RAG        properties=[            wvc.config.Property(                name="question",                data_type=wvc.config.DataType.TEXT,            ),            wvc.config.Property(                name="answer",                data_type=wvc.config.DataType.TEXT,            ),            wvc.config.Property(                name="category",                data_type=wvc.config.DataType.TEXT,            )        ]    )    print(questions.config.get(simple=False))finally:    client.close()
+
+    import weaviateimport jsonclient = weaviate.Client("https://WEAVIATE_INSTANCE_URL/")  # Replace with your Weaviate endpoint# we will create the class "Question"class_obj = {    "class": "Question",    "description": "Information from a Jeopardy! question",  # description of the class    "properties": [        {            "name": "question",            "dataType": ["text"],            "description": "The question",        },        {            "name": "answer",            "dataType": ["text"],            "description": "The answer",        },        {            "name": "category",            "dataType": ["text"],            "description": "The question category",        },    ],    "vectorizer": "text2vec-openai",    "moduleConfig": {        "generative-openai": {}  # Set `generative-openai` as the generative module    }}# add the schemaclient.schema.create_class(class_obj)# get the schemaschema = client.schema.get()# print the schemaprint(json.dumps(schema, indent=4))
+
+    import weaviate from 'weaviate-ts-client';const client = weaviate.client({  scheme: 'https',  host: 'WEAVIATE_INSTANCE_URL',  // Replace with your Weaviate endpoint});// Define the 'Question' classconst classObj = {  class: 'Question',  description: 'Information from a Jeopardy! question',  // description of the class  properties: [    {      name: 'question',      dataType: ['text'],      description: 'The question',    },    {      name: 'answer',      dataType: ['text'],      description: 'The answer',    },    {      name: 'category',      dataType: ['text'],      description: 'The question category',    },  ],  vectorizer: 'text2vec-openai',  moduleConfig: {      generative-openai: {}  // Set `generative-openai` as the generative module  }};// Add the class to the schemaawait client  .schema  .classCreator()  .withClass(classObj)  .do();
+
+The returned configuration looks similar to this:
+
+See the returned schema
+
+    {    "classes": [        {            "class": "Question",            "description": "Information from a Jeopardy! question",            "invertedIndexConfig": {                "bm25": {                    "b": 0.75,                    "k1": 1.2                },                "cleanupIntervalSeconds": 60,                "stopwords": {                    "additions": null,                    "preset": "en",                    "removals": null                }            },            "moduleConfig": {                "text2vec-openai": {                    "model": "ada",                    "modelVersion": "002",                    "type": "text",                    "vectorizeClassName": true                }            },            "properties": [                {                    "dataType": [                        "text"                    ],                    "description": "The question",                    "moduleConfig": {                        "text2vec-openai": {                            "skip": false,                            "vectorizePropertyName": false                        }                    },                    "name": "question",                    "tokenization": "word"                },                {                    "dataType": [                        "text"                    ],                    "description": "The answer",                    "moduleConfig": {                        "text2vec-openai": {                            "skip": false,                            "vectorizePropertyName": false                        }                    },                    "name": "answer",                    "tokenization": "word"                },                {                    "dataType": [                        "text"                    ],                    "description": "The category",                    "moduleConfig": {                        "text2vec-openai": {                            "skip": false,                            "vectorizePropertyName": false                        }                    },                    "name": "category",                    "tokenization": "word"                }            ],            "replicationConfig": {                "factor": 1            },            "shardingConfig": {                "virtualPerPhysical": 128,                "desiredCount": 1,                "actualCount": 1,                "desiredVirtualCount": 128,                "actualVirtualCount": 128,                "key": "_id",                "strategy": "hash",                "function": "murmur3"            },            "vectorIndexConfig": {                "skip": false,                "cleanupIntervalSeconds": 300,                "maxConnections": 32,                "efConstruction": 128,                "ef": -1,                "dynamicEfMin": 100,                "dynamicEfMax": 500,                "dynamicEfFactor": 8,                "vectorCacheMaxObjects": 1000000000000,                "flatSearchCutoff": 40000,                "distance": "cosine"            },            "vectorIndexType": "hnsw",            "vectorizer": "text2vec-openai"        }    ]}
+
+Although we only specified the collection name and properties, the returned schema includes much more information.
+
+This is because Weaviate infers the schema based on the data and defaults. Each of these options can be specified manually at collection creation time.
+
+FAQ: Are schemas mutable?
+
+Yes, to an extent. There are no restrictions against adding new collections, or properties. However, not all settings are mutable within existing collections. For example, you can not change the vectorizer or the generative module. You can read more about this in the [schema reference](/developers/weaviate/config-refs/schema#mutability)
+.
+
+Schemas in detail[​](#schemas-in-detail "Direct link to Schemas in detail")
+
+----------------------------------------------------------------------------
+
+Conceptually, it may be useful to think of each Weaviate instance comprising of multiple collections, each of which is a set of objects that share a common structure.
+
+For example, you might have a movie database with `Movie` and `Actor` collections, each with their own properties. Or you might have a news database with `Article`, `Author` and `Publication` collections.
+
+### Available settings[​](#available-settings "Direct link to Available settings")
+
+For the most part, each collection should be thought of as isolated from the others (in fact, they are!). Accordingly, they can be configured independently. Each collection has:
+
+*   A set of `properties` specifying the object data structure.
+*   Multi-tenancy settings.
+*   Vectorizer and generative modules.
+*   Index settings (for vector and inverted indexes).
+*   Replication and sharding settings.
+
+And depending on your needs, you might want to change any number of these.
+
+### Properties[​](#properties "Direct link to Properties")
+
+Each property has a number of settings that can be configured, such as the `dataType`, `tokenization`, and `vectorizePropertyName`. You can read more about these in the [schema reference](/developers/weaviate/config-refs/schema#properties)
+.
+
+So for example, you might specify a schema like the one below, with additional options for the `question` and `answer` properties:
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    import weaviateimport weaviate.classes as wvcimport osclient = weaviate.connect_to_local(    headers={        "X-OpenAI-Api-Key": os.environ["OPENAI_APIKEY"]  # Replace with your inference API key    })try:    questions = client.collections.create(        name="Question",        vectorizer_config=wvc.config.Configure.Vectorizer.text2vec_openai(),    # Set the vectorizer to "text2vec-openai" to use the OpenAI API for vector-related operations        generative_config=wvc.config.Configure.Generative.cohere(),             # Set the generative module to "generative-cohere" to use the Cohere API for RAG        properties=[            wvc.config.Property(                name="question",                data_type=wvc.config.DataType.TEXT,                vectorize_property_name=True,  # Include the property name ("question") when vectorizing                tokenization=wvc.config.Tokenization.LOWERCASE  # Use "lowecase" tokenization            ),            wvc.config.Property(                name="answer",                data_type=wvc.config.DataType.TEXT,                vectorize_property_name=False,  # Skip the property name ("answer") when vectorizing                tokenization=wvc.config.Tokenization.WHITESPACE  # Use "whitespace" tokenization            ),        ]    )finally:    client.close()
+
+    import weaviateimport jsonclient = weaviate.Client("https://WEAVIATE_INSTANCE_URL/")  # Replace with your Weaviate endpoint# we will create the class "Question"class_obj = {    "class": "Question",    "description": "Information from a Jeopardy! question",  # description of the class    "vectorizer": "text2vec-openai",    "moduleConfig": {        "generative-openai": {}  # Set `generative-openai` as the generative module    },    "properties": [        {            "name": "question",            "dataType": ["text"],            "description": "The question",            "moduleConfig": {                "text2vec-openai": {  # this must match the vectorizer used                    "vectorizePropertyName": True,                    "tokenization": "lowercase"                }            }        },        {            "name": "answer",            "dataType": ["text"],            "description": "The answer",            "moduleConfig": {                "text2vec-openai": {  # this must match the vectorizer used                    "vectorizePropertyName": False,                    "tokenization": "whitespace"                }            }        },    ],}# add the schemaclient.schema.create_class(class_obj)
+
+    import weaviate from 'weaviate-client';const client: WeaviateClient = await weaviate.connectToWeaviateCloud(  'WEAVIATE_INSTANCE_URL', { // Replace WEAVIATE_INSTANCE_URL with your instance URL    authCredentials: new weaviate.ApiKey('WEAVIATE_INSTANCE_API_KEY'),  })// Define the 'Question' collectionconst collectionObj = {  name: 'Question',  properties: [    {      name: 'question',      dataType: 'text' as const,      description: 'Category of the question' as const,      tokenization: 'lowercase' as const,      vectorizePropertyName: true,    },    {      name: 'answer',      dataType: 'text' as const,      description: 'The question',      tokenization: 'whitespace' as const,      vectorizePropertyName: false,    }  ],  vectorizers: weaviate.configure.vectorizer.text2VecOpenAI(),  generative: weaviate.configure.generative.openAI()}// Add the class to the schemaconst newCollection = await client.collections.create(collectionObj)
+
+    import weaviate from 'weaviate-ts-client';const client = weaviate.client({  scheme: 'https',  host: 'WEAVIATE_INSTANCE_URL',  // Replace with your Weaviate endpoint});// Define the 'Question' classconst classObj = {  class: 'Question',  description: 'Information from a Jeopardy! question',  // description of the class  vectorizer: 'text2vec-openai',  moduleConfig: {      generative-openai: {}  // Set `generative-openai` as the generative module  },  properties: [    {      name: 'question',      dataType: ['text'],      description: 'The question',      moduleConfig: {        'text2vec-openai': {  // this must match the vectorizer used          vectorizePropertyName: true,          tokenization: 'lowercase'  // Use "lowercase" tokenization        },      }    },    {      name: 'answer',      dataType: ['text'],      description: 'The answer',      moduleConfig: {        'text2vec-openai': {  // this must match the vectorizer used          vectorizePropertyName: false,          tokenization: 'whitespace'  // Use "whitespace" tokenization        },      }    },  ]};// Add the class to the schemaawait client  .schema  .classCreator()  .withClass(classObj)  .do();
+
+#### Cross-references[​](#cross-references "Direct link to Cross-references")
+
+This is also where you would specify cross-references, which are a special type of property that links to another collection.
+
+Cross-references can be very useful for creating relationships between objects. For example, you might have a `Movie` collection with a `withActor` cross-reference property that points to the `Actor` collection. This will allow you to retrieve relevant actors for each movie.
+
+However, cross-references can be costly in terms of performance. Use them sparingly. Additionally, cross-reference properties do not affect the object's vector. So if you want the related properties to be considered in a vector search, they should be included in the object's vectorized properties.
+
+You can find examples of how to define and use cross-references [here](/developers/weaviate/manage-data/cross-references)
+.
+
+### Vectorizer and generative modules[​](#vectorizer-and-generative-modules "Direct link to Vectorizer and generative modules")
+
+Each collection can be configured with a vectorizer and a generative module. The vectorizer is used to generate vectors for each object and also for any un-vectorized queries, and the generative module is used to perform retrieval augmented generation (RAG) queries.
+
+These settings are currently immutable once the collection is created. Accordingly, you should choose the vectorizer and generative module carefully.
+
+If you are not sure where to start, modules that integrate with popular API-based model providers such as Cohere or OpenAI are good starting points. You can find a [list of available model integrations here](/developers/weaviate/model-providers)
+.
+
+### Multi-tenancy settings[​](#multi-tenancy-settings "Direct link to Multi-tenancy settings")
+
+Starting from version `v1.20.0`, each collection can be configured as a multi-tenancy collection. This allows separation of data between tenants, typically end-users, at a much lower overhead than creating separate collections for each tenant.
+
+This is useful if you want to use Weaviate as a backend for a multi-tenant (e.g. SaaS) application, or if data isolation is required for any other reason.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    import weaviateimport weaviate.classes as wvcimport osclient = weaviate.connect_to_local(    headers={        "X-OpenAI-Api-Key": os.environ["OPENAI_APIKEY"]  # Replace with your inference API key    })try:    questions = client.collections.create(        name="Question",        vectorizer_config=wvc.config.Configure.Vectorizer.text2vec_openai(),    # Set the vectorizer to "text2vec-openai" to use the OpenAI API for vector-related operations        generative_config=wvc.config.Configure.Generative.cohere(),             # Set the generative module to "generative-cohere" to use the Cohere API for RAG        properties=[            wvc.config.Property(                name="question",                data_type=wvc.config.DataType.TEXT,            ),            wvc.config.Property(                name="answer",                data_type=wvc.config.DataType.TEXT,            ),        ],        multi_tenancy_config=wvc.config.Configure.multi_tenancy(enabled=True),  # Enable multi-tenancy    )finally:    client.close()
+
+    import weaviateimport jsonclient = weaviate.Client("https://WEAVIATE_INSTANCE_URL/")  # Replace with your Weaviate endpoint# we will create the class "Question"class_obj = {    "class": "Question",    "description": "Information from a Jeopardy! question",  # description of the class    "vectorizer": "text2vec-openai",    "moduleConfig": {        "generative-openai": {}  # Set `generative-openai` as the generative module    },    "properties": [        {            "name": "question",            "dataType": ["text"],            "description": "The question",            "moduleConfig": {                "text2vec-openai": {  # this must match the vectorizer used                    "vectorizePropertyName": True,                    "tokenization": "lowercase"                }            }        },        {            "name": "answer",            "dataType": ["text"],            "description": "The answer",            "moduleConfig": {                "text2vec-openai": {  # this must match the vectorizer used                    "vectorizePropertyName": False,                    "tokenization": "whitespace"                }            }        },    ],    "multiTenancyConfig": {"enabled": True},  # Enable multi-tenancy}# add the schemaclient.schema.create_class(class_obj)
+
+    import weaviate from 'weaviate-client';const client: WeaviateClient = await weaviate.connectToWeaviateCloud(  'WEAVIATE_INSTANCE_URL', { // Replace WEAVIATE_INSTANCE_URL with your instance URL    authCredentials: new weaviate.ApiKey('WEAVIATE_INSTANCE_API_KEY'),  })// Define the 'Question' classconst collectionObj = {  name: 'Question',  properties: [    {      name: 'question',      dataType: 'text' as const,      description: 'Category of the question',      tokenization: 'lowercase' as const,      vectorizePropertyName: true,    },    {      name: 'answer',      dataType: 'text' as const,      description: 'The question',      tokenization: 'whitespace' as const,      vectorizePropertyName: false,    }  ],  vectorizers: weaviate.configure.vectorizer.text2VecOpenAI(),  generative: weaviate.configure.generative.openAI(),  multiTenancy: weaviate.configure.multiTenancy({enabled: true})}// Add the class to the schemaconst newCollection = await client.collections.create(collectionObj)
+
+    import weaviate from 'weaviate-ts-client';const client = weaviate.client({  scheme: 'https',  host: 'WEAVIATE_INSTANCE_URL',  // Replace with your Weaviate endpoint});// Define the 'Question' classconst classObj = {  class: 'Question',  description: 'Information from a Jeopardy! question',  // description of the class  vectorizer: 'text2vec-openai',  moduleConfig: {      generative-openai: {}  // Set `generative-openai` as the generative module  },  properties: [    {      name: 'question',      dataType: ['text'],      description: 'The question',      moduleConfig: {        'text2vec-openai': {  // this must match the vectorizer used          vectorizePropertyName: true,          tokenization: 'lowercase'  // Use "lowercase" tokenization        },      }    },    {      name: 'answer',      dataType: ['text'],      description: 'The answer',      moduleConfig: {        'text2vec-openai': {  // this must match the vectorizer used          vectorizePropertyName: false,          tokenization: 'whitespace'  // Use "whitespace" tokenization        },      }    },  ],  multiTenancyConfig: { enabled: true }  // Enable multi-tenancy};// Add the class to the schemaawait client  .schema  .classCreator()  .withClass(classObj)  .do();
+
+### Index settings[​](#index-settings "Direct link to Index settings")
+
+Weaviate uses two types of indexes: [vector indexes](/developers/weaviate/concepts/vector-index)
+ and [inverted indexes](/developers/weaviate/concepts/indexing#inverted-indexes)
+. Vector indexes are used to store and organize vectors for fast vector similarity-based searches. Inverted indexes are used to store data for fast filtering and keyword searches.
+
+The default vector index type is [HNSW](/developers/weaviate/concepts/vector-index#hierarchical-navigable-small-world-hnsw-index)
+. The other options are [flat](/developers/weaviate/concepts/vector-index#flat-index)
+, which is suitable for small collections, such as those in a multi-tenancy collection, or [dynamic](/developers/weaviate/concepts/vector-index#dynamic-index)
+, which starts as a flat index before switching to an HNSW index if its size grows beyond a predetermined threshold.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    import weaviateimport weaviate.classes as wvcimport osclient = weaviate.connect_to_local(    headers={        "X-OpenAI-Api-Key": os.environ["OPENAI_APIKEY"]  # Replace with your inference API key    })try:    questions = client.collections.create(        name="Question",        vectorizer_config=wvc.config.Configure.Vectorizer.text2vec_openai(),    # Set the vectorizer to "text2vec-openai" to use the OpenAI API for vector-related operations        generative_config=wvc.config.Configure.Generative.cohere(),             # Set the generative module to "generative-cohere" to use the Cohere API for RAG        properties=[            wvc.config.Property(                name="question",                data_type=wvc.config.DataType.TEXT,            ),            wvc.config.Property(                name="answer",                data_type=wvc.config.DataType.TEXT,            ),        ],        # Configure the vector index        vector_index_config=wvc.config.Configure.VectorIndex.hnsw(  # Or `flat` or `dynamic`            distance_metric=wvc.config.VectorDistances.COSINE,            quantizer=wvc.config.Configure.VectorIndex.Quantizer.bq(),        ),        # Configure the inverted index        inverted_index_config=wvc.config.Configure.inverted_index(            index_null_state=True,            index_property_length=True,            index_timestamps=True,        ),    )finally:    client.close()
+
+    import weaviateimport jsonclient = weaviate.Client("https://WEAVIATE_INSTANCE_URL/")  # Replace with your Weaviate endpoint# we will create the class "Question"class_obj = {    "class": "Question",    "description": "Information from a Jeopardy! question",  # description of the class    "vectorizer": "text2vec-openai",    "moduleConfig": {        "generative-openai": {}  # Set `generative-openai` as the generative module    },    "properties": [        {            "name": "question",            "dataType": ["text"],            "description": "The question",            "moduleConfig": {                "text2vec-openai": {  # this must match the vectorizer used                    "vectorizePropertyName": True,                    "tokenization": "lowercase"                }            }        },        {            "name": "answer",            "dataType": ["text"],            "description": "The answer",            "moduleConfig": {                "text2vec-openai": {  # this must match the vectorizer used                    "vectorizePropertyName": False,                    "tokenization": "whitespace"                }            }        },    ],    # Configure the vector index    "vectorIndexType": "hnsw",  # Or "flat" or "dynamic"    "vectorIndexConfig": {        "distance": "cosine",        "bq": {          "enabled": True,        },    },    # Configure the inverted index    "indexTimestamps": True,    "indexNullState": True,    "indexPropertyLength": True,}# add the schemaclient.schema.create_class(class_obj)
+
+    import weaviate from 'weaviate-client';import { vectorizer, generative, configure, dataType } from 'weaviate-client';const client: WeaviateClient = await weaviate.connectToWeaviateCloud(  'WEAVIATE_INSTANCE_URL', { // Replace WEAVIATE_INSTANCE_URL with your instance URL    authCredentials: new weaviate.ApiKey('WEAVIATE_INSTANCE_API_KEY'),  })// Define the 'Question' classconst collectionObj = {  name: 'Question',  properties: [    {      name: 'question',      dataType: 'text' as const,      description: 'Category of the question',      tokenization: 'lowercase' as const,      vectorizePropertyName: true,    },    {      name: 'answer',      dataType: 'text' as const,      description: 'The question',      tokenization: 'whitespace' as const,      vectorizePropertyName: false,    }  ],  vectorizers: vectorizer.text2VecOpenAI({    vectorIndexConfig: configure.vectorIndex.hnsw({  // Or `flat` or `dynamic`      distanceMetric: 'cosine',      quantizer: configure.vectorIndex.quantizer.bq(),    })  }),  generative: generative.openAI(),  invertedIndex: configure.invertedIndex({    indexNullState: true,    indexPropertyLength: true,    indexTimestamps: true,  }),}// Add the class to the schemaconst newCollection = await client.collections.create(collectionObj)
+
+    import weaviate from 'weaviate-ts-client';const client = weaviate.client({  scheme: 'https',  host: 'WEAVIATE_INSTANCE_URL',  // Replace with your Weaviate endpoint});// Define the 'Question' classconst classObj = {  class: 'Question',  description: 'Information from a Jeopardy! question',  // description of the class  vectorizer: 'text2vec-openai',  moduleConfig: {      generative-openai: {}  // Set `generative-openai` as the generative module  },  properties: [    {      name: 'question',      dataType: ['text'],      description: 'The question',      moduleConfig: {        'text2vec-openai': {  // this must match the vectorizer used          vectorizePropertyName: true,          tokenization: 'lowercase'  // Use "lowercase" tokenization        },      }    },    {      name: 'answer',      dataType: ['text'],      description: 'The answer',      moduleConfig: {        'text2vec-openai': {  // this must match the vectorizer used          vectorizePropertyName: false,          tokenization: 'whitespace'  // Use "whitespace" tokenization        },      }    },  ],  // Configure the vector index  vectorIndexType: 'hnsw',  // Or `flat` or `dynamic`  vectorIndexConfig: {      distance: 'cosine',      bq: {          enabled: True,      },  },  // Configure the inverted index  indexTimestamps: true,  indexNullState: true,  indexPropertyLength: true,};// Add the class to the schemaawait client  .schema  .classCreator()  .withClass(classObj)  .do();
+
+### Replication and sharding settings[​](#replication-and-sharding-settings "Direct link to Replication and sharding settings")
+
+#### Replication[​](#replication "Direct link to Replication")
+
+Replication settings determine how many copies of the data are stored. For example, a replication setting of 3 means that each object is stored on 3 different replicas. This is important for providing redundancy and fault tolerance in production. (The default replication factor is 1.)
+
+This goes hand-in-hand with consistency settings, which determine how many replicas must respond before an operation is considered successful.
+
+We recommend that you read the [concepts page on replication](/developers/weaviate/concepts/replication-architecture)
+ for information on how replication works in Weaviate. To specify a replication factor, follow [this how-to](/developers/weaviate/manage-data/collections#replication-settings)
+.
+
+#### Sharding[​](#sharding "Direct link to Sharding")
+
+Sharding settings determine how each collection is sharded and distributed across nodes. This is not a setting that is typically changed, but you can use it to control how many shards are created in a cluster, and how many virtual shards are created per physical shard ([read more here](/developers/weaviate/config-refs/schema#shardingconfig)
+).
+
+Notes[​](#notes "Direct link to Notes")
+
+----------------------------------------
+
+### Collection & property names[​](#collection--property-names "Direct link to Collection & property names")
+
+Collection names always start with a capital letter. Properties always begin with a small letter. You can use `PascalCase` class names, and property names allow underscores. Read more [here](/developers/weaviate/config-refs/schema)
+.
+
+### Related resources[​](#related-resources "Direct link to Related resources")
+
+The following resources include more detailed information on schema settings and how to use them:
+
+*   [Schema - Reference: Configuration](/developers/weaviate/config-refs/schema)
+    : A reference of all available schema settings.
+*   [Collections - How-to: manage data](/developers/weaviate/manage-data/collections)
+    : Code examples for creating and managing collections, including how to configure various settings using client libraries.
+*   [Schema - Reference: REST](/developers/weaviate/api/rest#tag/schema)
+    : A reference of all available schema settings for the REST API.
+
+Questions and feedback[​](#questions-and-feedback "Direct link to Questions and feedback")
+
+-------------------------------------------------------------------------------------------
+
+If you have any questions or feedback, let us know in the [user forum](https://forum.weaviate.io/)
+.
+
+*   [Technical questions](https://forum.weaviate.io/new-topic?title=%5BQuestion%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=technical)
+
+*   [Documentation feedback](https://forum.weaviate.io/new-topic?title=%5BDocs%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=documentation)
+
+
+*   [Overview](#overview)
+
+*   [Schema: An Introduction](#schema-an-introduction)
+    *   [Basic schema creation](#basic-schema-creation)
+
+*   [Schemas in detail](#schemas-in-detail)
+    *   [Available settings](#available-settings)
+
+    *   [Properties](#properties)
+
+    *   [Vectorizer and generative modules](#vectorizer-and-generative-modules)
+
+    *   [Multi-tenancy settings](#multi-tenancy-settings)
+
+    *   [Index settings](#index-settings)
+
+    *   [Replication and sharding settings](#replication-and-sharding-settings)
+
+*   [Notes](#notes)
+    *   [Collection & property names](#collection--property-names)
+
+    *   [Related resources](#related-resources)
+
+*   [Questions and feedback](#questions-and-feedback)
+
+
+========== Page https://weaviate.io/developers/weaviate/starter-guides/custom-vectors ==========:
+
+![](https://static.scarf.sh/a.png?x-pxid=a41b0758-a3a9-4874-a880-8b5d5a363d40) ![](https://px.ads.linkedin.com/collect/?pid=6758089&fmt=gif)
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Weaviate is a vector database. [Vector databases](/blog/vector-library-vs-vector-database)
+ store data objects and vectors that represent those objects. The vector representation is also called an "embedding."
+
+When you import data, you can pass pre-existing vectors or generate new ones. "Bring your own vectors" means you supply the vector embeddings when you upload your data. The embeddings you provide can be custom vectors or vectors that are pre-generated using a [model provider](/developers/weaviate/model-providers)
+.
+
+This guide discusses importing data that has pre-existing vectors.
+
+Guide steps[​](#guide-steps "Direct link to Guide steps")
+
+----------------------------------------------------------
+
+To use this guide to import data that has pre-existing vectors, follow these steps:
+
+1.  [Review the setup steps.](#setup)
+
+2.  [Connect to a Weaviate instance.](#connect-to-weaviate)
+
+3.  [Import data that specifies its own vectors.](#import-data-and-vectors)
+
+4.  [Perform a vector search.](#query)
+
+
+Setup[​](#setup "Direct link to Setup")
+
+----------------------------------------
+
+This section introduces setup requirements and the example data that this guide uses.
+
+### Example Data[​](#example-data "Direct link to Example Data")
+
+The example data is based on a set of ten questions from the "Jeopardy!" television program. The [import data file](https://raw.githubusercontent.com/weaviate-tutorials/quickstart/main/data/jeopardy_tiny_with_vectors_all-OpenAI-ada-002.json)
+ is a JSON formatted document that contains the vectors and the underlying data.
+
+The sample data
+
+The JSON file is based on this data. The vector embeddings are generated with the OpenAI API [`text-embedding-ada-002` model](https://platform.openai.com/docs/guides/embeddings/what-are-embeddings)
+.
+
+
+Your vectors can come from any source, including your own vectorizer model or another model provider such as Cohere or Hugging Face.
+
+| Category | Question | Answer | Vector |
+| --- | --- | --- | --- |
+| SCIENCE | This organ removes excess glucose from the blood & stores it as glycogen | Liver | \[ -0.006632288, -0.0042016874, ..., -0.020163147 \] |
+| ANIMALS | It's the only living mammal in the order Proboseidea | Elephant | \[ -0.0166891, -0.00092290324, ..., -0.032253385 \] |
+| ANIMALS | The gavial looks very much like a crocodile except for this bodily feature | the nose or snout | \[ -0.015592773, 0.019883318, ..., 0.0033349802 \] |
+| ANIMALS | Weighing around a ton, the eland is the largest species of this animal in Africa | Antelope | \[ 0.014535263, -0.016103541, ..., -0.025882969 \] |
+| ANIMALS | Heaviest of all poisonous snakes is this North American rattlesnake | the diamondback rattler | \[ -0.0030859283, 0.015239313, ..., -0.021798335 \] |
+| SCIENCE | 2000 news: the Gunnison sage grouse isn't just another northern sage grouse, but a new one of this classification | species | \[ -0.0090561025, 0.011155112, ..., -0.023036297 \] |
+| SCIENCE | A metal that is "ductile" can be pulled into this while cold & under pressure | wire | \[ -0.02735741, 0.01199829, ..., 0.010396339 \] |
+| SCIENCE | In 1953 Watson & Crick built a model of the molecular structure of this, the gene-carrying substance | DNA | \[ -0.014227471, 0.020493254, ..., -0.0027445166 \] |
+| SCIENCE | Changes in the tropospheric layer of this are what gives us weather | the atmosphere | \[ 0.009625228, 0.027518686, ..., -0.0068922946 \] |
+| SCIENCE | In 70-degree air, a plane traveling at about 1,130 feet per second breaks it | Sound barrier | \[ -0.0013459147, 0.0018580769, ..., -0.033439033 \] |
+
+### Weaviate Instance[​](#weaviate-instance "Direct link to Weaviate Instance")
+
+Weaviate is open source. You can [run Weaviate](/developers/weaviate/installation)
+ locally, in the cloud, or as a service. If you want to follow this guide without setting up an instance of your own, consider using a free, Sandbox instance in [Weaviate Cloud](/developers/wcs/quickstart)
+.
+
+### Client library[​](#client-library "Direct link to Client library")
+
+[Client libraries](/developers/weaviate/client-libraries)
+ simplify working with Weaviate. Clients are available for multiple programming languages. This guide provides examples in Python, Typescript, and cURL.
+
+To install a client library, use the installer for the client language:
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+The v4 client requires Weaviate 1.23.7 or higher.
+
+
+    pip install -U weaviate-client
+
+    pip install "weaviate-client==3.*"
+
+    npm install weaviate-client
+
+    npm install weaviate-ts-client
+
+Connect to Weaviate[​](#connect-to-weaviate "Direct link to Connect to Weaviate")
+
+----------------------------------------------------------------------------------
+
+This guide uses an Weaviate Cloud instance to host the collection. To connect to a Weaviate Cloud instance, you need the following information:
+
+*   The Weaviate URL
+*   The Weaviate API key
+
+If you are using a Sandbox instance, the URL and API keys are listed in the [details panel](/developers/wcs/quickstart#explore-the-details-panel)
+ for your instance.
+
+To connect to Weaviate, run the code for your language to create a client object. Re-use the `client` object in the later steps to connect to your instance and run the sample code.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Curl
+
+    import weaviate, osimport weaviate.classes as wvc# Set these environment variablesURL = os.getenv("WCD_URL")APIKEY = os.getenv("WCD_API_KEY")# Connect to Weaviate Cloudclient = weaviate.connect_to_weaviate_cloud(    cluster_url=URL,    auth_credentials=wvc.init.Auth.api_key(APIKEY),)# Check connectionclient.is_ready()
+
+    import weaviateimport jsonclient = weaviate.Client(    url = "https://WEAVIATE_INSTANCE_URL",  # Replace with your Weaviate endpoint    auth_client_secret=weaviate.auth.AuthApiKey(api_key="YOUR-WEAVIATE-API-KEY"),  # Replace with your Weaviate instance API key)
+
+    import weaviate, { WeaviateClient } from 'weaviate-client'const client: WeaviateClient = await weaviate.connectToWeaviateCloud(    'https://WEAVIATE_INSTANCE_URL',  // Replace with your Weaviate endpoint  {    authCredentials: new weaviate.ApiKey('YOUR-WEAVIATE-API-KEY'),  // Replace with your Weaviate instance API key    headers: {      'X-OpenAI-Api-Key': process.env.OPENAI_API_KEY || '',  // Replace with your inference API key    }  })
+
+    import weaviate, { WeaviateClient, ObjectsBatcher, ApiKey } from 'weaviate-ts-client';import fetch from 'node-fetch';const client: WeaviateClient = weaviate.client({  scheme: 'https',  host: 'WEAVIATE_INSTANCE_URL',  // Replace with your Weaviate endpoint  apiKey: new ApiKey('YOUR-WEAVIATE-API-KEY'),  // Replace with your Weaviate instance API key});
+
+For `curl`, add the API key to the header as shown below:
+
+
+
+    echo '{  "query": "<QUERY>"}' | curl \    -X POST \    -H "Content-Type: application/json" \    -H "Authorization: Bearer YOUR-WEAVIATE-API-KEY" \    -d @- \    https://WEAVIATE_INSTANCE_URL/v1/graphql  # Replace WEAVIATE_INSTANCE_URL with your instance URL
+
+Collection definition[​](#collection-definition "Direct link to Collection definition")
+
+----------------------------------------------------------------------------------------
+
+Weaviate stores [data](/developers/weaviate/concepts/data)
+ in collections. Each data object in a collection has a set of properties and a vector representation. Before you import data, you should create a [collection definition](/developers/weaviate/config-refs/schema)
+ to define the data properties for the collection.
+
+The data property definitions are called a schema. Vectorizers are defined at the collection level. Additional details, such as the specific model or behavior, are sometimes defined at the property level.
+
+This guide assumes you already have vector embeddings for your data. Since the vector embeddings are included with the import file, the sample configuration code sets the vectorizer to `none` on the collection level .
+
+For more on configurations, see [vectorizer settings](/developers/weaviate/manage-data/collections#specify-vectorizer-settings)
+.
+
+### Define the collection[​](#define-the-collection "Direct link to Define the collection")
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+*   Curl
+
+        import weaviate.classes as wvc    # Create the collection. Weaviate's autoschema feature will infer properties when importing.    questions = client.collections.create(        "Question",        vectorizer_config=wvc.config.Configure.Vectorizer.none(),    )
+
+    # Class definition object. Weaviate's autoschema feature will infer properties when importing.class_obj = {    "class": "Question",    "vectorizer": "none",}# Add the class to the schemaclient.schema.create_class(class_obj)
+
+    const newCollection = await client.collections.create({  name: 'Question',  vectorizers: vectorizer.none(),});console.log('We have a new collection!', newCollection['name']);// Uncomment to delete all Question objects if you see a "Name 'Question' already used" error// await client.collections.deleteAll('Question');
+
+    const className = 'Question';const classObj = {  class: className,  vectorizer: 'none',};// Uncomment to delete all Question objects if you see a "Name 'Question' already used" error// await client.schema.classDeleter().withClassName(className).do();// Add the class to the schemaawait client.schema.classCreator().withClass(classObj).do();
+
+    # Requiring `bash` above enables process substitution support, used when redirecting the output of jq to the while loop.echo "Downloading the data file..."curl -O -L "https://raw.githubusercontent.com/weaviate-tutorials/quickstart/main/data/jeopardy_tiny+vectors.json" --no-progress-meter# Replace with your Weaviate endpoint and Weaviate Admin API keyWEAVIATE_URL=https://WEAVIATE_INSTANCE_URL  # Replace WEAVIATE_INSTANCE_URL with your instance URLWEAVIATE_API_KEY=YOUR_WEAVIATE_API_KEYSCHEMA_API_URL="$WEAVIATE_URL/v1/schema"BATCH_API_URL="$WEAVIATE_URL/v1/batch/objects"GRAPHQL_URL="$WEAVIATE_URL/v1/graphql"BATCH_SIZE=100# Uncomment to delete all Question objects if you see a "Name 'Question' already used" error# curl -X DELETE $SCHEMA_API_URL/Question -H "Authorization: Bearer $WEAVIATE_API_KEY"echo "Creating the schema. Weaviate's autoschema feature will infer class properties when importing..."echo '{  "class": "Question",  "vectorizer": "text2vec-openai"}' | curl --no-progress-meter \  -X POST \  -H "Content-Type: application/json" \  -H "Authorization: Bearer $WEAVIATE_API_KEY" \  -d @- \  -o /dev/null \  $SCHEMA_API_URL
+
+### Optional: Set a compatible vectorizer[​](#optional-set-a-compatible-vectorizer "Direct link to Optional: Set a compatible vectorizer")
+
+If Weaviate has an [integration](/developers/weaviate/model-providers)
+ for the vectorizer that you use to generate your custom vectors, consider adding your vectorizer to the collection definition. If you specify a vectorizer, Weaviate can generate new vectors when it needs them.
+
+In this example, the vectors are generated by the OpenAI `ada-002` model. The Weaviate `text2vec-openai` integration can access the `ada-002` model, so you would specify `text2vec-openai` in the collection definition.
+
+At import time, Weaviate uses the vectors you provide even if the collection specifies a vectorizer.
+
+Import data and vectors[​](#import-data-and-vectors "Direct link to Import data and vectors")
+
+----------------------------------------------------------------------------------------------
+
+For large datasets, batch import is more efficient than importing individual objects. This [batch import](/developers/weaviate/tutorials/import#batch-import-process)
+ code imports the question objects and their vectors.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+        import requests    fname = "jeopardy_tiny_with_vectors_all-OpenAI-ada-002.json"  # This file includes pre-generated vectors    url = f"https://raw.githubusercontent.com/weaviate-tutorials/quickstart/main/data/{fname}"    resp = requests.get(url)    data = json.loads(resp.text)  # Load data    question_objs = list()    for i, d in enumerate(data):        question_objs.append(wvc.data.DataObject(            properties={                "answer": d["Answer"],                "question": d["Question"],                "category": d["Category"],            },            vector=d["vector"]        ))    questions = client.collections.get("Question")    questions.data.insert_many(question_objs)    # This uses batching under the hood
+
+    import requestsfname = "jeopardy_tiny_with_vectors_all-OpenAI-ada-002.json"url = f"https://raw.githubusercontent.com/weaviate-tutorials/quickstart/main/data/{fname}"resp = requests.get(url)data = json.loads(resp.text)# Configure a batch processclient.batch.configure(batch_size=100)  # Configure batchwith client.batch as batch:    # Batch import all Questions    for i, d in enumerate(data):        print(f"importing question: {i+1}")        properties = {            "answer": d["Answer"],            "question": d["Question"],            "category": d["Category"],        }        batch.add_data_object(properties, "Question", vector=d["Vector"])
+
+The import uses the \`node-fetch\` library.
+
+
+    npm install node-fetch
+
+    type JeopardyItem = {  Answer: string;  Question: string;  Category: string;  Vector: number[],}async function getJsonData(): Promise<JeopardyItem[]> {  const file = await fetch('https://raw.githubusercontent.com/weaviate-tutorials/quickstart/main/data/jeopardy_tiny_with_vectors_all-OpenAI-ada-002.json');  return file.json() as unknown as JeopardyItem[];}async function importQuestionsWithVectors() {  // Get the questions directly from the URL  const data = await getJsonData();  const jeopardyCollection = client.collections.get('JeopardyQuestion');  const res = await jeopardyCollection.data.insertMany(data)  console.log(`Finished importing ${res.allResponses.length} objects.`);}await importQuestionsWithVectors();
+
+The import uses the \`node-fetch\` library.
+
+
+    npm install node-fetch
+
+    type JeopardyItem = {  Answer: string;  Question: string;  Category: string;  Vector: number[],}async function getJsonData(): Promise<JeopardyItem[]> {  const file = await fetch('https://raw.githubusercontent.com/weaviate-tutorials/quickstart/main/data/jeopardy_tiny_with_vectors_all-OpenAI-ada-002.json');  return file.json() as unknown as JeopardyItem[];}async function importQuestionsWithVectors() {  // Get the questions directly from the URL  const data = await getJsonData();  // Prepare a batcher. Even though this dataset is tiny, this is the best practice for import.  let batcher: ObjectsBatcher = client.batch.objectsBatcher();  let counter: number = 0;  let batchSize: number = 100;  for (const item of data) {    // Construct the object to add to the batch    const obj = {      class: "Question",      properties: {        answer: item.Answer,        question: item.Question,        category: item.Category,      },      vector: item.Vector,    }    // add the object to the batch queue    batcher = batcher.withObject(obj);    // When the batch counter reaches batchSize, push the objects to Weaviate    if (counter++ % batchSize === 0) {      // Flush the batch queue and restart it      await batcher.do();      batcher = client.batch.objectsBatcher();    }  }  // Flush the remaining objects  await batcher.do();  console.log(`Finished importing ${counter} objects.`);}await importQuestionsWithVectors();
+
+Vectors are not object properties
+
+If a vector is listed in the properties section, Weaviate processes it as a regular property rather than as a vector embedding. Be careful not to mislabel vectors as properties when you specify the elements of your batch import.
+
+Query[​](#query "Direct link to Query")
+
+----------------------------------------
+
+In order to query your stored vectors, Weaviate needs a vector representation of the query.
+
+*   If the collection definition specifies a vectorizer, Weaviate uses that vectorizer to generate a vector embedding.
+*   If the collection doesn't specify a vectorizer, provide a query vector when you search.
+
+When you create a query vector, use the same vectorizer that you use to create the data embeddings.
+
+This [`nearVector`](/developers/weaviate/search/similarity#search-with-a-vector)
+ query supplies a query vector. The query vector is an embedding of the query string, "biology".
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+Query response
+
+The response is like this:
+
+    {    "data": {        "Get": {            "Question": [                {                    "answer": "DNA",                    "category": "SCIENCE",                    "question": "In 1953 Watson & Crick built a model of the molecular structure of this, the gene-carrying substance"                },                {                    "answer": "Liver",                    "category": "SCIENCE",                    "question": "This organ removes excess glucose from the blood & stores it as glycogen"                }            ]        }    }}
+
+Related pages[​](#related-pages "Direct link to Related pages")
+
+----------------------------------------------------------------
+
+*   [Batch import](/developers/weaviate/manage-data/import)
+
+*   [Manage collections](/developers/weaviate/starter-guides/developers/weaviate/manage-data/collections)
+
+*   [Vector similarity search](/developers/weaviate/search/similarity)
+
+
+Questions and feedback[​](#questions-and-feedback "Direct link to Questions and feedback")
+
+-------------------------------------------------------------------------------------------
+
+If you have any questions or feedback, let us know in the [user forum](https://forum.weaviate.io/)
+.
+
+*   [Technical questions](https://forum.weaviate.io/new-topic?title=%5BQuestion%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=technical)
+
+*   [Documentation feedback](https://forum.weaviate.io/new-topic?title=%5BDocs%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=documentation)
+
+
+*   [Guide steps](#guide-steps)
+
+*   [Setup](#setup)
+    *   [Example Data](#example-data)
+
+    *   [Weaviate Instance](#weaviate-instance)
+
+    *   [Client library](#client-library)
+
+*   [Connect to Weaviate](#connect-to-weaviate)
+
+*   [Collection definition](#collection-definition)
+    *   [Define the collection](#define-the-collection)
+
+    *   [Optional: Set a compatible vectorizer](#optional-set-a-compatible-vectorizer)
+
+*   [Import data and vectors](#import-data-and-vectors)
+
+*   [Query](#query)
+
+*   [Related pages](#related-pages)
+
+*   [Questions and feedback](#questions-and-feedback)
+
+
+========== Page https://weaviate.io/developers/weaviate/starter-guides/generative ==========:
+
+![](https://static.scarf.sh/a.png?x-pxid=a41b0758-a3a9-4874-a880-8b5d5a363d40) ![](https://px.ads.linkedin.com/collect/?pid=6758089&fmt=gif)
+
+[Skip to main content](#__docusaurus_skipToContent_fallback)
+
+On this page
+
+Overview[​](#overview "Direct link to Overview")
+
+-------------------------------------------------
+
+Related pages
+
+*   [Which Weaviate is right for me?](/developers/weaviate/starter-guides/which-weaviate)
+
+*   [How-to: Generative search](/developers/weaviate/search/generative)
+
+
+This pages introduces you to generative search with Weaviate. It covers:
+
+*   What generative search, or RAG, is.
+*   How to configure Weaviate for generative search.
+*   How to perform generative searches.
+*   Importing data with generative search in mind.
+
+### Prerequisites[​](#prerequisites "Direct link to Prerequisites")
+
+This guide assumes some familiarity with Weaviate, but it is not required. If you are new to Weaviate, we suggest starting with the [Weaviate Quickstart guide](/developers/weaviate/quickstart)
+.
+
+Background[​](#background "Direct link to Background")
+
+-------------------------------------------------------
+
+### What is generative search?[​](#what-is-generative-search "Direct link to What is generative search?")
+
+Generative search is a powerful technique that retrieves relevant data to provide to large language models (LLMs) as context, along with the task prompt. It is also called retrieval augmented generation (RAG), or in-context learning in some cases.
+
+### Why generative search?[​](#why-generative-search "Direct link to Why generative search?")
+
+LLM are incredibly powerful, but can suffer from two important limitations. These limitation are that:
+
+*   They can confidently produce incorrect, or outdated, information (also called 'hallucination'); and
+*   They might simply not be trained on the information you need.
+
+Generative search remedies this problem with a two-step process.
+
+The first step is to retrieve relevant data through a query. Then, in the second step, the LLM is prompted with a combination of the retrieve data with a user-provided query.
+
+This provides in-context learning for the LLM, which causes it to use the relevant and up-to-date data rather than rely on recall from its training, or even worse, hallucinated outputs.
+
+### Weaviate and generative search[​](#weaviate-and-generative-search "Direct link to Weaviate and generative search")
+
+Weaviate incorporates key functionalities to make generative search easier and faster.
+
+For one, Weaviate's search capabilities make it easier to find relevant information. You can use any of similarity, keyword and hybrid searches, along with filtering capabilities to find the information you need.
+
+Additionally, Weaviate has integrated generative search capabilities, so that the retrieval and generation steps are combined into a single query. This means that you can use Weaviate's search capabilities to retrieve the data you need, and then in the same query, prompt the LLM with the same data.
+
+This makes it easier, faster and more efficient to implement generative search workflows in your application.
+
+Examples of generative search[​](#examples-of-generative-search "Direct link to Examples of generative search")
+
+----------------------------------------------------------------------------------------------------------------
+
+Let's begin by viewing examples of generative search in action. We will then explore how to configure Weaviate for generative search.
+
+We have run this demo with an OpenAI language model and a cloud instance of Weaviate. But you can run it with any [deployment method](/developers/weaviate/starter-guides/which-weaviate)
+ and with any generative AI [model integration](/developers/weaviate/model-providers)
+.
+
+Connect to the instance like so, remembering to replace the API key for the LLM used (OpenAI in this case) with your own API key:
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    import weaviatefrom weaviate.classes.init import Authimport osclient = weaviate.connect_to_weaviate_cloud(    cluster_url=os.getenv("WCD_DEMO_URL"),    auth_credentials=Auth.api_key(api_key=os.getenv("WCD_DEMO_RO_KEY")),    headers={        "X-OpenAI-Api-Key": os.getenv("OPENAI_APIKEY")    })
+
+    import weaviateimport osclient = weaviate.Client(    url=os.getenv("WCD_DEMO_URL"),    auth_client_secret=weaviate.auth.AuthApiKey(api_key=os.getenv("WCD_DEMO_RO_KEY")),    additional_headers={        "X-OpenAI-Api-Key": os.getenv("OPENAI_APIKEY")    })
+
+    import weaviate, { WeaviateClient } from 'weaviate-client';const client: WeaviateClient = await weaviate.connectToWeaviateCloud(  'https://WEAVIATE_INSTANCE_URL',  // Replace with your Weaviate endpoint {   authCredentials: new weaviate.ApiKey('YOUR-WEAVIATE-API-KEY'),  // Replace with your Weaviate instance API key   headers: {     'X-OpenAI-Api-Key': process.env.OPENAI_API_KEY || '',  // Replace with your inference API key   } } )
+
+    import weaviate, { WeaviateClient, ApiKey } from 'weaviate-ts-client';const client: WeaviateClient = weaviate.client({  scheme: 'https',  host: 'WEAVIATE_INSTANCE_URL',  // Replace WEAVIATE_INSTANCE_URL with your instance URL  apiKey: new ApiKey('api-key'),  headers: { 'X-OpenAI-Api-Key': process.env.OPENAI_APIKEY },  // Replace with your inference API key});
+
+### Data retrieval[​](#data-retrieval "Direct link to Data retrieval")
+
+Let's take an illustrative example with passages from a book. Here, the Weaviate instance contains a collection of passages from the [Pro Git book](https://git-scm.com/book/en/v2)
+.
+
+Before we can generate text, we need to retrieve relevant data. Let's retrieve the three most similar passages to the meaning of `history of git` with a semantic search.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    collection_name = "GitBookChunk"chunks = client.collections.get(collection_name)response = chunks.query.near_text(query="history of git", limit=3)
+
+    collection_name = "GitBookChunk"response = (    client.query    .get(class_name=collection_name, properties=["chunk", "chapter_title", "chunk_index"])    .with_near_text({"concepts": ["history of git"]})    .with_limit(3)    .do())
+
+    const myCollection = client.collections.get('GitBookChunk');const dataRetrievalResult = await myCollection.query.nearText(['states in git'], {  returnProperties: ['chunk', 'chapter_title', 'chunk_index'],  limit: 2, })console.log(JSON.stringify(dataRetrievalResult, null, 2));
+
+    const dataRetrievalResult = await client.graphql  .get()  .withClassName('GitBookChunk')  .withNearText({ concepts: ['history of git'] })  .withFields('chunk chapter_title chunk_index')  .withLimit(2)  .do();console.log(JSON.stringify(dataRetrievalResult, null, 2));
+
+This should return a set of results like the following (truncated for brevity):
+
+    {  "data": {    "Get": {      "GitBookChunk": [        {          "chapter_title": "01-introduction",          "chunk": "=== A Short History of Git\n\nAs with many great things in life, Git began with a bit of creative ...",          "chunk_index": 0        },        {          "chapter_title": "01-introduction",          "chunk": "== Nearly Every Operation Is Local\n\nMost operations in Git need only local files and resources ...",          "chunk_index": 2        },        {          "chapter_title": "02-git-basics",          "chunk": "==\nYou can specify more than one instance of both the `--author` and `--grep` search criteria...",          "chunk_index": 2        },      ]    }  }}
+
+### Transform result sets[​](#transform-result-sets "Direct link to Transform result sets")
+
+We can transform this result set into new text using generative search with just a minor modification of the code. First, let's use a `grouped task` prompt to summarize this information.
+
+Run the following code snippet, and inspect the results:
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    collection_name = "GitBookChunk"chunks = client.collections.get(collection_name)response = chunks.generate.near_text(    query="history of git",    limit=3,    grouped_task="Summarize the key information here in bullet points")print(response.generated)
+
+    collection_name = "GitBookChunk"response = (    client.query    .get(class_name=collection_name, properties=["chunk", "chapter_title", "chunk_index"])    .with_near_text({"concepts": ["history of git"]})    .with_limit(3)    .with_generate(grouped_task="Summarize the key information here in bullet points")    .do())print(response["data"]["Get"][collection_name][0]["_additional"]["generate"]["groupedResult"])
+
+    const groupedTaskResponse = await myCollection.generate.nearText("history of git",{  singlePrompt: `translate a summary of {chunk} into french`},{  returnProperties: ['chunk', 'chapter_title', 'chunk_index'],  limit: 2,})console.log(groupedTaskResponse.generated);
+
+    const groupedTaskResponse = await client.graphql  .get()  .withClassName('GitBookChunk')  .withNearText({ concepts: ['history of git'] })  .withFields('chunk chapter_title chunk_index')  .withLimit(2)  .withGenerate({    groupedTask: 'Summarize the key information here in bullet points'  })  .do();console.log(groupedTaskResponse.data.Get['GitBookChunk'][0]._additional.generate.groupedResult);
+
+Here is our generated text:
+
+    - Git began as a replacement for the proprietary DVCS called BitKeeper, which was used by the Linux kernel project.- The relationship between the Linux development community and BitKeeper broke down in 2005, leading to the development of Git by Linus Torvalds.- Git was designed with goals such as speed, simple design, strong support for non-linear development, and the ability to handle large projects efficiently.- Most operations in Git only require local files and resources, making them fast and efficient.- Git allows browsing project history instantly and can calculate differences between file versions locally.- Git allows offline work and does not require a network connection for most operations.- This book was written using Git version 2, but most commands should work in older versions as well.
+
+In a `grouped task` generative search, Weaviate:
+
+*   Retrieves the three most similar passages to the meaning of `history of git`.
+*   Then prompts the LLM with a combination of:
+    *   Text from all of the search results, and
+    *   The user-provided prompt, `Summarize the key information here in bullet points`.
+
+Note that the user-provided prompt did not contain any information about the subject matter. But because Weaviate retrieve the relevant data about the history of git, it was able to summarize the information relating to this subject matter using verifiable data.
+
+That's how easy it is to use generative search in Weaviate.
+
+Your results may vary
+
+There will be variability in the actual text that has been generated. This due to the randomness in LLMs' behaviors, and variability across models. This is perfectly normal.
+
+### Transform individual objects[​](#transform-individual-objects "Direct link to Transform individual objects")
+
+In this example, we will take a look at how to transform individual objects. This is useful when you want to generate text for each object individually, rather than for the entire result set.
+
+Here we prompt the model to translate individual wine reviews into French, using emojis. The reviews is a subset from a [publicly available dataset of wine reviews](https://www.kaggle.com/zynicide/wine-reviews)
+.
+
+Note that in this query, we apply a `single prompt` parameter. This means that the LLM is prompted with each object individually, rather than with the entire result set.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    collection_name = "WineReview"reviews = client.collections.get(collection_name)response = reviews.generate.near_text(    query="fruity white wine",    limit=3,    single_prompt="""        Translate this review into French, using emojis:        ===== Country of origin: {country}, Title: {title}, Review body: {review_body}    """)
+
+    collection_name = "WineReview"response = (    client.query    .get(class_name=collection_name, properties=["review_body", "title", "country", "points"])    .with_near_text({"concepts": ["fruity white wine"]})    .with_limit(3)    .with_generate(single_prompt="""        Translate this review into French, using emojis:        ===== Country of origin: {country}, Title: {title}, Review body: {review_body}    """)    .do())
+
+    const myWineCollection = client.collections.get('WineReview');const singlePromptresult = await myWineCollection.generate.nearText("fruity white wine",{  singlePrompt: `Translate this review into French, using emojis:  ===== Country of origin: {country}, Title: {title}, Review body: {review_body}`},{  returnProperties: ['review_body','title','country','points'],  limit: 5,})console.log(JSON.stringify(singlePromptresult.objects, null, 2));
+
+    const singlePromptresult = await client.graphql  .get()  .withClassName('WineReview')  .withNearText({ concepts: ['fruity white wine'] })  .withFields('review_body title country points')  .withLimit(5)  .withGenerate({    singlePrompt:    `Translate this review into French, using emojis:    ===== Country of origin: {country}, Title: {title}, Review body: {review_body}`  })  .do();for (const r of singlePromptresult.data.Get['WineReview']) {  console.log(r._additional.generate.singleResult)}
+
+As the query was run with a limit of 5, you should see 5 objects returned, including generated texts.
+
+Here is our generated text for the first object, and the source text:
+
+    ===== Generated text =====🇺🇸🍷🌿🍑🌼🍯🍊🍮🍽️🌟Origine : États-UnisTitre : Schmitz 24 Brix 2012 Sauvignon Blanc (Sierra Foothills)Corps de la critique : Pas du tout un Sauvignon Blanc typique, il sent l'abricot et le chèvrefeuille et a le goût de la marmelade. Il est sec, mais a le goût d'un vin de dessert tardif. Attendez-vous à une petite aventure gustative ici.===== Original review =====Country: US,Title: Schmitz 24 Brix 2012 Sauvignon Blanc (Sierra Foothills)Review body Not at all a typical Sauvignon Blanc, this smells like apricot and honeysuckle and tastes like marmalade. It is dry, yet tastes like a late-harvest dessert wine. Expect a little taste adventure here.
+
+Here, Weaviate has:
+
+*   Retrieved five most similar wine reviews to the meaning of `fruity white wine`.
+*   For each result, prompted the LLM with:
+    *   The user-provided prompt, replacing `{country}`, `{title}`, and `{review_body}` with the corresponding text.
+
+In both examples, you saw Weaviate return new text that is original, but grounded in the retrieved data. This is what makes generative search powerful, by combining the best of data retrieval and language generation.
+
+Generative search, end-to-end[​](#generative-search-end-to-end "Direct link to Generative search, end-to-end")
+
+---------------------------------------------------------------------------------------------------------------
+
+Now, let's go through an end-to-end example for using Weaviate for generative search.
+
+### Your own Weaviate instance[​](#your-own-weaviate-instance "Direct link to Your own Weaviate instance")
+
+For this example, you will need access to a Weaviate instance that you can write to. You can use any Weaviate instance, such as a local Docker instance, or a WCD instance.
+
+### Configure generative search[​](#configure-generative-search "Direct link to Configure generative search")
+
+Generative module cannot be changed
+
+Currently, a generative module cannot be changed in the Weaviate collection definition once it has been set. We are looking to change this going forward.
+
+
+
+If you would like us to prioritize this issue, upvote it on [GitHub](https://github.com/weaviate/weaviate/issues/3364)
+.
+
+To use generative search, the appropriate `generative-xxx` module must be:
+
+*   Enabled in Weaviate, and
+*   Specified in the collection definition.
+
+Each module is tied to a specific group of LLMs, such as `generative-cohere` for Cohere models, `generative-openai` for OpenAI models and `generative-palm` for PaLM and Gemini models.
+
+If you are using WCD, you will not need to do anything to enable modules.
+
+How to list enabled modules
+
+You can check which modules are enabled by viewing the `meta` information for your Weaviate instance, as shown below:
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    response = client.get_meta()print(response)
+
+    response = client.get_meta()print(response)
+
+    const metaResponse = await client.getMeta()console.log(metaResponse)
+
+    const metaResponse = await client.misc  .metaGetter().do();console.log(metaResponse)
+
+The response will include a list of modules. Check that your desired module is enabled.
+
+How to enable modules
+
+For configurable deployments, you can specify enabled modules. For example, in a Docker deployment, you can do so by listing them on the `ENABLE_MODULES` environment variable, as shown below:
+
+    services:  weaviate:    environment:      ENABLE_MODULES: 'text2vec-cohere,text2vec-huggingface,text2vec-openai,text2vec-palm,generative-cohere,generative-openai,generative-palm'
+
+Check the specific documentation for your deployment method ([Docker](/developers/weaviate/installation/docker-compose)
+, [Kubernetes](/developers/weaviate/installation/kubernetes)
+, [Embedded Weaviate](/developers/weaviate/installation/embedded)
+) for more information on how to configure it.
+
+How to configure the language model
+
+Model properties are exposed through the Weaviate module configuration. Accordingly, you can customize them through the `moduleConfig` parameter in the collection definition.
+
+For example, the `generative-cohere` module has the following properties:
+
+        "moduleConfig": {        "generative-cohere": {            "model": "command-xlarge-nightly",  // Optional - Defaults to `command-xlarge-nightly`. Can also use`command-xlarge-beta` and `command-xlarge`            "temperatureProperty": <temperature>,  // Optional            "maxTokensProperty": <maxTokens>,  // Optional            "kProperty": <k>, // Optional            "stopSequencesProperty": <stopSequences>, // Optional            "returnLikelihoodsProperty": <returnLikelihoods>, // Optional        }    }
+
+And the `generative-openai` module may be configured as follows:
+
+        "moduleConfig": {        "generative-openai": {            "model": "gpt-3.5-turbo",  // Optional - Defaults to `gpt-3.5-turbo`            "temperatureProperty": <temperature>,  // Optional, applicable to both OpenAI and Azure OpenAI            "maxTokensProperty": <max_tokens>,  // Optional, applicable to both OpenAI and Azure OpenAI            "frequencyPenaltyProperty": <frequency_penalty>,  // Optional, applicable to both OpenAI and Azure OpenAI            "presencePenaltyProperty": <presence_penalty>,  // Optional, applicable to both OpenAI and Azure OpenAI            "topPProperty": <top_p>,  // Optional, applicable to both OpenAI and Azure OpenAI        },    }
+
+See the [documentation](/developers/weaviate/model-providers)
+ for various model provider integrations.
+
+### Populate database[​](#populate-database "Direct link to Populate database")
+
+Adding data to Weaviate for generative search is similar to adding data for other purposes. However, there are some important considerations to keep in mind, such as chunking and data structure.
+
+You can read further discussions in the [Best practices & tips](#best-practices--tips)
+ section. Here, we will use a chunk length of 150 words and a 25-word overlap. We will also include the title of the book, the chapter it is from, and the chunk number. This will allow us to search through the chunks, as well as filter it.
+
+#### Download & chunk[​](#download--chunk "Direct link to Download & chunk")
+
+In the following snippet, we download a chapter of the `Pro Git` book, clean it and chunk it.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    from typing import Listdef download_and_chunk(src_url: str, chunk_size: int, overlap_size: int) -> List[str]:    import requests    import re    response = requests.get(src_url)  # Retrieve source text    source_text = re.sub(r"\s+", " ", response.text)  # Remove multiple whitespaces    text_words = re.split(r"\s", source_text)  # Split text by single whitespace    chunks = []    for i in range(0, len(text_words), chunk_size):  # Iterate through & chunk data        chunk = " ".join(text_words[max(i - overlap_size, 0): i + chunk_size])  # Join a set of words into a string        chunks.append(chunk)    return chunkspro_git_chapter_url = "https://raw.githubusercontent.com/progit/progit2/main/book/01-introduction/sections/what-is-git.asc"chunked_text = download_and_chunk(pro_git_chapter_url, 150, 25)
+
+    from typing import Listdef download_and_chunk(src_url: str, chunk_size: int, overlap_size: int) -> List[str]:    import requests    import re    response = requests.get(src_url)  # Retrieve source text    source_text = re.sub(r"\s+", " ", response.text)  # Remove multiple whitespaces    text_words = re.split(r"\s", source_text)  # Split text by single whitespace    chunks = []    for i in range(0, len(text_words), chunk_size):  # Iterate through & chunk data        chunk = " ".join(text_words[max(i - overlap_size, 0): i + chunk_size])  # Join a set of words into a string        chunks.append(chunk)    return chunkspro_git_chapter_url = "https://raw.githubusercontent.com/progit/progit2/main/book/01-introduction/sections/what-is-git.asc"chunked_text = download_and_chunk(pro_git_chapter_url, 150, 25)
+
+    async function downloadAndChunk(srcUrl: string, chunkSize: number, overlapSize: number) {  const response = await fetch(srcUrl);  const sourceText = await response.text();  const textWords = sourceText.replace(/\s+/g, ' ').split(' ');  let chunks = [];  for (let i = 0; i < textWords.length; i += chunkSize) {      let chunk = textWords.slice(Math.max(i - overlapSize, 0), i + chunkSize).join(' ');      chunks.push(chunk);  }  return chunks;}const proGitChapterUrl = 'https://raw.githubusercontent.com/progit/progit2/main/book/01-introduction/sections/what-is-git.asc';const chunks = await downloadAndChunk(proGitChapterUrl, 150, 25)
+
+    import fetch from 'node-fetch';async function downloadAndChunk(srcUrl, chunkSize, overlapSize) {    const response = await fetch(srcUrl);    const sourceText = await response.text();    const textWords = sourceText.replace(/\s+/g, ' ').split(' ');    let chunks = [];    for (let i = 0; i < textWords.length; i += chunkSize) {        let chunk = textWords.slice(Math.max(i - overlapSize, 0), i + chunkSize).join(' ');        chunks.push(chunk);    }    return chunks;}const proGitChapterUrl = 'https://raw.githubusercontent.com/progit/progit2/main/book/01-introduction/sections/what-is-git.asc';const chunks = await downloadAndChunk(proGitChapterUrl, 150, 25)
+
+This will download the text from the chapter, and return a list/array of strings of 150 word chunks, with a 25-word overlap added in front.
+
+#### Create collection definitions[​](#create-collection-definitions "Direct link to Create collection definitions")
+
+We can now create a collection definition for the chunks. To use generative search, your desired generative module must be specified at the collection level as shown below.
+
+The below collection definition for the `GitBookChunk` collection specifies `text2vec-openai` as the vectorizer and `generative-openai` as the generative module. Note that the `generative-openai` parameter can have an empty dictionary/object as its value, which will use the default parameters.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    import weaviate.classes as wvccollection_name = "GitBookChunk"if client.collections.exists(collection_name):  # In case we've created this collection before    client.collections.delete(collection_name)  # THIS WILL DELETE ALL DATA IN THE COLLECTIONchunks = client.collections.create(    name=collection_name,    properties=[        wvc.config.Property(            name="chunk",            data_type=wvc.config.DataType.TEXT        ),        wvc.config.Property(            name="chapter_title",            data_type=wvc.config.DataType.TEXT        ),        wvc.config.Property(            name="chunk_index",            data_type=wvc.config.DataType.INT        ),    ],    vectorizer_config=wvc.config.Configure.Vectorizer.text2vec_openai(),  # Use `text2vec-openai` as the vectorizer    generative_config=wvc.config.Configure.Generative.openai(),  # Use `generative-openai` with default parameters)
+
+    collection_name = "GitBookChunk"chunk_class = {    "class": collection_name,    "properties": [        {            "name": "chunk",            "dataType": ["text"],        },        {            "name": "chapter_title",            "dataType": ["text"],        },        {            "name": "chunk_index",            "dataType": ["int"],        }    ],    "vectorizer": "text2vec-openai",  # Use `text2vec-openai` as the vectorizer    "moduleConfig": {        "generative-openai": {}  # Use `generative-openai` with default parameters    }}if client.schema.exists(collection_name):  # In case we've created this collection before    client.schema.delete_class(collection_name)  # THIS WILL DELETE ALL DATA IN THE CLASSclient.schema.create_class(chunk_class)
+
+    const schemaDefinition = {  name: 'GitBookChunk',  properties: [    {      name: 'Chunk',      dataType: 'text' as const,    },    {      name: 'chapter_title',      dataType: 'text' as const,    },    {      name: 'chunk_index',      dataType: 'int' as const,    }  ],  vectorizers: weaviate.configure.vectorizer.text2VecOpenAI(),  generative: weaviate.configure.generative.openAI()}const newCollection = await client.collections.create(schemaDefinition) console.log('We have a new class!', newCollection['name']);
+
+    const classDefinition = {  class: `GitBookChunk`,  properties: [    {        name: 'Chunk',        dataType: ['text']    },    {        name: 'chapter_title',        dataType: ['text']    },    {        name: 'chunk_index',        dataType: ['int']    },  ],  vectorizer: 'text2vec-openai',  // Use `text2vec-openai` as the vectorizer  moduleConfig: {    'generative-openai': {}  // Use `generative-openai` with default parameters  }};const returnedClassDefinition = await client  .schema  .classCreator()  .withClass(classDefinition)  .do();console.log(JSON.stringify(returnedClassDefinition, null, 2));
+
+#### Import data[​](#import-data "Direct link to Import data")
+
+Now, we can import the data into Weaviate.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    chunks_list = list()for i, chunk in enumerate(chunked_text):    data_properties = {        "chapter_title": "What is Git",        "chunk": chunk,        "chunk_index": i    }    data_object = wvc.data.DataObject(properties=data_properties)    chunks_list.append(data_object)chunks.data.insert_many(chunks_list)
+
+    client.batch.configure(batch_size=100)with client.batch as batch:    for i, chunk in enumerate(chunked_text):        data_object = {            "chapter_title": "What is Git",            "chunk": chunk,            "chunk_index": i        }        batch.add_data_object(data_object=data_object, class_name=collection_name)
+
+    const gitCollection = client.collections.get('GitBookChunkTest');async function importData(chunkData: Array<string>) {  const list:Array<any> = [];  for (const [index, chunk] of chunkData.entries()) {    const obj = {      properties: {        chunk: chunk,        chunk_index: index,        chapter_title: 'What is Git',      },    };    list.push(obj);    }  const result = await gitCollection.data.insertMany(list)  console.log('just bulk inserted',result);};await importData(chunks);
+
+    async function importData(chunkData) {  // Prepare a batcher  let batcher = client.batch.objectsBatcher();  let counter = 0;  const batchSize = 100;  for (const [index, c] of chunkData.entries()) {    const obj = {      class: 'GitBookChunk',      properties: {        chunk: c,        chunk_index: index,        chapter_title: 'What is Git',      },    };    batcher.withObject(obj);    if (counter++ == batchSize) {      // flush the batch queue      const res = await batcher.do();      console.log(res);      // restart the batch queue      counter = 0;      batcher = client.batch.objectsBatcher();    }  }  // Flush the remaining objects  const res = await batcher.do();  console.log(res);};await importData(chunks);
+
+Once this is done, you should have imported a collection of chunks from the chapter into Weaviate. You can check this by running a simple aggregation query:
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    response = chunks.aggregate.over_all(total_count=True)print(response.total_count)
+
+    response = client.query.aggregate("GitBookChunk").with_meta_count().do()print(response)
+
+    const objectCount =  await gitCollection.aggregate.overAll()console.log(JSON.stringify(objectCount.totalCount));
+
+    const objCount = await client  .graphql  .aggregate()  .withClassName('GitBookChunk')  .withFields('meta { count }')  .do();console.log(JSON.stringify(objCount, null, 2));
+
+Which should indicate that there are `10` chunks in the database.
+
+### Generative queries[​](#generative-queries "Direct link to Generative queries")
+
+Now that we have configured Weaviate and populated it with data, we can perform generative queries as you saw in the examples above.
+
+#### Single (per-object) prompts[​](#single-per-object-prompts "Direct link to Single (per-object) prompts")
+
+Single prompts tell Weaviate to generate text based on each retrieved object and the user-provided prompt. In this example, we retrieve two objects and prompt the language model to write a haiku based on the text of each chunk.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    response = chunks.generate.fetch_objects(    limit=2,    single_prompt="Write the following as a haiku: ===== {chunk} ")for o in response.objects:    print(f"\n===== Object index: [{o.properties['chunk_index']}] =====")    print(o.generated)
+
+    response = (    client.query    .get(collection_name, ["chunk", "chunk_index"])    .with_generate(        single_prompt="Write the following as a haiku: ===== {chunk} "    )    .with_limit(2)    .do())for r in response["data"]["Get"][collection_name]:    print(f"\n===== Object index: [{r['chunk_index']}] =====")    print(r["_additional"]["generate"]["singleResult"])
+
+    const haikuResponse = await gitCollection.generate.fetchObjects({  singlePrompt: `Write the following as a haiku: ===== {chunk}`},{  returnProperties: ['chunk','chunk_index'],  limit: 2,})if (haikuResponse) {  for (const result of haikuResponse.objects) {    console.log(`\n===== Object index: [${result.properties['chunk_index']}] =====`)    console.log(result.generated)  }}
+
+    let haikuResponse = await client.graphql  .get()  .withClassName('GitBookChunk')  .withFields('chunk chunk_index')  .withLimit(5)  .withGenerate({    singlePrompt: `Write the following as a haiku: ===== {chunk}`  })  .do();for (const r of haikuResponse.data.Get['GitBookChunk']) {  console.log(`\n===== Object index: [${r['chunk_index']}] =====`)  console.log(r._additional.generate.singleResult)}
+
+It should return haiku-like text, such as:
+
+    ===== Object index: [1] =====Git's data storedAs snapshots of files, not changesEfficient and unique===== Object index: [6] =====Git has three states:Untracked, modified, staged.Commit to save changes.
+
+#### Grouped tasks[​](#grouped-tasks "Direct link to Grouped tasks")
+
+A grouped task is a prompt that is applied to a group of objects. This allows you to prompt the language model with the entire set of search results, such as source documents or relevant passages.
+
+In this example, we prompt the language model to write a trivia tweet based on the result.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    response = chunks.generate.fetch_objects(    limit=2,    grouped_task="Write a trivia tweet based on this text. Use emojis and make it succinct and cute.")print(response.generated)
+
+    response = (    client.query    .get(collection_name, ["chunk", "chunk_index"])    .with_generate(        grouped_task="Write a trivia tweet based on this text. Use emojis and make it succinct and cute."    )    .with_limit(2)    .do())print(response["data"]["Get"][collection_name][0]["_additional"]["generate"]["groupedResult"])
+
+    const triviaResponse = await gitCollection.generate.fetchObjects({  groupedTask: `Write a trivia tweet based on this text. Use emojis and make it succinct and cute.`},{  limit: 2,})console.log(triviaResponse.generated)
+
+    const triviaResponse = await client.graphql  .get()  .withClassName('GitBookChunk')  .withFields('chunk chunk_index')  .withLimit(2)  .withGenerate({    groupedTask: 'Write a trivia tweet based on this text. Use emojis and make it succinct and cute.s'  })  .do();console.log(triviaResponse.data.Get['GitBookChunk'][0]._additional.generate.groupedResult);
+
+It should return a factoid written for social media, such as:
+
+    Did you know? 🤔 Git thinks of its data as snapshots, not just changes to files.📸 Every time you commit, Git takes a picture of all your files and stores a reference to that snapshot.📂🔗 #GitTrivia
+
+#### Pairing with search[​](#pairing-with-search "Direct link to Pairing with search")
+
+Generative search in Weaviate is a two-step process under the hood, involving retrieval of objects and then generation of text. This means that you can use the full power of Weaviate's search capabilities to retrieve the objects you want to use for generation.
+
+In this example, we search the chapter for passages that relate to the states of git before generating a tweet as before.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    response = chunks.generate.near_text(    query="states of git",    limit=2,    grouped_task="Write a trivia tweet based on this text. Use emojis and make it succinct and cute.")print(response.generated)
+
+    response = (    client.query    .get(collection_name, ["chunk", "chunk_index"])    .with_near_text({"concepts": "states of git"})    .with_generate(        grouped_task="Write a trivia tweet based on this text. Use emojis and make it succinct and cute."    )    .with_limit(2)    .do())print(response["data"]["Get"][collection_name][0]["_additional"]["generate"]["groupedResult"])
+
+    const searchResponse = await gitCollection.generate.nearText("states of git",{  groupedTask: "Write a trivia tweet based on this text. Use emojis and make it succinct and cute."},{  limit: 2,})console.log('concept',JSON.stringify(searchResponse.generated, null, 2));
+
+    const nearTextTriviaResponse = await client.graphql  .get()  .withClassName('GitBookChunk')  .withFields('chunk chunk_index')  .withNearText({concepts: ['states of git']})  .withLimit(2)  .withGenerate({    groupedTask: 'Write a trivia tweet based on this text. Use emojis and make it succinct and cute.'  })  .do();console.log(nearTextTriviaResponse.data.Get['GitBookChunk'][0]._additional.generate.groupedResult);
+
+This should return text like:
+
+    📝 Did you know? Git has three main states for files: modified, staged, and committed.🌳📦📂 Learn more about these states and how they affect your Git project!#GitBasics #Trivia
+
+Now, simply by changing the search query, we can generate similar content about different topics.
+
+*   Python Client v4
+*   Python Client v3
+*   JS/TS Client v3
+*   JS/TS Client v2
+
+    response = chunks.generate.near_text(    query="how git saves data",    limit=2,    grouped_task="Write a trivia tweet based on this text. Use emojis and make it succinct and cute.")print(response.generated)
+
+    response = (    client.query    .get(collection_name, ["chunk", "chunk_index"])    .with_near_text({"concepts": "how git saves data"})    .with_generate(        grouped_task="Write a trivia tweet based on this text. Use emojis and make it succinct and cute."    )    .with_limit(2)    .do())print(response["data"]["Get"][collection_name][0]["_additional"]["generate"]["groupedResult"])
+
+    const anotherSearchResponse = await gitCollection.generate.nearText("how git saves data",{  groupedTask: "Write a trivia tweet based on this text. Use emojis and make it succinct and cute."},{  limit: 2,})console.log('concept',JSON.stringify(anotherSearchResponse.generated, null, 2));
+
+    const anotherNearTextResponse = await client.graphql  .get()  .withClassName('GitBookChunk')  .withFields('chunk chunk_index')  .withNearText({concepts: ['how git saves data']})  .withLimit(2)  .withGenerate({    groupedTask: 'Write a trivia tweet based on this text. Use emojis and make it succinct and cute.'  })  .do();console.log(anotherNearTextResponse.data.Get['GitBookChunk'][0]._additional.generate.groupedResult);
+
+In this case, the result should be something like:
+
+    Did you know? 🤔 Git stores everything by the hash value of its contents, not by file name!📁🔍 It's hard to lose data in Git, making it a joy to use!😄🔒 Git thinks of its data as a stream of snapshots, making it more than just a VCS!📸🌟 Most Git operations are local, so no need for network latency!🌐💨 #GitTrivia
+
+As you can see, Weaviate allows you to use the full power of search to retrieve the objects you want to use for generation. This allows you to ground the language model in the context of up-to-date information, which you can retrieve with the full power of Weaviate's search capabilities.
+
+Best practices & tips[​](#best-practices--tips "Direct link to Best practices & tips")
+
+---------------------------------------------------------------------------------------
+
+### Chunking[​](#chunking "Direct link to Chunking")
+
+In the context of language processing, "chunking" refers to the process of splitting texts into smaller pieces of texts, i.e. "chunks".
+
+For generative search, chunking affects both the information retrieval and the amount of contextual information provided.
+
+While there is no one-size-fits all chunking strategy that we can recommend, we can provide some general guidelines. Chunking by semantic markers, or text length may both be viable strategies.
+
+#### Chunking by semantic markers[​](#chunking-by-semantic-markers "Direct link to Chunking by semantic markers")
+
+Using semantic markers, such as paragraphs, or sections can be a good strategy that will allows you to retain related information in each chunk. Some potential risks are that chunk lengths may vary significantly, and outlier conditions may occur common (e.g. chunks with headers that are not particularly meaningful).
+
+#### Chunking by text length[​](#chunking-by-text-length "Direct link to Chunking by text length")
+
+Using text length, such as 100-150 words, can be a robust baseline strategy. This will allow you to retrieve relevant information without having to worry about the exact length of the text. One potential risk is that chunks may be cut off where they are not semantically meaningful, cutting off important contextual information.
+
+You could use a sliding window approach to mitigate this risk, by overlapping chunks. The length of each chunk can be adjusted to your needs, and based on any unit, such as words, tokens, or even characters.
+
+A baseline strategy could involve using chunks created with a 100-200 word sliding window and a 50-word overlap.
+
+#### Mixed-strategy chunking[​](#mixed-strategy-chunking "Direct link to Mixed-strategy chunking")
+
+Another, slightly more complicated strategy may be using paragraph-based chunks with a maximum and a minimum length, say of 200 words and 50 words respectively.
+
+### Data structure[​](#data-structure "Direct link to Data structure")
+
+Another important consideration is the data structure. For example, your chunk object could also contain any additional source-level data, such as the title of the book, the chapter it is from, and the chunk number.
+
+This will allow you to search through the chunks, as well as filter it. Then, you could use this information to control the generation process, such as by prompting the LLM with contextual data (chunks) in the order that they appear in the source document.
+
+Additionally, you could link the chunks to the source document, allowing you to retrieve the source document, or even the entire source document, if needed.
+
+### Complex prompts[​](#complex-prompts "Direct link to Complex prompts")
+
+While the field of prompting is relatively new, it has seen significant advancements already.
+
+As one example, a technique called "[chain-of-thought prompting](https://paperswithcode.com/paper/chain-of-thought-prompting-elicits-reasoning)
+" can be an effective technique. It suggests that the prompt can be used to nudge the model towards producing intermediate reasoning steps, which improves the quality of the answer.
+
+We recommend keeping up to date with the latest developments in the field, and experimenting with different techniques.
+
+Our own [Connor Shorten's podcast](https://weaviate.io/podcast)
+ is a great resource for keeping up with the research, as are resources such as [Arxiv](https://arxiv.org/)
+, and [PapersWithCode](https://paperswithcode.com/)
+.
+
+Wrap-up[​](#wrap-up "Direct link to Wrap-up")
+
+----------------------------------------------
+
+We've explored the dynamic capabilities of generative search in Weaviate, showcasing how it enhances large language models through retrieval-augmented generation.
+
+To learn more about specific search capabilities, check out the [How-to: search guide](/developers/weaviate/search)
+. And to learn more about individual modules, check out the [Modules section](/developers/weaviate/modules)
+.
+
+Questions and feedback[​](#questions-and-feedback "Direct link to Questions and feedback")
+
+-------------------------------------------------------------------------------------------
+
+If you have any questions or feedback, let us know in the [user forum](https://forum.weaviate.io/)
+.
+
+*   [Technical questions](https://forum.weaviate.io/new-topic?title=%5BQuestion%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=technical)
+
+*   [Documentation feedback](https://forum.weaviate.io/new-topic?title=%5BDocs%5D%20YOUR%20TOPIC&body=Details%20here&category=support&tags=documentation)
+
+
+*   [Overview](#overview)
+    *   [Prerequisites](#prerequisites)
+
+*   [Background](#background)
+    *   [What is generative search?](#what-is-generative-search)
+
+    *   [Why generative search?](#why-generative-search)
+
+    *   [Weaviate and generative search](#weaviate-and-generative-search)
+
+*   [Examples of generative search](#examples-of-generative-search)
+    *   [Data retrieval](#data-retrieval)
+
+    *   [Transform result sets](#transform-result-sets)
+
+    *   [Transform individual objects](#transform-individual-objects)
+
+*   [Generative search, end-to-end](#generative-search-end-to-end)
+    *   [Your own Weaviate instance](#your-own-weaviate-instance)
+
+    *   [Configure generative search](#configure-generative-search)
+
+    *   [Populate database](#populate-database)
+
+    *   [Generative queries](#generative-queries)
+
+*   [Best practices & tips](#best-practices--tips)
+    *   [Chunking](#chunking)
+
+    *   [Data structure](#data-structure)
+
+    *   [Complex prompts](#complex-prompts)
+
+*   [Wrap-up](#wrap-up)
+
+*   [Questions and feedback](#questions-and-feedback)

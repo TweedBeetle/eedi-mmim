@@ -1,17 +1,15 @@
 import argparse
-from src.sidequests.eedi_mmim.src.data_loader import (
+from src.data_loader import (
     load_train_data,
     load_test_data,
-    load_misconception_mapping,
+    load_misconceptions,
     load_sample_submission
 )
-from src.sidequests.eedi_mmim.src.mmim_constants import mmim_data_path
-from src.sidequests.eedi_mmim.src.visualizations import create_visualizations
-from src.sidequests.eedi_mmim.src.mmim_task import MMIMTask
+from src.constants import mmim_data_path
+from src.visualizations import create_visualizations
 
 from loguru import logger
 import pandas as pd
-import numpy as np
 
 
 def convert_models_to_dataframe(models):
@@ -22,28 +20,28 @@ def convert_models_to_dataframe(models):
 
 def generate_train_statistics(df: pd.DataFrame):
     logger.info("Generating statistics for Training Data")
-    logger.info(f"Number of unique Questions: {df['QuestionId'].nunique()}")
-    logger.info(f"Number of unique Constructs: {df['ConstructId'].nunique()}")
-    logger.info(f"Number of unique Subjects: {df['SubjectId'].nunique()}")
+    logger.info(f"Number of unique Questions: {df['question_id'].nunique()}")
+    logger.info(f"Number of unique Constructs: {df['construct_id'].nunique()}")
+    logger.info(f"Number of unique Subjects: {df['subject_id'].nunique()}")
     logger.info("Distribution of Correct Answers:")
-    logger.info(df['CorrectAnswer'].value_counts().to_dict())
+    logger.info(df['correct_answer'].value_counts().to_dict())
     logger.info("Number of Misconceptions per Answer Option:")
-    misconceptions = ['MisconceptionAId', 'MisconceptionBId', 'MisconceptionCId', 'MisconceptionDId']
+    misconceptions = ['misconception_a_id', 'misconception_b_id', 'misconception_c_id', 'misconception_d_id']
     for mc in misconceptions:
         logger.info(f"{mc}: {df[mc].notna().sum()}")
 
     logger.info("Top 5 most common Constructs:")
-    logger.info(df['ConstructName'].value_counts().head().to_dict())
+    logger.info(df['construct_name'].value_counts().head().to_dict())
 
     logger.info("Top 5 most common Subjects:")
-    logger.info(df['SubjectName'].value_counts().head().to_dict())
+    logger.info(df['subject_name'].value_counts().head().to_dict())
 
     logger.info("Questions with most misconceptions:")
     misconception_counts = df[misconceptions].notna().sum(axis=1)
     top_misconception_questions = misconception_counts.nlargest(5)
     for idx, count in top_misconception_questions.items():
-        question = df.loc[idx, 'QuestionText']
-        logger.info(f"Question (ID: {df.loc[idx, 'QuestionId']}) with {count} misconceptions: {question[:100]}...")
+        question = df.loc[idx, 'question_text']
+        logger.info(f"Question (ID: {df.loc[idx, 'question_id']}) with {count} misconceptions: {question[:100]}...")
 
     logger.info("Average number of misconceptions per question:")
     logger.info(f"{misconception_counts.mean():.2f}")
@@ -52,19 +50,19 @@ def generate_train_statistics(df: pd.DataFrame):
     logger.info(misconception_counts.value_counts().sort_index().to_dict())
 
     logger.info("Top 5 Constructs with most misconceptions:")
-    construct_misconceptions = df[misconceptions].notna().sum().groupby(df['ConstructName']).sum()
+    construct_misconceptions = df[misconceptions].notna().sum().groupby(df['construct_name']).sum()
     logger.info(construct_misconceptions.nlargest(5).to_dict())
 
     logger.info("Top 5 Subjects with most misconceptions:")
-    subject_misconceptions = df[misconceptions].notna().sum().groupby(df['SubjectName']).sum()
+    subject_misconceptions = df[misconceptions].notna().sum().groupby(df['subject_name']).sum()
     logger.info(subject_misconceptions.nlargest(5).to_dict())
 
     logger.info("Correlation between number of misconceptions and subject/construct:")
     df['misconception_count'] = misconception_counts
-    subject_size = df['SubjectName'].value_counts()
-    construct_size = df['ConstructName'].value_counts()
-    subject_mean_misconceptions = df.groupby('SubjectName')['misconception_count'].mean()
-    construct_mean_misconceptions = df.groupby('ConstructName')['misconception_count'].mean()
+    subject_size = df['subject_name'].value_counts()
+    construct_size = df['construct_name'].value_counts()
+    subject_mean_misconceptions = df.groupby('subject_name')['misconception_count'].mean()
+    construct_mean_misconceptions = df.groupby('construct_name')['misconception_count'].mean()
 
     logger.info(
         f"Correlation with Subject: {subject_mean_misconceptions.corr(subject_size):.2f}"
@@ -76,17 +74,17 @@ def generate_train_statistics(df: pd.DataFrame):
 
 def generate_test_statistics(df: pd.DataFrame):
     logger.info("Generating statistics for Test Data")
-    logger.info(f"Number of unique Questions: {df['QuestionId'].nunique()}")
-    logger.info(f"Number of unique Constructs: {df['ConstructId'].nunique()}")
-    logger.info(f"Number of unique Subjects: {df['SubjectId'].nunique()}")
+    logger.info(f"Number of unique Questions: {df['question_id'].nunique()}")
+    logger.info(f"Number of unique Constructs: {df['construct_id'].nunique()}")
+    logger.info(f"Number of unique Subjects: {df['subject_id'].nunique()}")
     logger.info("Distribution of Correct Answers:")
-    logger.info(df['CorrectAnswer'].value_counts().to_dict())
+    logger.info(df['correct_answer'].value_counts().to_dict())
 
 
 def generate_misconception_mapping_statistics(df: pd.DataFrame):
     logger.info("Generating statistics for Misconception Mapping")
-    logger.info(f"Total Misconceptions: {df['MisconceptionId'].nunique()}")
-    misconception_names = df['MisconceptionName'].tolist()
+    logger.info(f"Total Misconceptions: {df['misconception_id'].nunique()}")
+    misconception_names = df['misconception_name'].tolist()
     truncated_names = [name[:50] + '...' if len(name) > 50 else name for name in misconception_names[:10]]
     logger.info(f"First 10 Misconception Names (truncated): {truncated_names}")
     if len(misconception_names) > 10:
@@ -109,7 +107,7 @@ def main(visualize=False):
     # Load and validate data
     train_data = load_train_data(str(train_filepath))
     test_data = load_test_data(str(test_filepath))
-    misconception_mapping = load_misconception_mapping(str(mapping_filepath))
+    misconception_mapping = load_misconceptions(str(mapping_filepath))
     sample_submission = load_sample_submission(str(submission_filepath))
 
     # Convert models to DataFrames for statistics
@@ -134,18 +132,12 @@ def main(visualize=False):
     if visualize:
         create_visualizations(train_df, mapping_df)
 
-    # Initialize MMIMTask inputs
-    mmim_inputs = []
-    for train_item in train_data:
-        mmim_input = MMIMTask.Input.from_question(train_item)
-        mmim_inputs.append(mmim_input)
-
-    logger.info(f"Created {len(mmim_inputs)} MMIMTask inputs")
-
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run MMIM task processing")
-    parser.add_argument("--visualize", action="store_true", help="Create visualizations")
-    args = parser.parse_args()
+    main(visualize=True)
 
-    main(visualize=args.visualize)
+    # parser = argparse.ArgumentParser(description="Run MMIM task processing")
+    # parser.add_argument("--visualize", action="store_true", help="Create visualizations")
+    # args = parser.parse_args()
+    #
+    # main(visualize=args.visualize)

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="GithubDefaultAccount">
-    <option name="defaultAccountId" value="f264120e-b0ac-46c0-8f56-33fd937fec3d" />
+  <component name="Black">
+    <option name="sdkName" value="Poetry (eedi-mmim)" />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Poetry (eedi-mmim)" project-jdk-type="Python SDK" />
   <component name="accountSettings">
