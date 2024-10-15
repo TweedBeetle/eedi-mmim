@@ -50,6 +50,20 @@ class Question(BaseModel):
         )
         return content
 
+    def format_without_ids(self) -> str:
+        content = (
+            f"Construct: {self.construct_name}\n"
+            f"Subject: {self.subject_name}\n"
+            f"Question: {self.question_text}\n"
+            f"Answer Options:\n"
+            f"  A) {self.answer_a_text}\n"
+            f"  B) {self.answer_b_text}\n"
+            f"  C) {self.answer_c_text}\n"
+            f"  D) {self.answer_d_text}\n"
+            f"Correct Answer: {self.correct_answer}"
+        )
+        return content
+
     @field_validator('question_text', 'answer_a_text', 'answer_b_text', 'answer_c_text', 'answer_d_text')
     @classmethod
     def not_empty(cls, v: str) -> str:
