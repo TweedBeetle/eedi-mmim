@@ -1,6 +1,7 @@
 import argparse
 
 import weaviate
+import weaviate.classes as wvc
 from loguru import logger
 from typing import List, Dict
 from tqdm import tqdm
@@ -28,30 +29,31 @@ def define_misconception_collection(client: weaviate.Client, collection_name: st
     """
     Define a new collection in embedded Weaviate for storing misconceptions.
     """
-    schema = {
-        "class": collection_name,
-        "description": "A collection of mathematical misconceptions.",
-        "properties": [
-            {
-                "name": "MisconceptionId",
-                "dataType": ["int"],
-                "description": "Unique identifier for the misconception."
-            },
-            {
-                "name": "MisconceptionName",
-                "dataType": ["text"],
-                "description": "The name or description of the misconception."
-            }
-        ],
-        "vectorizer": "none"  # We'll use custom vectors
-    }
-
     try:
-        if client.schema.exists(collection_name):
+        misconceptions = client.collections.create(
+            name=collection_name,
+            description="A collection of mathematical misconceptions.",
+            properties=[
+                wvc.config.Property(
+                    name="MisconceptionId",
+                    data_type=wvc.config.DataType.INT,
+                    description="Unique identifier for the misconception."
+                ),
+                wvc.config.Property(
+                    name="MisconceptionName",
+                    data_type=wvc.config.DataType.TEXT,
+                    description="The name or description of the misconception."
+                )
+            ],
+            vectorizer_config=wvc.config.Configure.Vectorizer.none()
+        )
+        logger.info(f"Collection '{collection_name}' created successfully.")
+    except weaviate.exceptions.UnexpectedStatusCodeException as e:
+        if e.status_code == 422:
             logger.info(f"Collection '{collection_name}' already exists. Skipping creation.")
         else:
-            client.schema.create_class(schema)
-            logger.info(f"Collection '{collection_name}' created successfully.")
+            logger.exception(f"Failed to create collection '{collection_name}': {e}")
+            raise
     except Exception as e:
         logger.exception(f"Failed to create collection '{collection_name}': {e}")
         raise
@@ -83,12 +85,8 @@ def embed_misconceptions(client: weaviate.Client, collection_name: str = "Miscon
 
     logger.info("Inserting embeddings into Weaviate...")
     try:
-        with client.batch as batch:
-            for obj in objects_to_insert:
-                batch.add_data_object(
-                    data_object=obj,
-                    class_name=collection_name
-                )
+        collection = client.collections.get(collection_name)
+        collection.data.insert_many(objects_to_insert)
         logger.info("Misconceptions inserted successfully.")
     except Exception as e:
         logger.exception("Failed to insert misconceptions into Weaviate.")
@@ -109,19 +107,20 @@ def test_retrieval(client: weaviate.Client, query: str, collection_name: str = "
         # Generate embedding for the query
         query_embedding = ollama.embed(model='nomic-embed-text', input=query)
 
-        response = client.query.get(collection_name, ["MisconceptionId", "MisconceptionName"]) \
-            .with_near_vector({"vector": query_embedding, "distance": 0.7}) \
-            .with_limit(k) \
-            .do()
+        collection = client.collections.get(collection_name)
+        results = collection.query.near_vector(
+            vector=query_embedding,
+            limit=k,
+            return_properties=["MisconceptionId", "MisconceptionName"]
+        )
 
-        results = response.get("data", {}).get("Get", {}).get(collection_name, [])
-        if not results:
+        if not results.objects:
             logger.warning("No misconceptions found for the given query.")
             return
 
         logger.info(f"Top {k} misconceptions related to '{query}':")
-        for idx, res in enumerate(results, start=1):
-            logger.info(f"{idx}. ID: {res['MisconceptionId']}, Name: {res['MisconceptionName']}")
+        for idx, obj in enumerate(results.objects, start=1):
+            logger.info(f"{idx}. ID: {obj.properties['MisconceptionId']}, Name: {obj.properties['MisconceptionName']}")
     except Exception as e:
         logger.exception("Failed to perform test retrieval.")
         raise
