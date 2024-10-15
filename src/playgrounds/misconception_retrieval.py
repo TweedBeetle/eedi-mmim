@@ -62,13 +62,26 @@ def define_misconception_collection(client: WeaviateClient, collection_name: str
         raise
 
 
-def embed_misconceptions(client: WeaviateClient, collection_name: str = "Misconception") -> List[Dict]:
+def embed_misconceptions(client: WeaviateClient, collection_name: str = "Misconception", limit: int = None) -> List[Dict]:
     """
-    Load all misconceptions, generate embeddings using Ollama's nomic-embed-text, and insert into Weaviate.
+    Load misconceptions, generate embeddings using Ollama's nomic-embed-text, and insert into Weaviate.
+    
+    Args:
+        client: WeaviateClient instance
+        collection_name: Name of the collection to insert misconceptions into
+        limit: Maximum number of misconceptions to ingest. If None, ingest all.
     """
     logger.info("Loading misconceptions from dataset...")
     misconceptions = load_misconception_mapping(str(mmim_data_path / "misconception_mapping.csv"))
-    logger.info(f"Loaded {len(misconceptions)} misconceptions.")
+    total_misconceptions = len(misconceptions)
+    logger.info(f"Loaded {total_misconceptions} misconceptions.")
+
+    if limit is not None:
+        if limit < total_misconceptions:
+            logger.warning(f"Limiting ingestion to {limit} misconceptions out of {total_misconceptions}.")
+            misconceptions = misconceptions[:limit]
+        else:
+            logger.info(f"Limit {limit} is greater than or equal to total misconceptions. Ingesting all {total_misconceptions}.")
 
     # Prepare data for insertion
     objects_to_insert = []
@@ -89,7 +102,7 @@ def embed_misconceptions(client: WeaviateClient, collection_name: str = "Misconc
     try:
         collection = client.collections.get(collection_name)
         collection.data.insert_many(objects_to_insert)
-        logger.info("Misconceptions inserted successfully.")
+        logger.info(f"Successfully inserted {len(objects_to_insert)} misconceptions.")
     except Exception as e:
         logger.exception("Failed to insert misconceptions into Weaviate.")
         raise
@@ -127,17 +140,18 @@ def test_retrieval(client: WeaviateClient, query: str, collection_name: str = "M
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Embed all misconceptions using Ollama's nomic-embed-text and perform a test retrieval."
+        description="Embed misconceptions using Ollama's nomic-embed-text and perform a test retrieval."
     )
     parser.add_argument("--query", type=str, default="biology", help="The query string to perform test retrieval.")
     parser.add_argument("--collection", type=str, default="Misconception", help="The name of the Weaviate collection.")
     parser.add_argument("--limit", type=int, default=5, help="Number of top misconceptions to retrieve.")
+    parser.add_argument("--ingest_limit", type=int, default=None, help="Maximum number of misconceptions to ingest. If not specified, ingest all.")
     args = parser.parse_args()
 
     try:
         client = connect_weaviate()
         define_misconception_collection(client, args.collection)
-        embed_misconceptions(client, args.collection)
+        embed_misconceptions(client, args.collection, args.ingest_limit)
         test_retrieval(client, args.query, args.collection, args.limit)
     except Exception as e:
         logger.error(f"An error occurred: {e}")
