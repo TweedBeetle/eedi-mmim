@@ -1,3 +1,6 @@
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
 from typing import Optional, List, Set, Dict
 from pydantic import BaseModel, Field, field_validator, model_validator
 from enum import Enum
@@ -10,6 +13,8 @@ class CorrectAnswerEnum(str, Enum):
     C = 'C'
     D = 'D'
 
+
+console = Console()
 
 class Question(BaseModel):
     question_id: int
