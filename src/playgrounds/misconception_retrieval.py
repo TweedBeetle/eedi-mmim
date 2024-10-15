@@ -1,91 +1,194 @@
-import ollama
+import argparse
+
+import weaviate
+import os
+from loguru import logger
+from typing import List, Dict
+from tqdm import tqdm
+
+from src.models import Misconception
 from src.data_loader import load_misconception_mapping
-import pandas as pd
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-import json
+from src.constants import mmim_data_path
 
-def embed_misconceptions(model_name: str = 'nomic-embed-text') -> Dict[int, List[float]]:
+
+def connect_weaviate():
     """
-    Embeds all misconceptions using the specified Ollama model.
-
-    Args:
-        model_name (str): The name of the Ollama embedding model to use.
-
-    Returns:
-        Dict[int, List[float]]: A dictionary mapping MisconceptionId to its embedding vector.
+    Connect to the Weaviate instance using environment variables.
+    Ensure that the following environment variables are set:
+    - WEAVIATE_URL: The URL of your Weaviate instance
+    - WEAVIATE_API_KEY: Your Weaviate API key
+    - OPENAI_APIKEY: Your OpenAI API key for the Ollama vectorizer
     """
-    misconceptions = load_misconception_mapping(str(mmim_data_path / "misconception_mapping.csv"))
-    embeddings = {}
-    
-    logger.info("Embedding misconceptions using Ollama...")
-    
-    for mc in misconceptions:
-        embedding_response = ollama.embed(model=model_name, input=mc.MisconceptionName)
-        # Assuming the response contains the embedding under the key 'embedding'
-        embedding = embedding_response.get('embedding')
-        if embedding:
-            embeddings[mc.MisconceptionId] = embedding
+    WEAVIATE_URL = os.getenv("WEAVIATE_URL")
+    WEAVIATE_API_KEY = os.getenv("WEAVIATE_API_KEY")
+    OPENAI_APIKEY = os.getenv("OPENAI_APIKEY")
+
+    if not WEAVIATE_URL or not WEAVIATE_API_KEY or not OPENAI_APIKEY:
+        logger.error("One or more required environment variables are missing.")
+        raise EnvironmentError("Please set WEAVIATE_URL, WEAVIATE_API_KEY, and OPENAI_APIKEY.")
+
+    client = weaviate.Client(
+        url=WEAVIATE_URL,
+        auth_client_secret=weaviate.auth.AuthApiKey(api_key=WEAVIATE_API_KEY),
+        additional_headers={
+            "X-OpenAI-Api-Key": OPENAI_APIKEY
+        }
+    )
+
+    if not client.is_ready():
+        logger.error("Weaviate instance is not ready. Please check the connection details.")
+        raise ConnectionError("Unable to connect to Weaviate.")
+
+    logger.info("Connected to Weaviate successfully.")
+    return client
+
+
+def define_misconception_collection(client: weaviate.Client, collection_name: str = "Misconception"):
+    """
+    Define a new collection in Weaviate for storing misconceptions with the Ollama vectorizer.
+    """
+    schema = {
+        "class": collection_name,
+        "description": "A collection of mathematical misconceptions.",
+        "vectorizer": "text2vec-ollama",
+        "moduleConfig": {
+            "text2vec-ollama": {
+                "model": "nomic-embed-text",
+                "api_endpoint": "127.0.0.1:11434",
+            }
+        },
+        "properties": [
+            {
+                "name": "MisconceptionId",
+                "dataType": ["int"],
+                "description": "Unique identifier for the misconception.",
+                "moduleConfig": {
+                    "text2vec-ollama": {
+                        "vectorizePropertyName": False  # Do not prepend property name to the value
+                    }
+                }
+            },
+            {
+                "name": "MisconceptionName",
+                "dataType": ["text"],
+                "description": "The name or description of the misconception.",
+                "moduleConfig": {
+                    "text2vec-ollama": {
+                        "vectorizePropertyName": False  # Do not prepend property name to the value
+                    }
+                }
+            }
+        ],
+        "replicationConfig": {
+            "factor": 1
+        },
+        "shardingConfig": {
+            "virtualPerPhysical": 128,
+            "desiredCount": 1,
+            "actualCount": 1,
+            "desiredVirtualCount": 128,
+            "actualVirtualCount": 128,
+            "key": "_id",
+            "strategy": "hash",
+            "function": "murmur3"
+        },
+        "vectorIndexConfig": {
+            "distance": "cosine",
+            "efConstruction": 128,
+            "ef": 128,
+            "dynamicEfMin": 100,
+            "dynamicEfMax": 500,
+            "dynamicEfFactor": 8,
+            "vectorCacheMaxObjects": 1000000,
+            "flatSearchCutoff": 40000,
+            "maxConnections": 32
+        },
+        "vectorIndexType": "hnsw"
+    }
+
+    try:
+        if client.schema.exists(collection_name):
+            logger.info(f"Collection '{collection_name}' already exists. Skipping creation.")
         else:
-            logger.warning(f"Embedding not found for MisconceptionId {mc.MisconceptionId}")
-    
-    logger.info(f"Successfully embedded {len(embeddings)} misconceptions.")
-    return embeddings
+            client.schema.create_class(schema)
+            logger.info(f"Collection '{collection_name}' created successfully.")
+    except Exception as e:
+        logger.exception(f"Failed to create collection '{collection_name}': {e}")
+        raise
 
-def test_retrieval(embeddings: Dict[int, List[float]], query: str, top_n: int = 5) -> List[Dict]:
+
+def embed_misconceptions(client: weaviate.Client, collection_name: str = "Misconception") -> List[Dict]:
     """
-    Performs a test retrieval by embedding the query and finding top N similar misconceptions.
-
-    Args:
-        embeddings (Dict[int, List[float]]): A dictionary of MisconceptionId to embedding vectors.
-        query (str): The query string to retrieve similar misconceptions.
-        top_n (int): Number of top similar misconceptions to retrieve.
-
-    Returns:
-        List[Dict]: A list of dictionaries containing MisconceptionId, MisconceptionName, and similarity score.
+    Load all misconceptions, generate embeddings using Ollama's nomic-embed-text, and insert into Weaviate.
     """
-    logger.info("Embedding the query for retrieval...")
-    query_embedding_response = ollama.embed(model='nomic-embed-text', input=query)
-    query_embedding = query_embedding_response.get('embedding')
-    
-    if not query_embedding:
-        logger.error("Failed to obtain embedding for the query.")
-        return []
-    
-    logger.info("Calculating cosine similarities...")
-    similarity_scores = {}
-    for mc_id, mc_embedding in embeddings.items():
-        similarity = cosine_similarity([query_embedding], [mc_embedding])[0][0]
-        similarity_scores[mc_id] = similarity
-    
-    # Sort misconceptions by similarity score in descending order
-    sorted_misconceptions = sorted(similarity_scores.items(), key=lambda item: item[1], reverse=True)
-    
-    top_misconceptions = []
+    logger.info("Loading misconceptions from dataset...")
     misconceptions = load_misconception_mapping(str(mmim_data_path / "misconception_mapping.csv"))
-    mc_lookup = {mc.MisconceptionId: mc.MisconceptionName for mc in misconceptions}
-    
-    for mc_id, score in sorted_misconceptions[:top_n]:
-        top_misconceptions.append({
-            "MisconceptionId": mc_id,
-            "MisconceptionName": mc_lookup.get(mc_id, "Unknown Misconception"),
-            "SimilarityScore": score
-        })
-    
-    logger.info(f"Top {top_n} similar misconceptions retrieved.")
-    return top_misconceptions
+    logger.info(f"Loaded {len(misconceptions)} misconceptions.")
+
+    # Prepare data for insertion
+    objects_to_insert = []
+    for mc in tqdm(misconceptions, desc="Embedding Misconceptions"):
+        obj = {
+            "MisconceptionId": mc.MisconceptionId,
+            "MisconceptionName": mc.MisconceptionName
+        }
+        objects_to_insert.append(obj)
+
+    logger.info("Inserting embeddings into Weaviate...")
+    try:
+        client.batch.add_objects(
+            objects_to_insert,
+            class_name=collection_name
+        )
+        logger.info("Misconceptions inserted successfully.")
+    except Exception as e:
+        logger.exception("Failed to insert misconceptions into Weaviate.")
+        raise
+
+    return objects_to_insert
+
+
+def test_retrieval(client: weaviate.Client, query: str, collection_name: str = "Misconception", k: int = 5):
+    """
+    Perform a test retrieval of misconceptions based on the input query.
+    """
+    logger.info(f"Performing a test retrieval for query: '{query}'")
+    try:
+        response = client.query.get(collection_name, ["MisconceptionId", "MisconceptionName"]) \
+            .with_near_text({"concepts": [query], "distance": 0.7}) \
+            .with_limit(k) \
+            .do()
+
+        results = response.get("data", {}).get("Get", {}).get(collection_name, [])
+        if not results:
+            logger.warning("No misconceptions found for the given query.")
+            return
+
+        logger.info(f"Top {k} misconceptions related to '{query}':")
+        for idx, res in enumerate(results, start=1):
+            logger.info(f"{idx}. ID: {res['MisconceptionId']}, Name: {res['MisconceptionName']}")
+    except Exception as e:
+        logger.exception("Failed to perform test retrieval.")
+        raise
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Embed all misconceptions using Ollama's nomic-embed-text and perform a test retrieval."
+        )
+    parser.add_argument("--query", type=str, default="biology", help="The query string to perform test retrieval.")
+    parser.add_argument("--collection", type=str, default="Misconception", help="The name of the Weaviate collection.")
+    parser.add_argument("--limit", type=int, default=5, help="Number of top misconceptions to retrieve.")
+    args = parser.parse_args()
+
+    try:
+        client = connect_weaviate()
+        define_misconception_collection(client, args.collection)
+        embed_misconceptions(client, args.collection)
+        test_retrieval(client, args.query, args.collection, args.limit)
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
+
 
 if __name__ == "__main__":
-    # Embed all misconceptions
-    misconception_embeddings = embed_misconceptions(model_name='nomic-embed-text')
-    
-    # Define a sample query for test retrieval
-    sample_query = "Why do objects fall towards the earth?"
-    
-    # Perform test retrieval
-    top_misconceptions = test_retrieval(embeddings=misconception_embeddings, query=sample_query, top_n=5)
-    
-    # Display the results
-    print(f"Top 5 misconceptions similar to the query '{sample_query}':")
-    for mc in top_misconceptions:
-        print(f"Misconception ID: {mc['MisconceptionId']}, Name: {mc['MisconceptionName']}, Similarity: {mc['SimilarityScore']:.4f}")
+    main()
