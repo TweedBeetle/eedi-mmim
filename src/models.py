@@ -1,6 +1,3 @@
-from rich.console import Console
-from rich.panel import Panel
-from rich.text import Text
 from typing import Optional, List, Set, Dict
 from pydantic import BaseModel, Field, field_validator, model_validator
 from enum import Enum
@@ -14,7 +11,6 @@ class CorrectAnswerEnum(str, Enum):
     D = 'D'
 
 
-console = Console()
 
 class Question(BaseModel):
     question_id: int
@@ -31,37 +27,27 @@ class Question(BaseModel):
 
     def __repr__(self) -> str:
         content = (
-            f"[bold cyan]Question ID:[/bold cyan] {self.question_id}\n"
-            f"[bold cyan]Construct:[/bold cyan] {self.construct_name} (ID: {self.construct_id})\n"
-            f"[bold cyan]Subject:[/bold cyan] {self.subject_name} (ID: {self.subject_id})\n"
-            f"[bold cyan]Correct Answer:[/bold cyan] {self.correct_answer}\n"
-            f"[bold cyan]Question Text:[/bold cyan] {self.question_text}\n"
-            f"[bold cyan]A:[/bold cyan] {self.answer_a_text}\n"
-            f"[bold cyan]B:[/bold cyan] {self.answer_b_text}\n"
-            f"[bold cyan]C:[/bold cyan] {self.answer_c_text}\n"
-            f"[bold cyan]D:[/bold cyan] {self.answer_d_text}"
+            f"Question ID: {self.question_id}\n"
+            f"Construct: {self.construct_name} (ID: {self.construct_id})\n"
+            f"Subject: {self.subject_name} (ID: {self.subject_id})\n"
+            f"Correct Answer: {self.correct_answer}\n"
+            f"Question Text: {self.question_text}\n"
+            f"A: {self.answer_a_text}\n"
+            f"B: {self.answer_b_text}\n"
+            f"C: {self.answer_c_text}\n"
+            f"D: {self.answer_d_text}"
         )
-        panel = Panel.fit(
-            Text(content, style="bold white"),
-            title="[bold green]Question Representation[/bold green]",
-            border_style="green"
-        )
-        return console.render_str(panel)
+        return content
 
     def __str__(self) -> str:
         content = (
-            f"[bold blue]ID:[/bold blue] {self.question_id} | "
-            f"[bold blue]Construct:[/bold blue] {self.construct_name} | "
-            f"[bold blue]Subject:[/bold blue] {self.subject_name} | "
-            f"[bold blue]Correct Answer:[/bold blue] {self.correct_answer}\n"
-            f"[bold blue]Question:[/bold blue] {self.question_text}"
+            f"ID: {self.question_id} | "
+            f"Construct: {self.construct_name} | "
+            f"Subject: {self.subject_name} | "
+            f"Correct Answer: {self.correct_answer}\n"
+            f"Question: {self.question_text}"
         )
-        panel = Panel(
-            Text(content, style="bold white"),
-            title="[bold blue]Question Overview[/bold blue]",
-            border_style="blue"
-        )
-        return console.render_str(panel)
+        return content
 
     @field_validator('question_text', 'answer_a_text', 'answer_b_text', 'answer_c_text', 'answer_d_text')
     @classmethod
@@ -166,3 +152,22 @@ class MisconceptionPredictions(BaseModel):
             )
 
         return self
+
+
+if __name__ == '__main__':
+    question = Question(
+        question_id=1,
+        construct_id=101,
+        construct_name="Linear Equations",
+        subject_id=10,
+        subject_name="Mathematics",
+        correct_answer=CorrectAnswerEnum.A,
+        question_text="Solve for x: 2x + 3 = 7",
+        answer_a_text="x = 2",
+        answer_b_text="x = 1",
+        answer_c_text="x = -2",
+        answer_d_text="x = 0"
+    )
+
+    print(repr(question))
+    # print(str(question))
