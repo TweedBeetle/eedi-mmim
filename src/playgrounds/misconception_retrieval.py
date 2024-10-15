@@ -76,11 +76,13 @@ def embed_misconceptions(client: WeaviateClient, collection_name: str = "Misconc
         # Generate embedding using Ollama
         embedding = ollama.embed(model='nomic-embed-text', input=mc.MisconceptionName)
 
-        obj = {
-            "MisconceptionId": mc.MisconceptionId,
-            "MisconceptionName": mc.MisconceptionName,
-            "vector": embedding
-        }
+        obj = wvc.data.DataObject(
+            properties={
+                "MisconceptionId": mc.MisconceptionId,
+                "MisconceptionName": mc.MisconceptionName,
+            },
+            vector=embedding
+        )
         objects_to_insert.append(obj)
 
     logger.info("Inserting embeddings into Weaviate...")
