@@ -8,6 +8,7 @@ from tqdm import tqdm
 from weaviate.client import WeaviateClient
 
 import ollama
+from weaviate.collections.classes.config import Configure
 from weaviate.collections.classes.data import DataObject
 
 from src.models import Misconception
@@ -49,7 +50,14 @@ def define_misconception_collection(client: WeaviateClient, collection_name: str
                     description="The name or description of the misconception."
                 )
             ],
-            vectorizer_config=wvc.config.Configure.Vectorizer.none()
+            vectorizer_config=[
+                Configure.NamedVectors.text2vec_ollama(
+                    name="MisconceptionNameVector",
+                    source_properties=["MisconceptionName"],
+                    api_endpoint="127.0.0.1:11434",
+                    model="nomic-embed-text",
+                )
+            ],
         )
         logger.info(f"Collection '{collection_name}' created successfully.")
     except weaviate.exceptions.UnexpectedStatusCodeException as e:
@@ -118,15 +126,49 @@ def embed_misconceptions(client: WeaviateClient, collection_name: str = "Misconc
     return objects_to_insert
 
 
-def test_retrieval(client: WeaviateClient, query: str, collection_name: str = "Misconception", k: int = 5):
+# def test_retrieval(client: WeaviateClient, query: str, collection_name: str = "Misconception", k: int = 5):
+#     """
+#     Perform a test retrieval of misconceptions based on the input query.
+#     """
+#     logger.info(f"Performing a test retrieval for query: '{query}'")
+#     try:
+#         # Generate embedding for the query
+#         query_embedding_response = ollama.embed(model='nomic-embed-text', input=query)
+#
+#         # Extract the actual embedding vector from the response
+#         query_embedding_vector = query_embedding_response['embeddings']
+#
+#         collection = client.collections.get(collection_name)
+#         results = collection.query.near_vector(
+#             vector=query_embedding_vector,
+#             limit=k,
+#             return_properties=["MisconceptionId", "MisconceptionName"]
+#         )
+#
+#         if not results.objects:
+#             logger.warning("No misconceptions found for the given query.")
+#             return
+#
+#         logger.info(f"Top {k} misconceptions related to '{query}':")
+#         for idx, obj in enumerate(results.objects, start=1):
+#             logger.info(f"{idx}. ID: {obj.properties['MisconceptionId']}, Name: {obj.properties['MisconceptionName']}")
+#     except Exception as e:
+#         logger.exception("Failed to perform test retrieval.")
+#         raise
+
+
+def retrieve_misconceptions(client: WeaviateClient, query: str, collection_name: str = "Misconception", k: int = 5):
     """
     Perform a test retrieval of misconceptions based on the input query.
     """
     logger.info(f"Performing a test retrieval for query: '{query}'")
+
+    query_with_prefix = f"search_query: {query}"
+
     try:
         collection = client.collections.get(collection_name)
         results = collection.query.near_text(
-            query=query,
+            query=query_with_prefix,
             limit=k,
             return_properties=["MisconceptionId", "MisconceptionName"]
         )
@@ -165,7 +207,7 @@ def pipeline(args):
         client = connect_weaviate()
         define_misconception_collection(client, args.collection)
         embed_misconceptions(client, args.collection, args.ingest_limit)
-        test_retrieval(client, args.query, args.collection, args.limit)
+        retrieve_misconceptions(client, args.query, args.collection, args.limit)
     except Exception as e:
         logger.error(f"An error occurred: {e}")
 
