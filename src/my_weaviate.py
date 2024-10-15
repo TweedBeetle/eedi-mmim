@@ -41,16 +41,25 @@ def get_weaviate_client():
     return client
 
 
-def define_misconception_collection(client: WeaviateClient, collection_name: str = "Misconception"):
+def define_misconception_collection(client: WeaviateClient, collection_name: str = "Misconception", overwrite: bool = True):
     """
     Define a new collection in embedded Weaviate for storing misconceptions.
-    If the collection already exists, delete it and recreate.
+    If the collection already exists, either delete and recreate it or skip creation based on the overwrite parameter.
+
+    Args:
+        client: WeaviateClient instance
+        collection_name: Name of the collection to create
+        overwrite: If True, delete and recreate the collection if it exists. If False, skip creation if it exists.
     """
     try:
         # Check if the collection exists
         if client.collections.exists(collection_name):
-            logger.warning(f"Collection '{collection_name}' already exists. Deleting and recreating.")
-            client.collections.delete(collection_name)
+            if overwrite:
+                logger.warning(f"Collection '{collection_name}' already exists. Deleting and recreating.")
+                client.collections.delete(collection_name)
+            else:
+                logger.info(f"Collection '{collection_name}' already exists. Skipping creation.")
+                return
 
         misconceptions = client.collections.create(
             name=collection_name,
