@@ -124,15 +124,9 @@ def test_retrieval(client: WeaviateClient, query: str, collection_name: str = "M
     """
     logger.info(f"Performing a test retrieval for query: '{query}'")
     try:
-        # Generate embedding for the query
-        query_embedding_response = ollama.embed(model='nomic-embed-text', input=query)
-
-        # Extract the actual embedding vector from the response
-        query_embedding_vector = query_embedding_response['embeddings']
-
         collection = client.collections.get(collection_name)
-        results = collection.query.near_vector(
-            vector=query_embedding_vector,
+        results = collection.query.near_text(
+            query=query,
             limit=k,
             return_properties=["MisconceptionId", "MisconceptionName"]
         )
