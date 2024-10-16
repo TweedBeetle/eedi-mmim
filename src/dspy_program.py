@@ -1,7 +1,7 @@
 import argparse
 import concurrent
 import json
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Set
 
 import dspy
 from dspy import Module, Signature, InputField, OutputField, ChainOfThought, Predict, Example
@@ -157,7 +157,40 @@ def score_identified_misconceptions(
     # example.question: Question
     # example.wrong_answer_designation: AnswerDesignation
 
-    raise NotImplementedError()
+    # Extract ground truth misconception IDs for the specific answer designation
+    ground_truth_ids: Set[int] = set(
+        [
+            getattr(example.question, f"misconception_{pred.answer_designation.value.lower()}_id")
+        ]
+    )
+    
+    # Remove None values if any
+    ground_truth_ids.discard(None)
+    
+    if not ground_truth_ids:
+        logger.warning(f"No ground truth misconceptions for Question ID {pred.question_id} and Answer {pred.answer_designation}")
+        return 0.0
+
+    # Ensure predictions are limited to top 25
+    predicted_ids = pred.misconception_ids[:25]
+
+    # Initialize variables for Average Precision calculation
+    score = 0.0
+    hits = 0
+
+    for rank, pred_id in enumerate(predicted_ids, start=1):
+        if pred_id in ground_truth_ids:
+            hits += 1
+            precision_at_k = hits / rank
+            score += precision_at_k
+            # If all ground truths are found, no need to continue
+            if hits == len(ground_truth_ids):
+                break
+
+    # Compute Average Precision for this example
+    average_precision = score / len(ground_truth_ids)
+
+    return average_precision
 
 
 def main():
