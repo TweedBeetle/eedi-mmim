@@ -1,5 +1,5 @@
 import argparse
-from src.data_loader import (
+from src.data_loading import (
     load_train_data,
     load_test_data,
     load_misconceptions,
@@ -108,25 +108,25 @@ def main(visualize=False):
     train_data = load_train_data(str(train_filepath))
     test_data = load_test_data(str(test_filepath))
     misconception_mapping = load_misconceptions(str(mapping_filepath))
-    sample_submission = load_sample_submission(str(submission_filepath))
+    # sample_submission = load_sample_submission(str(submission_filepath))
 
     # Convert models to DataFrames for statistics
     train_df = convert_models_to_dataframe(train_data)
     test_df = convert_models_to_dataframe(test_data)
     mapping_df = convert_models_to_dataframe(misconception_mapping)
-    submission_df = convert_models_to_dataframe(sample_submission)
+    # submission_df = convert_models_to_dataframe(sample_submission)
 
     # Generate and log statistics
     generate_train_statistics(train_df)
     generate_test_statistics(test_df)
     generate_misconception_mapping_statistics(mapping_df)
-    generate_sample_submission_statistics(submission_df)
+    # generate_sample_submission_statistics(submission_df)
 
     # Log the number of records loaded
     logger.info(f"Loaded {len(train_data)} training records")
     logger.info(f"Loaded {len(test_data)} test records")
     logger.info(f"Loaded {len(misconception_mapping)} misconception mappings")
-    logger.info(f"Loaded {len(sample_submission)} sample submission records")
+    # logger.info(f"Loaded {len(sample_submission)} sample submission records")
 
     # Create visualizations if the flag is set
     if visualize:

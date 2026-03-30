@@ -1,2 +1,20 @@
 .aider*
 out/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# macOS
+.DS_Store
+
+# Environment
+.env
+.env.*
+
+# IDE
+.idea/
+
+# Dependencies
+poetry.lock

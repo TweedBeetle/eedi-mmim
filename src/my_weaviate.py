@@ -13,7 +13,7 @@ from weaviate.collections.classes.data import DataObject
 from weaviate.embedded import EmbeddedOptions
 
 from src.models import Misconception
-from src.data_loader import load_misconceptions
+from src.data_loading import load_misconceptions
 from src.constants import mmim_data_path, PROJECT_ROOT
 
 
@@ -43,7 +43,7 @@ def get_weaviate_client():
 
 def define_misconception_collection(
         client: WeaviateClient, collection_name: str = "Misconception", overwrite: bool = True
-        ):
+):
     """
     Define a new collection in embedded Weaviate for storing misconceptions.
     If the collection already exists, either delete and recreate it or skip creation based on the overwrite parameter.
@@ -148,11 +148,12 @@ def embed_misconceptions(client: WeaviateClient, collection_name: str = "Misconc
     return objects_to_insert
 
 
-def retrieve_misconceptions(client: WeaviateClient, query: str, collection_name: str = "Misconception", k: int = 5):
+def retrieve_misconceptions(client: WeaviateClient, query: str, collection_name: str = "Misconception", k: int = 5) -> \
+        List[Misconception]:
     """
     Perform a test retrieval of misconceptions based on the input query.
     """
-    logger.info(f"Performing a test retrieval for query: '{query}'")
+    logger.debug(f"Performing a test retrieval for query: '{query}'")
 
     search_query_prefix = "search_query: "
 
@@ -168,14 +169,24 @@ def retrieve_misconceptions(client: WeaviateClient, query: str, collection_name:
         )
 
         if not results.objects:
-            logger.warning("No misconceptions found for the given query.")
-            return
+            raise RuntimeError("No misconceptions found for the given query.")
 
-        logger.info(f"Top {k} misconceptions related to '{query}':")
-        for idx, obj in enumerate(results.objects, start=1):
-            logger.info(
-                f"{idx}. ID: {obj.properties['misconception_id']}, Name: {obj.properties['misconception_name']}"
+        # logger.debug(f"Top {k} misconceptions related to '{query}':")
+        # for idx, obj in enumerate(results.objects, start=1):
+        #     logger.debug(
+        #         f"{idx}. ID: {obj.properties['misconception_id']}, Name: {obj.properties['misconception_name']}"
+        #     )
+
+        misconceptions = []
+        for obj in results.objects:
+            misconception_dict = dict(
+                misconception_id=obj.properties['misconception_id'],
+                misconception_name=obj.properties['misconception_name']
             )
+            misconception = Misconception.model_validate(misconception_dict)
+            misconceptions.append(misconception)
+
+        return misconceptions
     except Exception as e:
         logger.exception("Failed to perform test retrieval.")
         raise

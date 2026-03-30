@@ -19,6 +19,7 @@ weaviate-client = "^4.8.1"
 ollama = "^0.3.3"
 inflection = "^0.5.1"
 rich = "^13.9.2"
+openai = "^1.51.2"
 
 
 [build-system]
