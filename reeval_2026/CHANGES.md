@@ -67,6 +67,21 @@ difference between "the 2024 system" and what Arm A runs.
 max_rounds=1, metric = `score_identified_misconceptions`) on the recovered 2024 trainset, with the
 Arm B model. Only `num_threads` differs (2024: 128), which affects wall-clock, not the search.
 
+## Harness-only workarounds (no effect on what is scored)
+
+- Retrieval retry: under concurrent load, Ollama occasionally dropped the connection for the
+  query-side embedding that Weaviate's `text2vec-ollama` module requests (`socket is not connected`).
+  `run_eval.install_retrieval_retry` wraps `retrieve_misconceptions` with exponential-backoff retries
+  (same query, same ranking). A row that still fails is not recorded, so a resumed run re-does it
+  rather than scoring it as a miss.
+- Loading deep-copies the module for a trial run; the live Weaviate client is detached during that
+  copy so the copy does not clone the embedded server handle.
+- dspy 3.3.1 `Module.save` calls `dump_state(json_mode=...)`, which `dspy.Retrieve.dump_state` does
+  not accept. The first Arm C optimizer run therefore finished but failed to save.
+  `reoptimize.patch_retrieve_dump_state` makes the call accept and ignore the keyword. The selected
+  candidate was the zero-shot one (seed −3, `student.reset_copy()`), so it was rebuilt exactly
+  from the run's log rather than re-running 4.5 hours of optimization (`--save-selected-from-log`).
+
 ## Not changed
 
 The classification step in `IdentifyMisconceptions.forward` was already commented out in 2024;
