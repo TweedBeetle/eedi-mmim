@@ -21,11 +21,22 @@ def get_weaviate_client():
     """
     Connect to the local embedded Weaviate instance.
     """
+    # 2026 re-eval: optional EEDI_WEAVIATE_DATA_PATH keeps the index out of the shared
+    # ~/.local/share/weaviate dir; unset = the 2024 default behaviour.
+    import os
+    data_path_kwargs = {}
+    if os.environ.get("EEDI_WEAVIATE_DATA_PATH"):
+        data_path_kwargs["persistence_data_path"] = os.environ["EEDI_WEAVIATE_DATA_PATH"]
+
     client = weaviate.WeaviateClient(
         embedded_options=EmbeddedOptions(
+            **data_path_kwargs,
             additional_env_vars={
                 "ENABLE_MODULES": "backup-filesystem,generative-ollama,text2vec-ollama",
                 "BACKUP_FILESYSTEM_PATH": str(PROJECT_ROOT / "out" / "weaviate_backups"),
+                # 2026 re-eval: Weaviate >=1.30 (the client's default embedded binary) bootstraps
+                # raft on the machine's LAN IP and never becomes ready; pin it to loopback.
+                "CLUSTER_ADVERTISE_ADDR": "127.0.0.1",
             }
         )
         # Add additional options here (see Python client docs for syntax)

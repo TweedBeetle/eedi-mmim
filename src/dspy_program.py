@@ -8,7 +8,7 @@ from typing import List, Dict, Optional, Set
 import dspy
 from dspy import Module, Signature, InputField, OutputField, ChainOfThought, Predict, Example
 from dspy.datasets import Dataset
-from dspy.retrieve.weaviate_rm import WeaviateRM
+# from dspy.retrieve.weaviate_rm import WeaviateRM  # 2026 re-eval: module removed in dspy 3.x; import was unused
 from dspy.teleprompt import BootstrapFinetune
 from loguru import logger
 from tqdm import tqdm

@@ -1,0 +1,383 @@
+{
+  "generate_misconception_query": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "question": "This is the uniform cross-section of solid \\( Q \\).\n\nWhich of the following could shape \\( Q \\) be? ![A rectangle.]()",
+        "right_answer": "Cuboid",
+        "wrong_answer": "Cube",
+        "reasoning": "The question asks for a solid with a uniform cross-section that could be shaped like a rectangle. A cuboid is a three-dimensional shape with rectangular faces, and it can have varying lengths, widths, and heights, making it a suitable answer. A cube, on the other hand, is a specific type of cuboid where all sides are equal. While a cube does have a rectangular cross-section, it is not the only shape that fits the description, and the term \"cuboid\" is more general and appropriate in this context.",
+        "misconception_description": "The misconception here is that the term \"cube\" is interpreted as the only possible shape that can have a rectangular cross-section, leading to the incorrect assumption that it is the correct answer. The individual may not have recognized that a cuboid encompasses a broader range of shapes, including cubes, and is the more accurate answer to the question."
+      },
+      {
+        "augmented": true,
+        "question": "![A function machine with 3 rectangles in a row, joined by arrows pointing from left to right. The first rectangle on the left has \"input\" written above it and \"30\" written inside it. The middle rectangle has \"squared\" written inside it and the final rectangle is empty and has \"output\" written above it.]() What is the output of this function machine?",
+        "right_answer": "\\( 900 \\)",
+        "wrong_answer": "\\( 60 \\)",
+        "reasoning": "To find the output of the function machine, we need to follow the operation indicated in the middle rectangle, which is \"squared.\" The input is 30, so we calculate \\( 30^2 \\). This gives us \\( 30 \\times 30 = 900 \\). Therefore, the correct output is 900.",
+        "misconception_description": "The misconception leading to the wrong answer of 60 likely stems from a misunderstanding of the squaring operation. The individual may have mistakenly added the digits of 30 (3 + 0 = 3) and then multiplied by 10 (3 \u00d7 10 = 30), or they may have confused squaring with simply multiplying by 2, leading to \\( 30 \\times 2 = 60 \\)."
+      },
+      {
+        "augmented": true,
+        "question": "Order the times from shortest to longest.\nA:  8 minutes\nB:  8 minutes 40 seconds\nC:  8 \\(\n\\frac{1}{2}\n\\) minutes\nD:  500 seconds ",
+        "right_answer": "\\( A, D, C, B \\)",
+        "wrong_answer": "\\( B, D, C, A \\)",
+        "reasoning": "To order the times from shortest to longest, we first need to convert all the times into the same unit. \n\n- A: 8 minutes = 480 seconds\n- B: 8 minutes 40 seconds = 520 seconds\n- C: 8 \\(\\frac{1}{2}\\) minutes = 8.5 minutes = 510 seconds\n- D: 500 seconds\n\nNow we can compare the times in seconds:\n- D: 500 seconds\n- A: 480 seconds\n- C: 510 seconds\n- B: 520 seconds\n\nOrdering these from shortest to longest gives us: A (480 seconds), D (500 seconds), C (510 seconds), B (520 seconds). \n\nThus, the correct order is \\( A, D, C, B \\).",
+        "misconception_description": "The misconception likely arose from misinterpreting the time values, particularly in converting minutes and seconds. The individual may have incorrectly prioritized the times based on their initial appearance rather than converting them to a common unit for accurate comparison. This led to placing B, which is actually the longest time, at the beginning of their ordered list."
+      },
+      {
+        "augmented": true,
+        "question": "When finding the range of a data set, what is the first step?",
+        "right_answer": "Subtract the smallest number from the largest number.",
+        "wrong_answer": "Add all the numbers together.",
+        "reasoning": "The range of a data set is defined as the difference between the largest and smallest values in that set. To find the range, one must first identify these two values and then perform the subtraction. The incorrect answer suggests adding all the numbers together, which does not relate to the concept of range and indicates a misunderstanding of how to analyze the spread of data.",
+        "misconception_description": "The misconception is that the range involves summing all the values in the data set rather than focusing on the maximum and minimum values to determine the spread. This reflects a confusion between calculating the range and finding the mean or total of the data set."
+      },
+      {
+        "augmented": true,
+        "question": "When calculating the area of this trapezium, what are the values of \\( a \\) and \\( b \\) in the formula? ![Diagram of a trapezium with its 2 parallel sides horizontal. The parallel sides are labelled as 9cm and 10cm. The lengths of the 2 non-parallel sides are labelled as 7cm and 7.5cm. The perpendicular height is labelled as 6cm.]() Area \\( =\\left(\\frac{a+b}{2}\\right) h \\)",
+        "right_answer": "\\( 9+10 \\)",
+        "wrong_answer": "\\( 6+7.5 \\)",
+        "reasoning": "In the formula for the area of a trapezium, \\( a \\) and \\( b \\) represent the lengths of the two parallel sides. In this case, the parallel sides are given as 9 cm and 10 cm. Therefore, \\( a \\) and \\( b \\) should be these values, leading to \\( a + b = 9 + 10 \\). The incorrect answer of \\( 6 + 7.5 \\) suggests a misunderstanding of which sides of the trapezium are relevant for calculating the area.",
+        "misconception_description": "The misconception arises from confusing the lengths of the non-parallel sides and the height with the lengths of the parallel sides. The individual mistakenly thought that the height and one of the non-parallel sides were part of the area calculation, rather than recognizing that only the lengths of the two parallel sides are needed for \\( a \\) and \\( b \\)."
+      },
+      {
+        "augmented": true,
+        "question": "\\( 8-7 \\div 6^{3}= \\) Which calculation should you do first?",
+        "right_answer": "\\( 6^{3} \\)",
+        "wrong_answer": "It doesn't matter: you get the same answer",
+        "reasoning": "In the expression \\( 8-7 \\div 6^{3} \\), according to the order of operations (PEMDAS\/BODMAS), we should first evaluate the exponent \\( 6^{3} \\) before performing the division \\( 7 \\div 6^{3} \\). This is because exponents take precedence over division and subtraction. Therefore, the correct first calculation is indeed \\( 6^{3} \\).",
+        "misconception_description": "The misconception here is the belief that the order of operations does not matter and that any calculation can be performed first without affecting the final result. This misunderstanding can lead to incorrect evaluations of expressions where the order of operations is crucial."
+      },
+      {
+        "augmented": true,
+        "question": "Jadon decides to go for a run starting from home.\nThe graph on the right shows Jadon's distance in metres \\( (d) \\) over time in seconds\n\\( (t) \\).\n\nThe gradient of the negative sloping section of the graph is \\( 0.5 \\).\n\nWhich of the following does that \\( 0.5 \\) best represent? ![A sketch of a graph with d on the y axis and t on the x axis. A straight line slopes upwards from the origin 2\/3 of the way up the graph, 1\/5 across the graph. It then becomes horizontal for the next 1\/5 of the graph, before sloping downwards in a straight line for the remainder of the graph. ]()",
+        "right_answer": "Jadon is travelling back home at a speed of \\( 0.5 \\mathrm{~m} \/ \\mathrm{s} \\)",
+        "wrong_answer": "Jadon is decelerating at a rate of \\( 0.5 \\mathrm{~m} \/ \\mathrm{s}^{2} \\)",
+        "reasoning": "The gradient of a distance-time graph represents the speed of the object. In this case, a gradient of \\( 0.5 \\) indicates that Jadon is moving back towards his starting point (home) at a speed of \\( 0.5 \\mathrm{~m\/s} \\). The wrong answer suggests that \\( 0.5 \\) represents a deceleration, which is a rate of change of speed, not distance. Therefore, the correct interpretation of the gradient in this context is speed, not acceleration.",
+        "misconception_description": "The misconception arises from confusing the concepts of speed and acceleration. The individual incorrectly interpreted the gradient of the distance-time graph as a measure of deceleration (acceleration), rather than recognizing it as the speed at which Jadon is returning home."
+      },
+      {
+        "augmented": true,
+        "question": "John walks from home at a constant speed to a bench, stops for a rest, and then runs home at a constant speed. Which of the following displacement \\( (d) \\) time \\( (t) \\) graphs is most likely to illustrate John's journey?",
+        "right_answer": "![The graph has three sections.\nThe first section starts at (0, 0) and is a sloped line with gentle, positive, uphill gradient, then a horizontal line. The third section is a sloped line with very steep negative gradient that ends when it touches the horizontal axis.]()",
+        "wrong_answer": "![The graph has three sections.\nThe first section starts at (0, 0) and is a sloped line with positive, uphill gradient, then a horizontal line. The third section is another sloped line with a steeper positive gradient.]()",
+        "reasoning": "The correct graph should show John's journey as he walks to the bench, rests, and then runs back home. The first section of the graph represents his walk, which is a positive slope indicating displacement over time. The horizontal line indicates the rest period where there is no change in displacement. The final section should show a steep negative slope, representing his return home, indicating a decrease in displacement as he moves back to his starting point. The wrong answer incorrectly shows a positive slope for the return journey, which does not reflect the fact that he is moving back towards his starting point, thus decreasing displacement.",
+        "misconception_description": "The misconception arises from misunderstanding the concept of displacement in relation to direction. The individual likely thought that since John is moving quickly on his return, it should still be represented as a positive slope, not recognizing that returning home means a decrease in displacement, which should be represented as a negative slope."
+      },
+      {
+        "question": "{\"question_id\":445,\"construct_id\":1407,\"construct_name\":\"Expand two brackets with linear terms in the form (x + a)(x + b)\",\"subject_id\":51,\"subject_name\":\"Expanding Double Brackets\",\"correct_answer\":\"C\",\"question_text\":\"What should replace the circle when these two brackets are expanded and simplified?\\n\\\\(\\n(p-5)(p+2) \\\\equiv p^{2} \\\\triangle p \\\\bigcirc\\n\\\\)\",\"answer_a_text\":\"\\\\( \\\\bigcirc=-7 \\\\)\",\"answer_b_text\":\"\\\\( \\\\bigcirc=-3 \\\\)\",\"answer_c_text\":\"\\\\( \\\\bigcirc=-10 \\\\)\",\"answer_d_text\":\"\\\\( \\\\bigcirc=+10 \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":2256,\"misconception_c_id\":null,\"misconception_d_id\":974,\"all_answers_text\":[\"\\\\( \\\\bigcirc=-7 \\\\)\",\"\\\\( \\\\bigcirc=-3 \\\\)\",\"\\\\( \\\\bigcirc=-10 \\\\)\",\"\\\\( \\\\bigcirc=+10 \\\\)\"],\"correct_answer_text\":\"\\\\( \\\\bigcirc=-10 \\\\)\",\"incorrect_answers_text\":[\"\\\\( \\\\bigcirc=-7 \\\\)\",\"\\\\( \\\\bigcirc=-3 \\\\)\",\"\\\\( \\\\bigcirc=+10 \\\\)\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":992,\"construct_id\":384,\"construct_name\":\"Convert integer percentages with 1 digit to decimals \",\"subject_id\":239,\"subject_name\":\"Converting between Decimals and Percentages\",\"correct_answer\":\"C\",\"question_text\":\"How do you write \\\\( 2 \\\\% \\\\) as a decimal?\",\"answer_a_text\":\"\\\\( 0.2 \\\\)\",\"answer_b_text\":\"\\\\( 2.0 \\\\)\",\"answer_c_text\":\"\\\\( 0.02 \\\\)\",\"answer_d_text\":\"\\\\( 200 \\\\)\",\"misconception_a_id\":619,\"misconception_b_id\":329,\"misconception_c_id\":null,\"misconception_d_id\":1204,\"all_answers_text\":[\"\\\\( 0.2 \\\\)\",\"\\\\( 2.0 \\\\)\",\"\\\\( 0.02 \\\\)\",\"\\\\( 200 \\\\)\"],\"correct_answer_text\":\"\\\\( 0.02 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 0.2 \\\\)\",\"\\\\( 2.0 \\\\)\",\"\\\\( 200 \\\\)\"]}",
+        "wrong_answer_designation": "D"
+      },
+      {
+        "question": "{\"question_id\":1722,\"construct_id\":2031,\"construct_name\":\"Convert between m and mm\",\"subject_id\":195,\"subject_name\":\"Length Units\",\"correct_answer\":\"B\",\"question_text\":\"A \\\\( 2 \\\\) metre long rope has \\\\( 0.5 \\\\) centimetres chopped off the end.\\nWhat is the length of the rope that remains?\\nGive your answer in millimetres\",\"answer_a_text\":\"\\\\( 1999.5 \\\\mathrm{~mm} \\\\)\",\"answer_b_text\":\"\\\\( 1995 \\\\mathrm{~mm} \\\\)\",\"answer_c_text\":\"\\\\( 1950 \\\\mathrm{~mm} \\\\)\",\"answer_d_text\":\"\\\\( 199.5 \\\\mathrm{~mm} \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":null,\"misconception_c_id\":1652,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( 1999.5 \\\\mathrm{~mm} \\\\)\",\"\\\\( 1995 \\\\mathrm{~mm} \\\\)\",\"\\\\( 1950 \\\\mathrm{~mm} \\\\)\",\"\\\\( 199.5 \\\\mathrm{~mm} \\\\)\"],\"correct_answer_text\":\"\\\\( 1995 \\\\mathrm{~mm} \\\\)\",\"incorrect_answers_text\":[\"\\\\( 1999.5 \\\\mathrm{~mm} \\\\)\",\"\\\\( 1950 \\\\mathrm{~mm} \\\\)\",\"\\\\( 199.5 \\\\mathrm{~mm} \\\\)\"]}",
+        "wrong_answer_designation": "A"
+      },
+      {
+        "question": "{\"question_id\":1091,\"construct_id\":1276,\"construct_name\":\"Simplify algebraic expressions to maintain equivalence by collecting like terms involving non-linear variables\",\"subject_id\":251,\"subject_name\":\"Simplifying Expressions by Collecting Like Terms\",\"correct_answer\":\"C\",\"question_text\":\"Simplify the following by collecting like terms. \\\\( \\\\frac{2}{3} k^{2}+\\\\frac{1}{6} k^{2}-\\\\frac{1}{3} k^{2}+\\\\frac{5}{6} k^{2} \\\\)\",\"answer_a_text\":\"\\\\( 2 k^{2} \\\\)\",\"answer_b_text\":\"\\\\( \\\\frac{1}{3} k^{2}+\\\\frac{6}{6} k^{2} \\\\)\",\"answer_c_text\":\"\\\\( 1 \\\\frac{1}{3} k^{2} \\\\)\",\"answer_d_text\":\"\\\\( \\\\frac{1}{3} k^{2}+k^{2} \\\\)\",\"misconception_a_id\":1380,\"misconception_b_id\":null,\"misconception_c_id\":null,\"misconception_d_id\":528,\"all_answers_text\":[\"\\\\( 2 k^{2} \\\\)\",\"\\\\( \\\\frac{1}{3} k^{2}+\\\\frac{6}{6} k^{2} \\\\)\",\"\\\\( 1 \\\\frac{1}{3} k^{2} \\\\)\",\"\\\\( \\\\frac{1}{3} k^{2}+k^{2} \\\\)\"],\"correct_answer_text\":\"\\\\( 1 \\\\frac{1}{3} k^{2} \\\\)\",\"incorrect_answers_text\":[\"\\\\( 2 k^{2} \\\\)\",\"\\\\( \\\\frac{1}{3} k^{2}+\\\\frac{6}{6} k^{2} \\\\)\",\"\\\\( \\\\frac{1}{3} k^{2}+k^{2} \\\\)\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":145,\"construct_id\":445,\"construct_name\":\"Multiply mixed number fraction in the form: Fraction \u00d7 Fraction\",\"subject_id\":231,\"subject_name\":\"Multiplying Fractions\",\"correct_answer\":\"D\",\"question_text\":\"\\\\( 1 \\\\frac{1}{2} \\\\times 3 \\\\frac{2}{3}=\\\\bigstar\\\\frac{3}{6} \\\\) What should replace the star?\",\"answer_a_text\":\"\\\\( 3 \\\\)\",\"answer_b_text\":\"\\\\( 7 \\\\)\",\"answer_c_text\":\"\\\\( 4 \\\\)\",\"answer_d_text\":\"\\\\( 5 \\\\)\",\"misconception_a_id\":1807,\"misconception_b_id\":null,\"misconception_c_id\":1915,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( 3 \\\\)\",\"\\\\( 7 \\\\)\",\"\\\\( 4 \\\\)\",\"\\\\( 5 \\\\)\"],\"correct_answer_text\":\"\\\\( 5 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 3 \\\\)\",\"\\\\( 7 \\\\)\",\"\\\\( 4 \\\\)\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":754,\"construct_id\":1007,\"construct_name\":\"Given a sketch of a quadratic graph in the form (x + p)\u00b2 + q, work out its completed the square form\",\"subject_id\":267,\"subject_name\":\"Sketching from Completing the Square Form\",\"correct_answer\":\"B\",\"question_text\":\"Sally wants to write the equation of the curve in the form \\\\( y=(\\\\boldsymbol{x}+\\\\boldsymbol{p})^{2}+\\\\boldsymbol{q} \\\\).\\nWhat is the value of \\\\( \\\\boldsymbol{p} \\\\) ? ![A set of axes with the quadratic graph y=x^2-2x-3 drawn on.]()\",\"answer_a_text\":\"\\\\( 1 \\\\)\",\"answer_b_text\":\"\\\\( -1 \\\\)\",\"answer_c_text\":\"\\\\( 4 \\\\)\",\"answer_d_text\":\"\\\\( -4 \\\\)\",\"misconception_a_id\":1537,\"misconception_b_id\":null,\"misconception_c_id\":141,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( 1 \\\\)\",\"\\\\( -1 \\\\)\",\"\\\\( 4 \\\\)\",\"\\\\( -4 \\\\)\"],\"correct_answer_text\":\"\\\\( -1 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 1 \\\\)\",\"\\\\( 4 \\\\)\",\"\\\\( -4 \\\\)\"]}",
+        "wrong_answer_designation": "A"
+      },
+      {
+        "question": "{\"question_id\":1421,\"construct_id\":1806,\"construct_name\":\"Find missing angles in a scalene triangle\",\"subject_id\":439,\"subject_name\":\"Angles in Triangles\",\"correct_answer\":\"C\",\"question_text\":\"What is the size of angle \\\\( p \\\\) ? ![A triangle with angles labelled 49 degrees, 51 degrees and p [not to scale]]()\",\"answer_a_text\":\"\\\\( 51^{\\\\circ} \\\\)\",\"answer_b_text\":\"\\\\( 70^{\\\\circ} \\\\)\",\"answer_c_text\":\"\\\\( 80^{\\\\circ} \\\\)\",\"answer_d_text\":\"Not enough information\",\"misconception_a_id\":1321,\"misconception_b_id\":null,\"misconception_c_id\":null,\"misconception_d_id\":0,\"all_answers_text\":[\"\\\\( 51^{\\\\circ} \\\\)\",\"\\\\( 70^{\\\\circ} \\\\)\",\"\\\\( 80^{\\\\circ} \\\\)\",\"Not enough information\"],\"correct_answer_text\":\"\\\\( 80^{\\\\circ} \\\\)\",\"incorrect_answers_text\":[\"\\\\( 51^{\\\\circ} \\\\)\",\"\\\\( 70^{\\\\circ} \\\\)\",\"Not enough information\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":738,\"construct_id\":2674,\"construct_name\":\"Rotate an object or point 900 clockwise or anticlockwise about a point, where the point lies on the edge or outside of the object\",\"subject_id\":93,\"subject_name\":\"Rotation\",\"correct_answer\":\"D\",\"question_text\":\"The blue shape is rotated \\\\( 90^{\\\\circ} \\\\) anticlockwise about \\\\( (-2,2) \\\\). Which shape gives the correct answer? ![A coordinate grid with 5 congruent shapes, one blue and 4 red, which are labelled A, B, C and D. The blue shape has vertices at (-3,5) (-3,4) (-2,4) (-2,3) and (-3,3). Shape A has vertices at (-1,2) (0,2) (1,2) (0,1) (-1,1). Shape B has vertices at (0,-2) (1,-2) (1,-3) (0,-3) (-1,-3). Shape C has vertices at (-4,-2) (-3,-2) (-3,-3) (-4,-3) (-5,-3). Shape D has vertices at (-4,2) (-3,2) (-3,1) (-4,1) (-5,1).]()\",\"answer_a_text\":\"A\",\"answer_b_text\":\"B\",\"answer_c_text\":\"C\",\"answer_d_text\":\"D\",\"misconception_a_id\":860,\"misconception_b_id\":1488,\"misconception_c_id\":1640,\"misconception_d_id\":null,\"all_answers_text\":[\"A\",\"B\",\"C\",\"D\"],\"correct_answer_text\":\"D\",\"incorrect_answers_text\":[\"A\",\"B\",\"C\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":1356,\"construct_id\":3357,\"construct_name\":\"Round non-integers to other non-integer values (e.g. 0.02)\",\"subject_id\":214,\"subject_name\":\"Rounding to Decimal Places\",\"correct_answer\":\"A\",\"question_text\":\"What is \\\\( \\\\mathbf{1 . 5 1 6} \\\\) rounded to the nearest \\\\( \\\\mathbf{0 . 0 5} \\\\) ?\",\"answer_a_text\":\"\\\\( 1.50 \\\\)\",\"answer_b_text\":\"\\\\( 1.51 \\\\)\",\"answer_c_text\":\"\\\\( 1.55 \\\\)\",\"answer_d_text\":\"\\\\( 1.52 \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":null,\"misconception_c_id\":1988,\"misconception_d_id\":1248,\"all_answers_text\":[\"\\\\( 1.50 \\\\)\",\"\\\\( 1.51 \\\\)\",\"\\\\( 1.55 \\\\)\",\"\\\\( 1.52 \\\\)\"],\"correct_answer_text\":\"\\\\( 1.50 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 1.51 \\\\)\",\"\\\\( 1.55 \\\\)\",\"\\\\( 1.52 \\\\)\"]}",
+        "wrong_answer_designation": "D"
+      },
+      {
+        "question": "{\"question_id\":1144,\"construct_id\":1526,\"construct_name\":\"Substitute positive integer values into expressions involving powers or roots\",\"subject_id\":67,\"subject_name\":\"Substitution into Formula\",\"correct_answer\":\"A\",\"question_text\":\"When \\\\( h=5 \\\\)\\n\\\\(\\nh^{2}=\\n\\\\)\",\"answer_a_text\":\"\\\\( 25 \\\\)\",\"answer_b_text\":\"\\\\( 10 \\\\)\",\"answer_c_text\":\"\\\\( 7 \\\\)\",\"answer_d_text\":\"\\\\( 52 \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":1072,\"misconception_c_id\":948,\"misconception_d_id\":2352,\"all_answers_text\":[\"\\\\( 25 \\\\)\",\"\\\\( 10 \\\\)\",\"\\\\( 7 \\\\)\",\"\\\\( 52 \\\\)\"],\"correct_answer_text\":\"\\\\( 25 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 10 \\\\)\",\"\\\\( 7 \\\\)\",\"\\\\( 52 \\\\)\"]}",
+        "wrong_answer_designation": "D"
+      },
+      {
+        "question": "{\"question_id\":1254,\"construct_id\":2570,\"construct_name\":\"Calculate the area of a trapezium where the dimensions are given in the same units\",\"subject_id\":75,\"subject_name\":\"Area of Simple Shapes\",\"correct_answer\":\"B\",\"question_text\":\"Sally wants to calculate the area of this trapezium using the formula: Area \\\\( =\\\\left(\\\\frac{a+b}{2}\\\\right) h \\\\) ![A trapezium with the parallel sides labelled 6cm and 2cm, the slant height labelled 7cm and the perpendicular height labelled 5cm.]() What is the values of \\\\( h \\\\) ?\",\"answer_a_text\":\"\\\\( 6 \\\\mathrm{~cm} \\\\)\",\"answer_b_text\":\"\\\\( 5 \\\\mathrm{~cm} \\\\)\",\"answer_c_text\":\"\\\\( 7 \\\\mathrm{~cm} \\\\)\",\"answer_d_text\":\"\\\\( 2 \\\\mathrm{~cm} \\\\)\",\"misconception_a_id\":396,\"misconception_b_id\":null,\"misconception_c_id\":2332,\"misconception_d_id\":396,\"all_answers_text\":[\"\\\\( 6 \\\\mathrm{~cm} \\\\)\",\"\\\\( 5 \\\\mathrm{~cm} \\\\)\",\"\\\\( 7 \\\\mathrm{~cm} \\\\)\",\"\\\\( 2 \\\\mathrm{~cm} \\\\)\"],\"correct_answer_text\":\"\\\\( 5 \\\\mathrm{~cm} \\\\)\",\"incorrect_answers_text\":[\"\\\\( 6 \\\\mathrm{~cm} \\\\)\",\"\\\\( 7 \\\\mathrm{~cm} \\\\)\",\"\\\\( 2 \\\\mathrm{~cm} \\\\)\"]}",
+        "wrong_answer_designation": "D"
+      },
+      {
+        "question": "{\"question_id\":1582,\"construct_id\":441,\"construct_name\":\"Multiply proper fractions in the form: Fraction \u00d7 Fraction\",\"subject_id\":231,\"subject_name\":\"Multiplying Fractions\",\"correct_answer\":\"A\",\"question_text\":\"Calculate:\\n\\\\(\\n\\\\frac{1}{9} \\\\times \\\\frac{1}{5}\\n\\\\)\",\"answer_a_text\":\"\\\\( \\\\frac{1}{45} \\\\)\",\"answer_b_text\":\"\\\\( \\\\frac{2}{14} \\\\)\",\"answer_c_text\":\"\\\\( \\\\frac{5}{9} \\\\)\",\"answer_d_text\":\"\\\\( \\\\frac{1}{14} \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":1980,\"misconception_c_id\":2134,\"misconception_d_id\":1280,\"all_answers_text\":[\"\\\\( \\\\frac{1}{45} \\\\)\",\"\\\\( \\\\frac{2}{14} \\\\)\",\"\\\\( \\\\frac{5}{9} \\\\)\",\"\\\\( \\\\frac{1}{14} \\\\)\"],\"correct_answer_text\":\"\\\\( \\\\frac{1}{45} \\\\)\",\"incorrect_answers_text\":[\"\\\\( \\\\frac{2}{14} \\\\)\",\"\\\\( \\\\frac{5}{9} \\\\)\",\"\\\\( \\\\frac{1}{14} \\\\)\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":128,\"construct_id\":3119,\"construct_name\":\"Use brackets to write function machines as calculations\",\"subject_id\":70,\"subject_name\":\"Writing Expressions\",\"correct_answer\":\"A\",\"question_text\":\"Jo and Paul are arguing about the result of this Function Machine:\\nJo says the output is: \\\\( \\\\frac{n}{5}+3 \\\\)\\nPaul says the output is: \\\\( \\\\frac{n+3}{5} \\\\)\\nWho is correct? ![A function machine showing an input of n and operations divide by 5 and add 3]()\",\"answer_a_text\":\"Only\\nJo\",\"answer_b_text\":\"Only\\nPaul\",\"answer_c_text\":\"Both Jo and Paul\",\"answer_d_text\":\"Neither is correct\",\"misconception_a_id\":null,\"misconception_b_id\":77,\"misconception_c_id\":77,\"misconception_d_id\":null,\"all_answers_text\":[\"Only\\nJo\",\"Only\\nPaul\",\"Both Jo and Paul\",\"Neither is correct\"],\"correct_answer_text\":\"Only\\nJo\",\"incorrect_answers_text\":[\"Only\\nPaul\",\"Both Jo and Paul\",\"Neither is correct\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":294,\"construct_id\":3207,\"construct_name\":\"Understand the terms equilateral and regular, and recognise the notation for regular polygons\",\"subject_id\":84,\"subject_name\":\"Properties of Polygons\",\"correct_answer\":\"D\",\"question_text\":\"Tom and Katie are discussing regular polygons Tom says this is a regular polygon: ![A rhombus]() Katie says this is a regular polygon: ![A rectangle]() Who is correct?\",\"answer_a_text\":\"Only\\nTom\",\"answer_b_text\":\"Only Katie\",\"answer_c_text\":\"Both Tom and Katie\",\"answer_d_text\":\"Neither is correct\",\"misconception_a_id\":294,\"misconception_b_id\":2104,\"misconception_c_id\":570,\"misconception_d_id\":null,\"all_answers_text\":[\"Only\\nTom\",\"Only Katie\",\"Both Tom and Katie\",\"Neither is correct\"],\"correct_answer_text\":\"Neither is correct\",\"incorrect_answers_text\":[\"Only\\nTom\",\"Only Katie\",\"Both Tom and Katie\"]}",
+        "wrong_answer_designation": "C"
+      },
+      {
+        "question": "{\"question_id\":65,\"construct_id\":1492,\"construct_name\":\"Solve quadratic equations using the quadratic formula where the coefficient of x\u00b2 is 1 \",\"subject_id\":65,\"subject_name\":\"Quadratic Equations\",\"correct_answer\":\"D\",\"question_text\":\"Vera wants to solve this equation using the quadratic formula.\\n\\\\(\\nh^{2}+4=5 h\\n\\\\)\\n\\nWhat should replace the triangle? ![The image shows the structure of the quadratic formula. It says plus or minus the square root, and the triangle is the first thing after the square root sign, with a minus sign after it.]()\",\"answer_a_text\":\"\\\\( 8 \\\\)\",\"answer_b_text\":\"\\\\( -10 \\\\)\",\"answer_c_text\":\"\\\\( 16 \\\\)\",\"answer_d_text\":\"\\\\( 25 \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":2316,\"misconception_c_id\":2245,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( 8 \\\\)\",\"\\\\( -10 \\\\)\",\"\\\\( 16 \\\\)\",\"\\\\( 25 \\\\)\"],\"correct_answer_text\":\"\\\\( 25 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 8 \\\\)\",\"\\\\( -10 \\\\)\",\"\\\\( 16 \\\\)\"]}",
+        "wrong_answer_designation": "A"
+      },
+      {
+        "question": "{\"question_id\":126,\"construct_id\":2610,\"construct_name\":\"Calculate missing lengths of shapes by geometrical inference, where the lengths given are in the same units\",\"subject_id\":179,\"subject_name\":\"Compound Area\",\"correct_answer\":\"C\",\"question_text\":\"What is the area of the shaded section of this composite shape made from rectangles? ![A composite shape made from two rectangles that form an \\\"L\\\" shape.  The base of the shape is horizontal and is 13cm long. The vertical height of the whole shape is 14cm. The horizontal width of the top part of the shape is 6cm. The vertical height of the top rectangle is 8cm. The right handed rectangle is shaded blue]()\",\"answer_a_text\":\"\\\\( 48 \\\\mathrm{~cm}^{2} \\\\)\",\"answer_b_text\":\"\\\\( 104 \\\\mathrm{~cm}^{2} \\\\)\",\"answer_c_text\":\"\\\\( 42 \\\\mathrm{~cm}^{2} \\\\)\",\"answer_d_text\":\"\\\\( 56 \\\\mathrm{~cm}^{2} \\\\)\",\"misconception_a_id\":1148,\"misconception_b_id\":1148,\"misconception_c_id\":null,\"misconception_d_id\":1148,\"all_answers_text\":[\"\\\\( 48 \\\\mathrm{~cm}^{2} \\\\)\",\"\\\\( 104 \\\\mathrm{~cm}^{2} \\\\)\",\"\\\\( 42 \\\\mathrm{~cm}^{2} \\\\)\",\"\\\\( 56 \\\\mathrm{~cm}^{2} \\\\)\"],\"correct_answer_text\":\"\\\\( 42 \\\\mathrm{~cm}^{2} \\\\)\",\"incorrect_answers_text\":[\"\\\\( 48 \\\\mathrm{~cm}^{2} \\\\)\",\"\\\\( 104 \\\\mathrm{~cm}^{2} \\\\)\",\"\\\\( 56 \\\\mathrm{~cm}^{2} \\\\)\"]}",
+        "wrong_answer_designation": "D"
+      },
+      {
+        "question": "{\"question_id\":1216,\"construct_id\":1276,\"construct_name\":\"Simplify algebraic expressions to maintain equivalence by collecting like terms involving non-linear variables\",\"subject_id\":50,\"subject_name\":\"Expanding Single Brackets\",\"correct_answer\":\"D\",\"question_text\":\"\\\\(\\nx(2 x-1)+3(4 x-2) \\\\equiv P x^{2}+Q x+R\\n\\\\)\\n\\nWhat is the value of \\\\( R \\\\) ?\",\"answer_a_text\":\"\\\\( -2 \\\\)\",\"answer_b_text\":\"\\\\( -3 \\\\)\",\"answer_c_text\":\"\\\\( -7 \\\\)\",\"answer_d_text\":\"\\\\( -6 \\\\)\",\"misconception_a_id\":220,\"misconception_b_id\":373,\"misconception_c_id\":373,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( -2 \\\\)\",\"\\\\( -3 \\\\)\",\"\\\\( -7 \\\\)\",\"\\\\( -6 \\\\)\"],\"correct_answer_text\":\"\\\\( -6 \\\\)\",\"incorrect_answers_text\":[\"\\\\( -2 \\\\)\",\"\\\\( -3 \\\\)\",\"\\\\( -7 \\\\)\"]}",
+        "wrong_answer_designation": "C"
+      },
+      {
+        "question": "{\"question_id\":215,\"construct_id\":2008,\"construct_name\":\"Read an integer on a scale where the required measurement is marked by a dash between two numbers\",\"subject_id\":210,\"subject_name\":\"Ordering Negative Numbers\",\"correct_answer\":\"A\",\"question_text\":\"What is the value of B? ![A vertical number-line with 7 horizontal, equally spaced, dashes representing the position of numbers. \\\"-8\\\" next to the bottom dash and \\\"4\\\" next to the top dash are the only numbers marked on the line. An arrow, labelled \\\"B\\\" is pointing at the dash that is 2 below the \\\"4\\\" label and 4 above the \\\"-8\\\" label. ]()\",\"answer_a_text\":\"\\\\( 0 \\\\)\",\"answer_b_text\":\"\\\\( 2 \\\\)\",\"answer_c_text\":\"\\\\( -12 \\\\)\",\"answer_d_text\":\"\\\\( -4 \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":2053,\"misconception_c_id\":null,\"misconception_d_id\":2053,\"all_answers_text\":[\"\\\\( 0 \\\\)\",\"\\\\( 2 \\\\)\",\"\\\\( -12 \\\\)\",\"\\\\( -4 \\\\)\"],\"correct_answer_text\":\"\\\\( 0 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 2 \\\\)\",\"\\\\( -12 \\\\)\",\"\\\\( -4 \\\\)\"]}",
+        "wrong_answer_designation": "D"
+      },
+      {
+        "question": "{\"question_id\":1692,\"construct_id\":1428,\"construct_name\":\"Factorise a quadratic expression in the form x\u00b2 + bx + c\",\"subject_id\":53,\"subject_name\":\"Factorising into a Double Bracket\",\"correct_answer\":\"C\",\"question_text\":\"Factorise this expression, if possible:\\n\\\\(\\np^{2}+25 p+100\\n\\\\)\",\"answer_a_text\":\"\\\\( (p+25)(p+4) \\\\)\",\"answer_b_text\":\"\\\\( (p+5)(p+5) \\\\)\",\"answer_c_text\":\"\\\\( (p+5)(p+20) \\\\)\",\"answer_d_text\":\"Does not factorise\",\"misconception_a_id\":1535,\"misconception_b_id\":1606,\"misconception_c_id\":null,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( (p+25)(p+4) \\\\)\",\"\\\\( (p+5)(p+5) \\\\)\",\"\\\\( (p+5)(p+20) \\\\)\",\"Does not factorise\"],\"correct_answer_text\":\"\\\\( (p+5)(p+20) \\\\)\",\"incorrect_answers_text\":[\"\\\\( (p+25)(p+4) \\\\)\",\"\\\\( (p+5)(p+5) \\\\)\",\"Does not factorise\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":1513,\"construct_id\":414,\"construct_name\":\"Order fractions whose denominators are multiples of the same number \",\"subject_id\":228,\"subject_name\":\"Ordering Fractions\",\"correct_answer\":\"A\",\"question_text\":\"In a bakery \\\\( \\\\frac{2}{5} \\\\) of the cakes are chocolate, \\\\( \\\\frac{3}{8} \\\\) of the cakes are vanilla and \\\\( \\\\frac{13}{40} \\\\) are lemon.\\nWhich flavour cake is there more of?\",\"answer_a_text\":\"Chocolate\",\"answer_b_text\":\"Vanilla\",\"answer_c_text\":\"Lemon\",\"answer_d_text\":\"There is the same amount of each.\",\"misconception_a_id\":null,\"misconception_b_id\":684,\"misconception_c_id\":684,\"misconception_d_id\":684,\"all_answers_text\":[\"Chocolate\",\"Vanilla\",\"Lemon\",\"There is the same amount of each.\"],\"correct_answer_text\":\"Chocolate\",\"incorrect_answers_text\":[\"Vanilla\",\"Lemon\",\"There is the same amount of each.\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":277,\"construct_id\":1507,\"construct_name\":\"Solve a linear equation using a function machine\",\"subject_id\":64,\"subject_name\":\"Linear Equations\",\"correct_answer\":\"D\",\"question_text\":\"Look at the function machine. ![An image of two function machines. The first function machine has x as the input. The first function is divide by 3 and the second is +4. The output is 5. The second function machine is the reverse of the first so now 5 is the input but the two function boxes have been left blank.]() What would be the correct steps to solve this equation?\\n\\\\(\\\\frac{x}{3}+4=5\\\\)\",\"answer_a_text\":\"\\\\( \\\\begin{array}{l}\\\\times 3 \\\\\\\\ -4\\\\end{array} \\\\)\",\"answer_b_text\":\"\\\\( \\\\begin{array}{l}\\\\div 3 \\\\\\\\ +4\\\\end{array} \\\\)\",\"answer_c_text\":\"\\\\( \\\\begin{array}{r}+4 \\\\\\\\ \\\\times 3\\\\end{array} \\\\)\",\"answer_d_text\":\"\\\\( \\\\begin{array}{l}-4 \\\\\\\\ \\\\times 3\\\\end{array} \\\\)\",\"misconception_a_id\":1026,\"misconception_b_id\":null,\"misconception_c_id\":null,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( \\\\begin{array}{l}\\\\times 3 \\\\\\\\ -4\\\\end{array} \\\\)\",\"\\\\( \\\\begin{array}{l}\\\\div 3 \\\\\\\\ +4\\\\end{array} \\\\)\",\"\\\\( \\\\begin{array}{r}+4 \\\\\\\\ \\\\times 3\\\\end{array} \\\\)\",\"\\\\( \\\\begin{array}{l}-4 \\\\\\\\ \\\\times 3\\\\end{array} \\\\)\"],\"correct_answer_text\":\"\\\\( \\\\begin{array}{l}-4 \\\\\\\\ \\\\times 3\\\\end{array} \\\\)\",\"incorrect_answers_text\":[\"\\\\( \\\\begin{array}{l}\\\\times 3 \\\\\\\\ -4\\\\end{array} \\\\)\",\"\\\\( \\\\begin{array}{l}\\\\div 3 \\\\\\\\ +4\\\\end{array} \\\\)\",\"\\\\( \\\\begin{array}{r}+4 \\\\\\\\ \\\\times 3\\\\end{array} \\\\)\"]}",
+        "wrong_answer_designation": "C"
+      },
+      {
+        "question": "{\"question_id\":941,\"construct_id\":1501,\"construct_name\":\"Carry out the first stage in an iteration solution\",\"subject_id\":69,\"subject_name\":\"Trial and Improvement and Iterative Methods\",\"correct_answer\":\"A\",\"question_text\":\"\\\\(\\nx_{n+1}=10-\\\\frac{1}{x_{n}}\\n\\\\)\\n\\nUsing a starting value of \\\\( x_{1}=4 \\\\), what is the value of \\\\( x_{2} \\\\) ?\",\"answer_a_text\":\"\\\\( 9.75 \\\\)\",\"answer_b_text\":\"\\\\( 9.8974 \\\\ldots \\\\)\",\"answer_c_text\":\"\\\\( 2.25 \\\\)\",\"answer_d_text\":\"Another answer\",\"misconception_a_id\":null,\"misconception_b_id\":1631,\"misconception_c_id\":null,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( 9.75 \\\\)\",\"\\\\( 9.8974 \\\\ldots \\\\)\",\"\\\\( 2.25 \\\\)\",\"Another answer\"],\"correct_answer_text\":\"\\\\( 9.75 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 9.8974 \\\\ldots \\\\)\",\"\\\\( 2.25 \\\\)\",\"Another answer\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":866,\"construct_id\":3326,\"construct_name\":\"Count backwards through zero starting from a positive integer\",\"subject_id\":211,\"subject_name\":\"Adding and Subtracting Negative Numbers\",\"correct_answer\":\"C\",\"question_text\":\"![A number line going from -8 up to 7]() Asha's office is on level \\\\( 7 \\\\).\\nHer car is parked in the basement on level \\\\( -2 \\\\).\\n\\nHow many floors does Asha need to go down to get from the office to her car?\",\"answer_a_text\":\"\\\\( 10 \\\\)\",\"answer_b_text\":\"\\\\( 5 \\\\)\",\"answer_c_text\":\"\\\\( 9 \\\\)\",\"answer_d_text\":\"\\\\( 7 \\\\)\",\"misconception_a_id\":1824,\"misconception_b_id\":null,\"misconception_c_id\":null,\"misconception_d_id\":626,\"all_answers_text\":[\"\\\\( 10 \\\\)\",\"\\\\( 5 \\\\)\",\"\\\\( 9 \\\\)\",\"\\\\( 7 \\\\)\"],\"correct_answer_text\":\"\\\\( 9 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 10 \\\\)\",\"\\\\( 5 \\\\)\",\"\\\\( 7 \\\\)\"]}",
+        "wrong_answer_designation": "A"
+      },
+      {
+        "question": "{\"question_id\":1574,\"construct_id\":73,\"construct_name\":\"Solve problems that combine addition or subtraction with multiplication\",\"subject_id\":1975,\"subject_name\":\"Combining Operations\",\"correct_answer\":\"D\",\"question_text\":\"Every week for \\\\( 4 \\\\) weeks, Cara buys a magazine for \\\\( \u00a3 6 \\\\) and gets her nails painted for \\\\( \u00a3 28 \\\\).\\n\\nHow much money does Cara spend altogether?\",\"answer_a_text\":\"\\\\( \u00a3 34 \\\\)\",\"answer_b_text\":\"\\\\( \u00a3 52 \\\\)\",\"answer_c_text\":\"\\\\( \u00a3 118 \\\\)\",\"answer_d_text\":\"\\\\( \u00a3 136 \\\\)\",\"misconception_a_id\":1179,\"misconception_b_id\":1999,\"misconception_c_id\":1999,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( \u00a3 34 \\\\)\",\"\\\\( \u00a3 52 \\\\)\",\"\\\\( \u00a3 118 \\\\)\",\"\\\\( \u00a3 136 \\\\)\"],\"correct_answer_text\":\"\\\\( \u00a3 136 \\\\)\",\"incorrect_answers_text\":[\"\\\\( \u00a3 34 \\\\)\",\"\\\\( \u00a3 52 \\\\)\",\"\\\\( \u00a3 118 \\\\)\"]}",
+        "wrong_answer_designation": "A"
+      }
+    ],
+    "signature": {
+      "instructions": "Identify the misconception that lead to the wrong answer.",
+      "fields": [
+        {
+          "prefix": "Question:",
+          "description": "The original mathematical question."
+        },
+        {
+          "prefix": "Right Answer:",
+          "description": "The correct answer given to the question."
+        },
+        {
+          "prefix": "Wrong Answer:",
+          "description": "The incorrect answer given to the question."
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Misconception Description:",
+          "description": "The misconception that lead to the wrong answer."
+        }
+      ]
+    },
+    "extended_signature": {
+      "instructions": "Identify the misconception that lead to the wrong answer.",
+      "fields": [
+        {
+          "prefix": "Question:",
+          "description": "The original mathematical question."
+        },
+        {
+          "prefix": "Right Answer:",
+          "description": "The correct answer given to the question."
+        },
+        {
+          "prefix": "Wrong Answer:",
+          "description": "The incorrect answer given to the question."
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Misconception Description:",
+          "description": "The misconception that lead to the wrong answer."
+        }
+      ]
+    }
+  },
+  "retrieve_misconceptions": {
+    "k": 25
+  },
+  "classify_misconception": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "question": "{\"question_id\":1574,\"construct_id\":73,\"construct_name\":\"Solve problems that combine addition or subtraction with multiplication\",\"subject_id\":1975,\"subject_name\":\"Combining Operations\",\"correct_answer\":\"D\",\"question_text\":\"Every week for \\\\( 4 \\\\) weeks, Cara buys a magazine for \\\\( \u00a3 6 \\\\) and gets her nails painted for \\\\( \u00a3 28 \\\\).\\n\\nHow much money does Cara spend altogether?\",\"answer_a_text\":\"\\\\( \u00a3 34 \\\\)\",\"answer_b_text\":\"\\\\( \u00a3 52 \\\\)\",\"answer_c_text\":\"\\\\( \u00a3 118 \\\\)\",\"answer_d_text\":\"\\\\( \u00a3 136 \\\\)\",\"misconception_a_id\":1179,\"misconception_b_id\":1999,\"misconception_c_id\":1999,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( \u00a3 34 \\\\)\",\"\\\\( \u00a3 52 \\\\)\",\"\\\\( \u00a3 118 \\\\)\",\"\\\\( \u00a3 136 \\\\)\"],\"correct_answer_text\":\"\\\\( \u00a3 136 \\\\)\",\"incorrect_answers_text\":[\"\\\\( \u00a3 34 \\\\)\",\"\\\\( \u00a3 52 \\\\)\",\"\\\\( \u00a3 118 \\\\)\"]}",
+        "wrong_answer_designation": "A"
+      },
+      {
+        "question": "{\"question_id\":1722,\"construct_id\":2031,\"construct_name\":\"Convert between m and mm\",\"subject_id\":195,\"subject_name\":\"Length Units\",\"correct_answer\":\"B\",\"question_text\":\"A \\\\( 2 \\\\) metre long rope has \\\\( 0.5 \\\\) centimetres chopped off the end.\\nWhat is the length of the rope that remains?\\nGive your answer in millimetres\",\"answer_a_text\":\"\\\\( 1999.5 \\\\mathrm{~mm} \\\\)\",\"answer_b_text\":\"\\\\( 1995 \\\\mathrm{~mm} \\\\)\",\"answer_c_text\":\"\\\\( 1950 \\\\mathrm{~mm} \\\\)\",\"answer_d_text\":\"\\\\( 199.5 \\\\mathrm{~mm} \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":null,\"misconception_c_id\":1652,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( 1999.5 \\\\mathrm{~mm} \\\\)\",\"\\\\( 1995 \\\\mathrm{~mm} \\\\)\",\"\\\\( 1950 \\\\mathrm{~mm} \\\\)\",\"\\\\( 199.5 \\\\mathrm{~mm} \\\\)\"],\"correct_answer_text\":\"\\\\( 1995 \\\\mathrm{~mm} \\\\)\",\"incorrect_answers_text\":[\"\\\\( 1999.5 \\\\mathrm{~mm} \\\\)\",\"\\\\( 1950 \\\\mathrm{~mm} \\\\)\",\"\\\\( 199.5 \\\\mathrm{~mm} \\\\)\"]}",
+        "wrong_answer_designation": "A"
+      },
+      {
+        "question": "{\"question_id\":941,\"construct_id\":1501,\"construct_name\":\"Carry out the first stage in an iteration solution\",\"subject_id\":69,\"subject_name\":\"Trial and Improvement and Iterative Methods\",\"correct_answer\":\"A\",\"question_text\":\"\\\\(\\nx_{n+1}=10-\\\\frac{1}{x_{n}}\\n\\\\)\\n\\nUsing a starting value of \\\\( x_{1}=4 \\\\), what is the value of \\\\( x_{2} \\\\) ?\",\"answer_a_text\":\"\\\\( 9.75 \\\\)\",\"answer_b_text\":\"\\\\( 9.8974 \\\\ldots \\\\)\",\"answer_c_text\":\"\\\\( 2.25 \\\\)\",\"answer_d_text\":\"Another answer\",\"misconception_a_id\":null,\"misconception_b_id\":1631,\"misconception_c_id\":null,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( 9.75 \\\\)\",\"\\\\( 9.8974 \\\\ldots \\\\)\",\"\\\\( 2.25 \\\\)\",\"Another answer\"],\"correct_answer_text\":\"\\\\( 9.75 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 9.8974 \\\\ldots \\\\)\",\"\\\\( 2.25 \\\\)\",\"Another answer\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":1254,\"construct_id\":2570,\"construct_name\":\"Calculate the area of a trapezium where the dimensions are given in the same units\",\"subject_id\":75,\"subject_name\":\"Area of Simple Shapes\",\"correct_answer\":\"B\",\"question_text\":\"Sally wants to calculate the area of this trapezium using the formula: Area \\\\( =\\\\left(\\\\frac{a+b}{2}\\\\right) h \\\\) ![A trapezium with the parallel sides labelled 6cm and 2cm, the slant height labelled 7cm and the perpendicular height labelled 5cm.]() What is the values of \\\\( h \\\\) ?\",\"answer_a_text\":\"\\\\( 6 \\\\mathrm{~cm} \\\\)\",\"answer_b_text\":\"\\\\( 5 \\\\mathrm{~cm} \\\\)\",\"answer_c_text\":\"\\\\( 7 \\\\mathrm{~cm} \\\\)\",\"answer_d_text\":\"\\\\( 2 \\\\mathrm{~cm} \\\\)\",\"misconception_a_id\":396,\"misconception_b_id\":null,\"misconception_c_id\":2332,\"misconception_d_id\":396,\"all_answers_text\":[\"\\\\( 6 \\\\mathrm{~cm} \\\\)\",\"\\\\( 5 \\\\mathrm{~cm} \\\\)\",\"\\\\( 7 \\\\mathrm{~cm} \\\\)\",\"\\\\( 2 \\\\mathrm{~cm} \\\\)\"],\"correct_answer_text\":\"\\\\( 5 \\\\mathrm{~cm} \\\\)\",\"incorrect_answers_text\":[\"\\\\( 6 \\\\mathrm{~cm} \\\\)\",\"\\\\( 7 \\\\mathrm{~cm} \\\\)\",\"\\\\( 2 \\\\mathrm{~cm} \\\\)\"]}",
+        "wrong_answer_designation": "D"
+      },
+      {
+        "question": "{\"question_id\":126,\"construct_id\":2610,\"construct_name\":\"Calculate missing lengths of shapes by geometrical inference, where the lengths given are in the same units\",\"subject_id\":179,\"subject_name\":\"Compound Area\",\"correct_answer\":\"C\",\"question_text\":\"What is the area of the shaded section of this composite shape made from rectangles? ![A composite shape made from two rectangles that form an \\\"L\\\" shape.  The base of the shape is horizontal and is 13cm long. The vertical height of the whole shape is 14cm. The horizontal width of the top part of the shape is 6cm. The vertical height of the top rectangle is 8cm. The right handed rectangle is shaded blue]()\",\"answer_a_text\":\"\\\\( 48 \\\\mathrm{~cm}^{2} \\\\)\",\"answer_b_text\":\"\\\\( 104 \\\\mathrm{~cm}^{2} \\\\)\",\"answer_c_text\":\"\\\\( 42 \\\\mathrm{~cm}^{2} \\\\)\",\"answer_d_text\":\"\\\\( 56 \\\\mathrm{~cm}^{2} \\\\)\",\"misconception_a_id\":1148,\"misconception_b_id\":1148,\"misconception_c_id\":null,\"misconception_d_id\":1148,\"all_answers_text\":[\"\\\\( 48 \\\\mathrm{~cm}^{2} \\\\)\",\"\\\\( 104 \\\\mathrm{~cm}^{2} \\\\)\",\"\\\\( 42 \\\\mathrm{~cm}^{2} \\\\)\",\"\\\\( 56 \\\\mathrm{~cm}^{2} \\\\)\"],\"correct_answer_text\":\"\\\\( 42 \\\\mathrm{~cm}^{2} \\\\)\",\"incorrect_answers_text\":[\"\\\\( 48 \\\\mathrm{~cm}^{2} \\\\)\",\"\\\\( 104 \\\\mathrm{~cm}^{2} \\\\)\",\"\\\\( 56 \\\\mathrm{~cm}^{2} \\\\)\"]}",
+        "wrong_answer_designation": "D"
+      },
+      {
+        "question": "{\"question_id\":215,\"construct_id\":2008,\"construct_name\":\"Read an integer on a scale where the required measurement is marked by a dash between two numbers\",\"subject_id\":210,\"subject_name\":\"Ordering Negative Numbers\",\"correct_answer\":\"A\",\"question_text\":\"What is the value of B? ![A vertical number-line with 7 horizontal, equally spaced, dashes representing the position of numbers. \\\"-8\\\" next to the bottom dash and \\\"4\\\" next to the top dash are the only numbers marked on the line. An arrow, labelled \\\"B\\\" is pointing at the dash that is 2 below the \\\"4\\\" label and 4 above the \\\"-8\\\" label. ]()\",\"answer_a_text\":\"\\\\( 0 \\\\)\",\"answer_b_text\":\"\\\\( 2 \\\\)\",\"answer_c_text\":\"\\\\( -12 \\\\)\",\"answer_d_text\":\"\\\\( -4 \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":2053,\"misconception_c_id\":null,\"misconception_d_id\":2053,\"all_answers_text\":[\"\\\\( 0 \\\\)\",\"\\\\( 2 \\\\)\",\"\\\\( -12 \\\\)\",\"\\\\( -4 \\\\)\"],\"correct_answer_text\":\"\\\\( 0 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 2 \\\\)\",\"\\\\( -12 \\\\)\",\"\\\\( -4 \\\\)\"]}",
+        "wrong_answer_designation": "D"
+      },
+      {
+        "question": "{\"question_id\":1091,\"construct_id\":1276,\"construct_name\":\"Simplify algebraic expressions to maintain equivalence by collecting like terms involving non-linear variables\",\"subject_id\":251,\"subject_name\":\"Simplifying Expressions by Collecting Like Terms\",\"correct_answer\":\"C\",\"question_text\":\"Simplify the following by collecting like terms. \\\\( \\\\frac{2}{3} k^{2}+\\\\frac{1}{6} k^{2}-\\\\frac{1}{3} k^{2}+\\\\frac{5}{6} k^{2} \\\\)\",\"answer_a_text\":\"\\\\( 2 k^{2} \\\\)\",\"answer_b_text\":\"\\\\( \\\\frac{1}{3} k^{2}+\\\\frac{6}{6} k^{2} \\\\)\",\"answer_c_text\":\"\\\\( 1 \\\\frac{1}{3} k^{2} \\\\)\",\"answer_d_text\":\"\\\\( \\\\frac{1}{3} k^{2}+k^{2} \\\\)\",\"misconception_a_id\":1380,\"misconception_b_id\":null,\"misconception_c_id\":null,\"misconception_d_id\":528,\"all_answers_text\":[\"\\\\( 2 k^{2} \\\\)\",\"\\\\( \\\\frac{1}{3} k^{2}+\\\\frac{6}{6} k^{2} \\\\)\",\"\\\\( 1 \\\\frac{1}{3} k^{2} \\\\)\",\"\\\\( \\\\frac{1}{3} k^{2}+k^{2} \\\\)\"],\"correct_answer_text\":\"\\\\( 1 \\\\frac{1}{3} k^{2} \\\\)\",\"incorrect_answers_text\":[\"\\\\( 2 k^{2} \\\\)\",\"\\\\( \\\\frac{1}{3} k^{2}+\\\\frac{6}{6} k^{2} \\\\)\",\"\\\\( \\\\frac{1}{3} k^{2}+k^{2} \\\\)\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":1582,\"construct_id\":441,\"construct_name\":\"Multiply proper fractions in the form: Fraction \u00d7 Fraction\",\"subject_id\":231,\"subject_name\":\"Multiplying Fractions\",\"correct_answer\":\"A\",\"question_text\":\"Calculate:\\n\\\\(\\n\\\\frac{1}{9} \\\\times \\\\frac{1}{5}\\n\\\\)\",\"answer_a_text\":\"\\\\( \\\\frac{1}{45} \\\\)\",\"answer_b_text\":\"\\\\( \\\\frac{2}{14} \\\\)\",\"answer_c_text\":\"\\\\( \\\\frac{5}{9} \\\\)\",\"answer_d_text\":\"\\\\( \\\\frac{1}{14} \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":1980,\"misconception_c_id\":2134,\"misconception_d_id\":1280,\"all_answers_text\":[\"\\\\( \\\\frac{1}{45} \\\\)\",\"\\\\( \\\\frac{2}{14} \\\\)\",\"\\\\( \\\\frac{5}{9} \\\\)\",\"\\\\( \\\\frac{1}{14} \\\\)\"],\"correct_answer_text\":\"\\\\( \\\\frac{1}{45} \\\\)\",\"incorrect_answers_text\":[\"\\\\( \\\\frac{2}{14} \\\\)\",\"\\\\( \\\\frac{5}{9} \\\\)\",\"\\\\( \\\\frac{1}{14} \\\\)\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":294,\"construct_id\":3207,\"construct_name\":\"Understand the terms equilateral and regular, and recognise the notation for regular polygons\",\"subject_id\":84,\"subject_name\":\"Properties of Polygons\",\"correct_answer\":\"D\",\"question_text\":\"Tom and Katie are discussing regular polygons Tom says this is a regular polygon: ![A rhombus]() Katie says this is a regular polygon: ![A rectangle]() Who is correct?\",\"answer_a_text\":\"Only\\nTom\",\"answer_b_text\":\"Only Katie\",\"answer_c_text\":\"Both Tom and Katie\",\"answer_d_text\":\"Neither is correct\",\"misconception_a_id\":294,\"misconception_b_id\":2104,\"misconception_c_id\":570,\"misconception_d_id\":null,\"all_answers_text\":[\"Only\\nTom\",\"Only Katie\",\"Both Tom and Katie\",\"Neither is correct\"],\"correct_answer_text\":\"Neither is correct\",\"incorrect_answers_text\":[\"Only\\nTom\",\"Only Katie\",\"Both Tom and Katie\"]}",
+        "wrong_answer_designation": "C"
+      },
+      {
+        "question": "{\"question_id\":754,\"construct_id\":1007,\"construct_name\":\"Given a sketch of a quadratic graph in the form (x + p)\u00b2 + q, work out its completed the square form\",\"subject_id\":267,\"subject_name\":\"Sketching from Completing the Square Form\",\"correct_answer\":\"B\",\"question_text\":\"Sally wants to write the equation of the curve in the form \\\\( y=(\\\\boldsymbol{x}+\\\\boldsymbol{p})^{2}+\\\\boldsymbol{q} \\\\).\\nWhat is the value of \\\\( \\\\boldsymbol{p} \\\\) ? ![A set of axes with the quadratic graph y=x^2-2x-3 drawn on.]()\",\"answer_a_text\":\"\\\\( 1 \\\\)\",\"answer_b_text\":\"\\\\( -1 \\\\)\",\"answer_c_text\":\"\\\\( 4 \\\\)\",\"answer_d_text\":\"\\\\( -4 \\\\)\",\"misconception_a_id\":1537,\"misconception_b_id\":null,\"misconception_c_id\":141,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( 1 \\\\)\",\"\\\\( -1 \\\\)\",\"\\\\( 4 \\\\)\",\"\\\\( -4 \\\\)\"],\"correct_answer_text\":\"\\\\( -1 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 1 \\\\)\",\"\\\\( 4 \\\\)\",\"\\\\( -4 \\\\)\"]}",
+        "wrong_answer_designation": "A"
+      },
+      {
+        "question": "{\"question_id\":1144,\"construct_id\":1526,\"construct_name\":\"Substitute positive integer values into expressions involving powers or roots\",\"subject_id\":67,\"subject_name\":\"Substitution into Formula\",\"correct_answer\":\"A\",\"question_text\":\"When \\\\( h=5 \\\\)\\n\\\\(\\nh^{2}=\\n\\\\)\",\"answer_a_text\":\"\\\\( 25 \\\\)\",\"answer_b_text\":\"\\\\( 10 \\\\)\",\"answer_c_text\":\"\\\\( 7 \\\\)\",\"answer_d_text\":\"\\\\( 52 \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":1072,\"misconception_c_id\":948,\"misconception_d_id\":2352,\"all_answers_text\":[\"\\\\( 25 \\\\)\",\"\\\\( 10 \\\\)\",\"\\\\( 7 \\\\)\",\"\\\\( 52 \\\\)\"],\"correct_answer_text\":\"\\\\( 25 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 10 \\\\)\",\"\\\\( 7 \\\\)\",\"\\\\( 52 \\\\)\"]}",
+        "wrong_answer_designation": "D"
+      },
+      {
+        "question": "{\"question_id\":277,\"construct_id\":1507,\"construct_name\":\"Solve a linear equation using a function machine\",\"subject_id\":64,\"subject_name\":\"Linear Equations\",\"correct_answer\":\"D\",\"question_text\":\"Look at the function machine. ![An image of two function machines. The first function machine has x as the input. The first function is divide by 3 and the second is +4. The output is 5. The second function machine is the reverse of the first so now 5 is the input but the two function boxes have been left blank.]() What would be the correct steps to solve this equation?\\n\\\\(\\\\frac{x}{3}+4=5\\\\)\",\"answer_a_text\":\"\\\\( \\\\begin{array}{l}\\\\times 3 \\\\\\\\ -4\\\\end{array} \\\\)\",\"answer_b_text\":\"\\\\( \\\\begin{array}{l}\\\\div 3 \\\\\\\\ +4\\\\end{array} \\\\)\",\"answer_c_text\":\"\\\\( \\\\begin{array}{r}+4 \\\\\\\\ \\\\times 3\\\\end{array} \\\\)\",\"answer_d_text\":\"\\\\( \\\\begin{array}{l}-4 \\\\\\\\ \\\\times 3\\\\end{array} \\\\)\",\"misconception_a_id\":1026,\"misconception_b_id\":null,\"misconception_c_id\":null,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( \\\\begin{array}{l}\\\\times 3 \\\\\\\\ -4\\\\end{array} \\\\)\",\"\\\\( \\\\begin{array}{l}\\\\div 3 \\\\\\\\ +4\\\\end{array} \\\\)\",\"\\\\( \\\\begin{array}{r}+4 \\\\\\\\ \\\\times 3\\\\end{array} \\\\)\",\"\\\\( \\\\begin{array}{l}-4 \\\\\\\\ \\\\times 3\\\\end{array} \\\\)\"],\"correct_answer_text\":\"\\\\( \\\\begin{array}{l}-4 \\\\\\\\ \\\\times 3\\\\end{array} \\\\)\",\"incorrect_answers_text\":[\"\\\\( \\\\begin{array}{l}\\\\times 3 \\\\\\\\ -4\\\\end{array} \\\\)\",\"\\\\( \\\\begin{array}{l}\\\\div 3 \\\\\\\\ +4\\\\end{array} \\\\)\",\"\\\\( \\\\begin{array}{r}+4 \\\\\\\\ \\\\times 3\\\\end{array} \\\\)\"]}",
+        "wrong_answer_designation": "C"
+      },
+      {
+        "question": "{\"question_id\":1692,\"construct_id\":1428,\"construct_name\":\"Factorise a quadratic expression in the form x\u00b2 + bx + c\",\"subject_id\":53,\"subject_name\":\"Factorising into a Double Bracket\",\"correct_answer\":\"C\",\"question_text\":\"Factorise this expression, if possible:\\n\\\\(\\np^{2}+25 p+100\\n\\\\)\",\"answer_a_text\":\"\\\\( (p+25)(p+4) \\\\)\",\"answer_b_text\":\"\\\\( (p+5)(p+5) \\\\)\",\"answer_c_text\":\"\\\\( (p+5)(p+20) \\\\)\",\"answer_d_text\":\"Does not factorise\",\"misconception_a_id\":1535,\"misconception_b_id\":1606,\"misconception_c_id\":null,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( (p+25)(p+4) \\\\)\",\"\\\\( (p+5)(p+5) \\\\)\",\"\\\\( (p+5)(p+20) \\\\)\",\"Does not factorise\"],\"correct_answer_text\":\"\\\\( (p+5)(p+20) \\\\)\",\"incorrect_answers_text\":[\"\\\\( (p+25)(p+4) \\\\)\",\"\\\\( (p+5)(p+5) \\\\)\",\"Does not factorise\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":1356,\"construct_id\":3357,\"construct_name\":\"Round non-integers to other non-integer values (e.g. 0.02)\",\"subject_id\":214,\"subject_name\":\"Rounding to Decimal Places\",\"correct_answer\":\"A\",\"question_text\":\"What is \\\\( \\\\mathbf{1 . 5 1 6} \\\\) rounded to the nearest \\\\( \\\\mathbf{0 . 0 5} \\\\) ?\",\"answer_a_text\":\"\\\\( 1.50 \\\\)\",\"answer_b_text\":\"\\\\( 1.51 \\\\)\",\"answer_c_text\":\"\\\\( 1.55 \\\\)\",\"answer_d_text\":\"\\\\( 1.52 \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":null,\"misconception_c_id\":1988,\"misconception_d_id\":1248,\"all_answers_text\":[\"\\\\( 1.50 \\\\)\",\"\\\\( 1.51 \\\\)\",\"\\\\( 1.55 \\\\)\",\"\\\\( 1.52 \\\\)\"],\"correct_answer_text\":\"\\\\( 1.50 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 1.51 \\\\)\",\"\\\\( 1.55 \\\\)\",\"\\\\( 1.52 \\\\)\"]}",
+        "wrong_answer_designation": "D"
+      },
+      {
+        "question": "{\"question_id\":738,\"construct_id\":2674,\"construct_name\":\"Rotate an object or point 900 clockwise or anticlockwise about a point, where the point lies on the edge or outside of the object\",\"subject_id\":93,\"subject_name\":\"Rotation\",\"correct_answer\":\"D\",\"question_text\":\"The blue shape is rotated \\\\( 90^{\\\\circ} \\\\) anticlockwise about \\\\( (-2,2) \\\\). Which shape gives the correct answer? ![A coordinate grid with 5 congruent shapes, one blue and 4 red, which are labelled A, B, C and D. The blue shape has vertices at (-3,5) (-3,4) (-2,4) (-2,3) and (-3,3). Shape A has vertices at (-1,2) (0,2) (1,2) (0,1) (-1,1). Shape B has vertices at (0,-2) (1,-2) (1,-3) (0,-3) (-1,-3). Shape C has vertices at (-4,-2) (-3,-2) (-3,-3) (-4,-3) (-5,-3). Shape D has vertices at (-4,2) (-3,2) (-3,1) (-4,1) (-5,1).]()\",\"answer_a_text\":\"A\",\"answer_b_text\":\"B\",\"answer_c_text\":\"C\",\"answer_d_text\":\"D\",\"misconception_a_id\":860,\"misconception_b_id\":1488,\"misconception_c_id\":1640,\"misconception_d_id\":null,\"all_answers_text\":[\"A\",\"B\",\"C\",\"D\"],\"correct_answer_text\":\"D\",\"incorrect_answers_text\":[\"A\",\"B\",\"C\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":1513,\"construct_id\":414,\"construct_name\":\"Order fractions whose denominators are multiples of the same number \",\"subject_id\":228,\"subject_name\":\"Ordering Fractions\",\"correct_answer\":\"A\",\"question_text\":\"In a bakery \\\\( \\\\frac{2}{5} \\\\) of the cakes are chocolate, \\\\( \\\\frac{3}{8} \\\\) of the cakes are vanilla and \\\\( \\\\frac{13}{40} \\\\) are lemon.\\nWhich flavour cake is there more of?\",\"answer_a_text\":\"Chocolate\",\"answer_b_text\":\"Vanilla\",\"answer_c_text\":\"Lemon\",\"answer_d_text\":\"There is the same amount of each.\",\"misconception_a_id\":null,\"misconception_b_id\":684,\"misconception_c_id\":684,\"misconception_d_id\":684,\"all_answers_text\":[\"Chocolate\",\"Vanilla\",\"Lemon\",\"There is the same amount of each.\"],\"correct_answer_text\":\"Chocolate\",\"incorrect_answers_text\":[\"Vanilla\",\"Lemon\",\"There is the same amount of each.\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":145,\"construct_id\":445,\"construct_name\":\"Multiply mixed number fraction in the form: Fraction \u00d7 Fraction\",\"subject_id\":231,\"subject_name\":\"Multiplying Fractions\",\"correct_answer\":\"D\",\"question_text\":\"\\\\( 1 \\\\frac{1}{2} \\\\times 3 \\\\frac{2}{3}=\\\\bigstar\\\\frac{3}{6} \\\\) What should replace the star?\",\"answer_a_text\":\"\\\\( 3 \\\\)\",\"answer_b_text\":\"\\\\( 7 \\\\)\",\"answer_c_text\":\"\\\\( 4 \\\\)\",\"answer_d_text\":\"\\\\( 5 \\\\)\",\"misconception_a_id\":1807,\"misconception_b_id\":null,\"misconception_c_id\":1915,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( 3 \\\\)\",\"\\\\( 7 \\\\)\",\"\\\\( 4 \\\\)\",\"\\\\( 5 \\\\)\"],\"correct_answer_text\":\"\\\\( 5 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 3 \\\\)\",\"\\\\( 7 \\\\)\",\"\\\\( 4 \\\\)\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":445,\"construct_id\":1407,\"construct_name\":\"Expand two brackets with linear terms in the form (x + a)(x + b)\",\"subject_id\":51,\"subject_name\":\"Expanding Double Brackets\",\"correct_answer\":\"C\",\"question_text\":\"What should replace the circle when these two brackets are expanded and simplified?\\n\\\\(\\n(p-5)(p+2) \\\\equiv p^{2} \\\\triangle p \\\\bigcirc\\n\\\\)\",\"answer_a_text\":\"\\\\( \\\\bigcirc=-7 \\\\)\",\"answer_b_text\":\"\\\\( \\\\bigcirc=-3 \\\\)\",\"answer_c_text\":\"\\\\( \\\\bigcirc=-10 \\\\)\",\"answer_d_text\":\"\\\\( \\\\bigcirc=+10 \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":2256,\"misconception_c_id\":null,\"misconception_d_id\":974,\"all_answers_text\":[\"\\\\( \\\\bigcirc=-7 \\\\)\",\"\\\\( \\\\bigcirc=-3 \\\\)\",\"\\\\( \\\\bigcirc=-10 \\\\)\",\"\\\\( \\\\bigcirc=+10 \\\\)\"],\"correct_answer_text\":\"\\\\( \\\\bigcirc=-10 \\\\)\",\"incorrect_answers_text\":[\"\\\\( \\\\bigcirc=-7 \\\\)\",\"\\\\( \\\\bigcirc=-3 \\\\)\",\"\\\\( \\\\bigcirc=+10 \\\\)\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":128,\"construct_id\":3119,\"construct_name\":\"Use brackets to write function machines as calculations\",\"subject_id\":70,\"subject_name\":\"Writing Expressions\",\"correct_answer\":\"A\",\"question_text\":\"Jo and Paul are arguing about the result of this Function Machine:\\nJo says the output is: \\\\( \\\\frac{n}{5}+3 \\\\)\\nPaul says the output is: \\\\( \\\\frac{n+3}{5} \\\\)\\nWho is correct? ![A function machine showing an input of n and operations divide by 5 and add 3]()\",\"answer_a_text\":\"Only\\nJo\",\"answer_b_text\":\"Only\\nPaul\",\"answer_c_text\":\"Both Jo and Paul\",\"answer_d_text\":\"Neither is correct\",\"misconception_a_id\":null,\"misconception_b_id\":77,\"misconception_c_id\":77,\"misconception_d_id\":null,\"all_answers_text\":[\"Only\\nJo\",\"Only\\nPaul\",\"Both Jo and Paul\",\"Neither is correct\"],\"correct_answer_text\":\"Only\\nJo\",\"incorrect_answers_text\":[\"Only\\nPaul\",\"Both Jo and Paul\",\"Neither is correct\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":1421,\"construct_id\":1806,\"construct_name\":\"Find missing angles in a scalene triangle\",\"subject_id\":439,\"subject_name\":\"Angles in Triangles\",\"correct_answer\":\"C\",\"question_text\":\"What is the size of angle \\\\( p \\\\) ? ![A triangle with angles labelled 49 degrees, 51 degrees and p [not to scale]]()\",\"answer_a_text\":\"\\\\( 51^{\\\\circ} \\\\)\",\"answer_b_text\":\"\\\\( 70^{\\\\circ} \\\\)\",\"answer_c_text\":\"\\\\( 80^{\\\\circ} \\\\)\",\"answer_d_text\":\"Not enough information\",\"misconception_a_id\":1321,\"misconception_b_id\":null,\"misconception_c_id\":null,\"misconception_d_id\":0,\"all_answers_text\":[\"\\\\( 51^{\\\\circ} \\\\)\",\"\\\\( 70^{\\\\circ} \\\\)\",\"\\\\( 80^{\\\\circ} \\\\)\",\"Not enough information\"],\"correct_answer_text\":\"\\\\( 80^{\\\\circ} \\\\)\",\"incorrect_answers_text\":[\"\\\\( 51^{\\\\circ} \\\\)\",\"\\\\( 70^{\\\\circ} \\\\)\",\"Not enough information\"]}",
+        "wrong_answer_designation": "B"
+      },
+      {
+        "question": "{\"question_id\":65,\"construct_id\":1492,\"construct_name\":\"Solve quadratic equations using the quadratic formula where the coefficient of x\u00b2 is 1 \",\"subject_id\":65,\"subject_name\":\"Quadratic Equations\",\"correct_answer\":\"D\",\"question_text\":\"Vera wants to solve this equation using the quadratic formula.\\n\\\\(\\nh^{2}+4=5 h\\n\\\\)\\n\\nWhat should replace the triangle? ![The image shows the structure of the quadratic formula. It says plus or minus the square root, and the triangle is the first thing after the square root sign, with a minus sign after it.]()\",\"answer_a_text\":\"\\\\( 8 \\\\)\",\"answer_b_text\":\"\\\\( -10 \\\\)\",\"answer_c_text\":\"\\\\( 16 \\\\)\",\"answer_d_text\":\"\\\\( 25 \\\\)\",\"misconception_a_id\":null,\"misconception_b_id\":2316,\"misconception_c_id\":2245,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( 8 \\\\)\",\"\\\\( -10 \\\\)\",\"\\\\( 16 \\\\)\",\"\\\\( 25 \\\\)\"],\"correct_answer_text\":\"\\\\( 25 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 8 \\\\)\",\"\\\\( -10 \\\\)\",\"\\\\( 16 \\\\)\"]}",
+        "wrong_answer_designation": "A"
+      },
+      {
+        "question": "{\"question_id\":866,\"construct_id\":3326,\"construct_name\":\"Count backwards through zero starting from a positive integer\",\"subject_id\":211,\"subject_name\":\"Adding and Subtracting Negative Numbers\",\"correct_answer\":\"C\",\"question_text\":\"![A number line going from -8 up to 7]() Asha's office is on level \\\\( 7 \\\\).\\nHer car is parked in the basement on level \\\\( -2 \\\\).\\n\\nHow many floors does Asha need to go down to get from the office to her car?\",\"answer_a_text\":\"\\\\( 10 \\\\)\",\"answer_b_text\":\"\\\\( 5 \\\\)\",\"answer_c_text\":\"\\\\( 9 \\\\)\",\"answer_d_text\":\"\\\\( 7 \\\\)\",\"misconception_a_id\":1824,\"misconception_b_id\":null,\"misconception_c_id\":null,\"misconception_d_id\":626,\"all_answers_text\":[\"\\\\( 10 \\\\)\",\"\\\\( 5 \\\\)\",\"\\\\( 9 \\\\)\",\"\\\\( 7 \\\\)\"],\"correct_answer_text\":\"\\\\( 9 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 10 \\\\)\",\"\\\\( 5 \\\\)\",\"\\\\( 7 \\\\)\"]}",
+        "wrong_answer_designation": "A"
+      },
+      {
+        "question": "{\"question_id\":992,\"construct_id\":384,\"construct_name\":\"Convert integer percentages with 1 digit to decimals \",\"subject_id\":239,\"subject_name\":\"Converting between Decimals and Percentages\",\"correct_answer\":\"C\",\"question_text\":\"How do you write \\\\( 2 \\\\% \\\\) as a decimal?\",\"answer_a_text\":\"\\\\( 0.2 \\\\)\",\"answer_b_text\":\"\\\\( 2.0 \\\\)\",\"answer_c_text\":\"\\\\( 0.02 \\\\)\",\"answer_d_text\":\"\\\\( 200 \\\\)\",\"misconception_a_id\":619,\"misconception_b_id\":329,\"misconception_c_id\":null,\"misconception_d_id\":1204,\"all_answers_text\":[\"\\\\( 0.2 \\\\)\",\"\\\\( 2.0 \\\\)\",\"\\\\( 0.02 \\\\)\",\"\\\\( 200 \\\\)\"],\"correct_answer_text\":\"\\\\( 0.02 \\\\)\",\"incorrect_answers_text\":[\"\\\\( 0.2 \\\\)\",\"\\\\( 2.0 \\\\)\",\"\\\\( 200 \\\\)\"]}",
+        "wrong_answer_designation": "D"
+      },
+      {
+        "question": "{\"question_id\":1216,\"construct_id\":1276,\"construct_name\":\"Simplify algebraic expressions to maintain equivalence by collecting like terms involving non-linear variables\",\"subject_id\":50,\"subject_name\":\"Expanding Single Brackets\",\"correct_answer\":\"D\",\"question_text\":\"\\\\(\\nx(2 x-1)+3(4 x-2) \\\\equiv P x^{2}+Q x+R\\n\\\\)\\n\\nWhat is the value of \\\\( R \\\\) ?\",\"answer_a_text\":\"\\\\( -2 \\\\)\",\"answer_b_text\":\"\\\\( -3 \\\\)\",\"answer_c_text\":\"\\\\( -7 \\\\)\",\"answer_d_text\":\"\\\\( -6 \\\\)\",\"misconception_a_id\":220,\"misconception_b_id\":373,\"misconception_c_id\":373,\"misconception_d_id\":null,\"all_answers_text\":[\"\\\\( -2 \\\\)\",\"\\\\( -3 \\\\)\",\"\\\\( -7 \\\\)\",\"\\\\( -6 \\\\)\"],\"correct_answer_text\":\"\\\\( -6 \\\\)\",\"incorrect_answers_text\":[\"\\\\( -2 \\\\)\",\"\\\\( -3 \\\\)\",\"\\\\( -7 \\\\)\"]}",
+        "wrong_answer_designation": "C"
+      }
+    ],
+    "signature": {
+      "instructions": "Decide whether the misconception is the specific underlying reason for the wrong answer to the question.",
+      "fields": [
+        {
+          "prefix": "Question:",
+          "description": "The original mathematical question."
+        },
+        {
+          "prefix": "Right Answer:",
+          "description": "The correct answer given to the question."
+        },
+        {
+          "prefix": "Wrong Answer:",
+          "description": "The incorrect answer that was chosen."
+        },
+        {
+          "prefix": "Misconception:",
+          "description": "The misconception to consider as the potential specific underlying reason for the wrong answer."
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Misconception Underlies Wrong Answer:",
+          "description": "Boolean indicating whether the misconception is the specific underlying reason for the wrong answer."
+        }
+      ]
+    },
+    "extended_signature": {
+      "instructions": "Decide whether the misconception is the specific underlying reason for the wrong answer to the question.",
+      "fields": [
+        {
+          "prefix": "Question:",
+          "description": "The original mathematical question."
+        },
+        {
+          "prefix": "Right Answer:",
+          "description": "The correct answer given to the question."
+        },
+        {
+          "prefix": "Wrong Answer:",
+          "description": "The incorrect answer that was chosen."
+        },
+        {
+          "prefix": "Misconception:",
+          "description": "The misconception to consider as the potential specific underlying reason for the wrong answer."
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Misconception Underlies Wrong Answer:",
+          "description": "Boolean indicating whether the misconception is the specific underlying reason for the wrong answer."
+        }
+      ]
+    }
+  }
+}
