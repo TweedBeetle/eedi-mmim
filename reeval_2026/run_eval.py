@@ -121,6 +121,33 @@ def plain(obj):
     return obj
 
 
+def _retrying(fn, attempts=7):
+    """Retry Weaviate queries whose query-side vectorization failed transiently (Ollama drops
+    connections under concurrent load). Harness-level only: the query and ranking are unchanged."""
+    import time
+    from weaviate.exceptions import WeaviateQueryError
+
+    def wrapper(*args, **kwargs):
+        for i in range(attempts):
+            try:
+                return fn(*args, **kwargs)
+            except WeaviateQueryError:
+                if i == attempts - 1:
+                    raise
+                time.sleep(2 ** i)
+    return wrapper
+
+
+def install_retrieval_retry():
+    import src.dspy_program as dp
+    import src.my_weaviate as mw
+    if not getattr(mw.retrieve_misconceptions, "_retrying", False):
+        wrapped = _retrying(mw.retrieve_misconceptions)
+        wrapped._retrying = True
+        mw.retrieve_misconceptions = wrapped
+        dp.retrieve_misconceptions = wrapped
+
+
 def heldout_examples(limit: int | None):
     rows = json.loads((OUT / "heldout.json").read_text())["rows"]
     questions = {q.question_id: q for q in load_train_data(str(mmim_data_path / "train.csv"))}
@@ -136,7 +163,7 @@ def rank_of(ids, truth):
 
 
 def run_retrieval(row, question, client):
-    from src.my_weaviate import retrieve_misconceptions
+    from src.my_weaviate import retrieve_misconceptions  # the retrying wrapper once installed
     designation = AnswerDesignation(row["wrong_answer"])
     query = (f"Question: {question.question_text}\n"
              f"Correct answer: {question.correct_answer_text}\n"
@@ -168,6 +195,8 @@ def main():
     todo = [(r, q) for r, q in heldout_examples(args.limit) if (r["question_id"], r["wrong_answer"]) not in done]
     print(f"arm {args.arm}: {len(done)} done, {len(todo)} to run, ledger ${ledger_total():.4f}")
 
+    from weaviate.exceptions import WeaviateQueryError
+    install_retrieval_retry()
     program = lm = None
     if args.arm == "retrieval":
         from src.my_weaviate import get_weaviate_client
@@ -198,6 +227,8 @@ def main():
                     pred = program(question=question, wrong_answer_designation=designation)
                     record["predicted_ids"] = pred.misconception_ids
                     record["error"] = None
+                except WeaviateQueryError:
+                    raise  # infrastructure failure after retries: no record, row stays to-do on resume
                 except Exception as exc:  # recorded explicitly, scored as a miss, counted in results
                     record["predicted_ids"] = []
                     record["error"] = f"{type(exc).__name__}: {exc}"[:500]
