@@ -1,0 +1,78 @@
+{
+  "generate_misconception_query.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "Identify the misconception that lead to the wrong answer.",
+      "fields": [
+        {
+          "prefix": "Question:",
+          "description": "The original mathematical question."
+        },
+        {
+          "prefix": "Right Answer:",
+          "description": "The correct answer given to the question."
+        },
+        {
+          "prefix": "Wrong Answer:",
+          "description": "The incorrect answer given to the question."
+        },
+        {
+          "prefix": "Reasoning:",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Misconception Description:",
+          "description": "The misconception that lead to the wrong answer."
+        }
+      ]
+    },
+    "lm": null
+  },
+  "retrieve_misconceptions": {
+    "k": 25
+  },
+  "classify_misconception.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "Decide whether the misconception is the specific underlying reason for the wrong answer to the question.",
+      "fields": [
+        {
+          "prefix": "Question:",
+          "description": "The original mathematical question."
+        },
+        {
+          "prefix": "Right Answer:",
+          "description": "The correct answer given to the question."
+        },
+        {
+          "prefix": "Wrong Answer:",
+          "description": "The incorrect answer that was chosen."
+        },
+        {
+          "prefix": "Misconception:",
+          "description": "The misconception to consider as the potential specific underlying reason for the wrong answer."
+        },
+        {
+          "prefix": "Reasoning:",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Misconception Underlies Wrong Answer:",
+          "description": "Boolean indicating whether the misconception is the specific underlying reason for the wrong answer."
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.11",
+      "dspy": "3.3.1",
+      "cloudpickle": "3.1"
+    }
+  }
+}
