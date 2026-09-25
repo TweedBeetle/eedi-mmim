@@ -107,6 +107,10 @@ costs are the `estimated_cost` DeepInfra returns with each response.
 ## Reproduce
 
 ```bash
+# competition data (not included in this repository; the competition rules do not allow redistribution):
+# download it from https://www.kaggle.com/competitions/eedi-mining-misconceptions-in-mathematics/data
+# and unpack the four CSV files into "data/Eedi Mining Misconceptions/"
+
 # environment (Python 3.11, uv); exact versions in reeval_2026/requirements.lock.txt
 uv venv -p 3.11 .venv && uv pip install --python .venv/bin/python -r reeval_2026/requirements.lock.txt
 ollama pull nomic-embed-text            # Ollama server running on :11434

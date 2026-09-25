@@ -22,3 +22,6 @@ __pycache__/
 poetry.lock
 scratch/
 .venv/
+
+# Kaggle competition data: not redistributed, download from Kaggle
+data/Eedi Mining Misconceptions/
